@@ -1,22 +1,25 @@
 waow. wad2
 
-# setting up 
+# setting up
 
 ```bat
 git clone https://github.com/lineonthepaper/wad2-project
 ```
 
 # to pull
-```bat 
+
+```bat
 git pull
 ```
 
-# to push 
-```bat 
+# to push
+
+```bat
 git add .
 git commit -m "your commit messages"
 git push
 ```
+
 # remember to pull before pushing
 
 # wad2-project
@@ -78,4 +81,18 @@ npm run test:e2e -- --debug
 
 ```sh
 npm run lint
+```
+
+# vercel commands
+
+Deploy without pushing to github
+
+```sh
+vercel --prod
+```
+
+Update local env file
+
+```sh
+vercel env pull
 ```
