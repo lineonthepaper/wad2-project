@@ -1,35 +1,102 @@
 @import './base.css';
 
+@font-face {
+  font-family: 'Jua', sans-serif;
+  src: url('https://fonts.googleapis.com/css2?family=Jua');
+  font-display: auto;
+}
+
+@font-face {
+  font-family: 'Quicksand', sans-serif;
+  src: url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700');
+  font-display: auto;
+  font-optical-sizing: auto;
+}
+
+.jua {
+  font-family: 'Jua', sans-serif;
+}
+
+h1.jua.text-hot-pink {
+  -webkit-text-stroke-width: 2px;
+  -webkit-text-stroke-color: #ff4275;
+}
+
+.text-hot-pink {
+  color: #ff4275;
+}
+
+.text-dark-pink {
+  color: #ff759e;
+}
+
+.text-pink {
+  color: #ff9096;
+}
+
+.text-dark-slate-blue {
+  color: #455a64;
+}
+
+.text-slate-blue {
+  color: #8796b3;
+}
+
+.bg-light-pink {
+  background-color: #ffe8ee;
+}
+
+.bg-pink-grey {
+  background-color: #f1d9df;
+}
+
+.quicksand-semibold {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+}
+
+.btn-pink {
+  background-color: #ff759e !important;
+  transition-duration: 0.4s;
+  border: 1px solid #ff759e !important;
+  color: white !important;
+}
+
+.btn-pink:hover {
+  background-color: white !important;
+  color: #ff759e !important;
+  border: 1px solid #ff759e !important;
+}
+
+hr {
+  margin: 8px 0px !important;
+  color: #ff4275 !important;
+  height: 2px;
+  background-color: #ff4275;
+}
+
+/* effectively the same as body for our case*/
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+  background-color: white;
+  font-family: 'Quicksand';
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+.header {
+  background-image: url('../assets/pink_cloud_with_bg.png');
+  background-position: right bottom;
+  background-size: 40% 110%;
+  background-repeat: no-repeat;
+  padding: 48px;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+@media (max-width: 768px) {
+  .header {
+    background-size: 50% 110%;
   }
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+@media (max-width: 576px) {
+  .header {
+    background-size: 80% 40%;
   }
 }

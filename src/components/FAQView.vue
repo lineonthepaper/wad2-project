@@ -1,0 +1,1 @@
+<template>the faq</template>
