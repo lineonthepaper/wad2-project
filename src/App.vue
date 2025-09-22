@@ -8,7 +8,7 @@ TODO:
 import HeadLoader from './components/HeadLoader.vue'
 import NavBar from './components/NavBar.vue'
 
-import router from './router/index.js'
+import router from './router/routes.js'
 
 var path = router.currentRoute._value.path
 </script>
