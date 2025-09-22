@@ -3,6 +3,7 @@
 ## Address
 
 Constructor: int $addressId, string $name, string $email, int $phone, int $phoneCountryCode, array $address
+
 Format of array $address:
 [
     "address" => [$addressLine1, $addressLine2, $addressLine3],
@@ -48,6 +49,7 @@ Methods:
 ## Mail
 
 Constructor: int $mailId, int $customerEmail, int $senderAddressId, int $recipientAddressId, array $mailItems, float $parcelLength, float $parcelWidth, float $parcelHeight, array $service
+
 Format of array $service:
 [
 "name" => $serviceName,
