@@ -95,3 +95,30 @@ Static methods:
     ]
 - isMailPaid(int $mailId): bool
 - getMailTrackingNum(int $mailId): int
+
+## Account
+
+Constructor: int $accountId, string $displayName, string $email, string $passwordHashed, bool $isStaff
+
+Static methods:
+
+- hashPassword(string $password): string
+
+Methods:
+
+- getAccountId(): int
+- getDisplayName(): string
+- getEmail(): string
+- isStaff(): bool
+- getPasswordHashed(): string
+- verifyPassword(string $password): bool
+
+## AccountDAO
+
+Static methods:
+
+- addAccount(Account $accountObj): void
+- getAccountById(int $accountId): Account
+- updatePassword(int $accountId, string $newPasswordHashed): void
+- updateDisplayName(int $accountId, string $newDisplayName): void
+- updateEmail(int $accountId, string $newEmail): void
