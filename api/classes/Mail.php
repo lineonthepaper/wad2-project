@@ -98,7 +98,7 @@ class Mail
 
     public function getPostageRate(): float
     {
-        $rates = MailDAO::getServiceRate($this->getService());
+        $rates = new MailDAO()->getServiceRate($this->getService());
 
         $baseRate = $rates["baseRate"];
         $addRate = $rates["addRate"];

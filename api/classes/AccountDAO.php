@@ -1,43 +1,106 @@
 <?php
 
-require_once "common.php";
+require_once __DIR__ . "/../common.php";
 
 class AccountDAO
 {
-    public static function addAccount(Account $accountObj): void
+    private $conn;
+    public function __construct(bool $useServer = true)
     {
-        $conn = ConnectionManager::connect();
-
-        // tbd
+        $this->conn = ConnectionManager::connect($useServer);
     }
 
-    public static function getAccountById(int $accountId): Account
+    public function addAccount(string $displayName, string $email, string $passwordHashed, bool $isStaff): bool
     {
-        $conn = ConnectionManager::connect();
+        $query = "insert into 
+        account(display_name, email, pw_hashed, is_staff)
+        values($1, $2, $3, $4)
+        ";
+        $params = [
+            $displayName,
+            $email,
+            $passwordHashed,
+            $isStaff
+        ];
 
-        // tbd
+        $success = pg_query_params($this->conn, $query, $params);
 
-        return new Account(0, "", "", "", false);
+        return $success !== false;
     }
 
-    public static function updatePassword(int $accountId, string $newPasswordHashed): void
+    public function getAccountById(int $accountId): ?Account
     {
-        $conn = ConnectionManager::connect();
 
-        // tbd
+        $query = "select account_id, display_name, pw_hashed, is_staff, email from account
+        where account_id = $1";
+        $params = [$accountId];
+
+        $res = pg_fetch_array(pg_query_params($this->conn, $query, $params), 0, PGSQL_ASSOC);
+
+        if ($res == false) {
+            return null;
+        }
+
+        return new Account(
+            (int)$res["account_id"],
+            $res["display_name"],
+            $res["email"],
+            $res["pw_hashed"],
+            $res["is_staff"] === "t" ? true : false
+        );
     }
 
-    public static function updateDisplayName(int $accountId, string $newDisplayName): void
+    public function getAccountByEmail(string $email): ?Account
     {
-        $conn = ConnectionManager::connect();
 
-        // tbd
+        $query = "select account_id, display_name, pw_hashed, is_staff, email from account
+        where email = $1";
+        $params = [$email];
+
+        $res = pg_fetch_array(pg_query_params($this->conn, $query, $params), 0, PGSQL_ASSOC);
+
+        if ($res == false) {
+            return null;
+        }
+
+        return new Account(
+            (int)$res["account_id"],
+            $res["display_name"],
+            $res["email"],
+            $res["pw_hashed"],
+            $res["is_staff"] === "t" ? true : false
+        );
     }
 
-    public static function updateEmail(int $accountId, string $newEmail): void
+    public function updatePassword(int $accountId, string $newPasswordHashed): bool
     {
-        $conn = ConnectionManager::connect();
 
-        // tbd
+        $query = "update account set pw_hashed = $1 where account_id = $2";
+        $params = [$newPasswordHashed, $accountId];
+
+        $success = pg_query_params($this->conn, $query, $params);
+
+        return $success !== false;
+    }
+
+    public function updateDisplayName(int $accountId, string $newDisplayName): bool
+    {
+        $query = "update account set display_name = $1 where account_id = $2";
+        $params = [$newDisplayName, $accountId];
+
+        $success = pg_query_params($this->conn, $query, $params);
+
+        return $success !== false;
+    }
+
+    public function updateEmail(int $accountId, string $newEmail): bool
+    {
+
+        $query = "update account set email = $1 where account_id = $2";
+        $params = [$newEmail, $accountId];
+
+        $success = pg_query_params($this->conn, $query, $params);
+
+        return $success !== false;
     }
 }

@@ -1,5 +1,9 @@
 # Classes
 
+## ConnectionManager
+
+Constructor: bool $useServer = true
+
 ## Address
 
 Constructor: int $addressId, string $name, string $email, int $phone, int $phoneCountryCode, array $address
@@ -73,9 +77,11 @@ Methods:
 
 ## MailDAO
 
-Static methods:
+Constructor: bool $userServer = true
 
-- insertMail(Mail $mailObj): void
+Methods:
+
+- insertMail(int $customerEmail, int $senderAddressId, int $recipientAddressId, array $mailItems, float $parcelLength, float $parcelWidth, float $parcelHeight, array $service): void
 - getMailById(int $mailId): Mail
 - getAllMailByCustomerEmail(string $customerEmail): array of Mail
 - getAddressById(int $addressId): Address
@@ -117,10 +123,26 @@ Methods:
 
 ## AccountDAO
 
-Static methods:
+Constructor: bool $userServer = true
 
-- addAccount(Account $accountObj): void
-- getAccountById(int $accountId): Account
-- updatePassword(int $accountId, string $newPasswordHashed): void
-- updateDisplayName(int $accountId, string $newDisplayName): void
-- updateEmail(int $accountId, string $newEmail): void
+Methods:
+
+- addAccount(string $displayName, string $email, string $passwordHashed, bool $isStaff): bool
+- getAccountById(int $accountId): ?Account
+- getAccountByEmail(string $email): ?Account
+- updatePassword(int $accountId, string $newPasswordHashed): bool
+- updateDisplayName(int $accountId, string $newDisplayName): bool
+- updateEmail(int $accountId, string $newEmail): bool
+
+# Tests
+
+## AccountTest.php
+
+Tests Account, AccountDAO:
+
+- testAddAccount
+- testGetAccountById
+- testGetAccountByEmail
+- testUpdatePassword
+- testUpdateDisplayName
+- testUpdateEmail

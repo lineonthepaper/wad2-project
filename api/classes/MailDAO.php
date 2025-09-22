@@ -1,59 +1,67 @@
 <?php
-require_once "common.php";
+require_once __DIR__ . "/../common.php";
 
 // DAO for accessing Address, Mail Item, Mail Status, Mail data in the DB.
 class MailDAO
 {
-    public static function insertMail(Mail $mailObj): void
+    private $conn;
+    public function __construct(bool $server = true)
     {
-        $conn = ConnectionManager::connect();
-
-        // tbd once db is set up
+        $conn = ConnectionManager::connect($server);
     }
 
-    public static function getMailById(int $mailId): Mail
+    public function addMail(
+        int $customerEmail,
+        int $senderAddressId,
+        int $recipientAddressId,
+        array $mailItems,
+        float $parcelLength,
+        float $parcelWidth,
+        float $parcelHeight,
+        array $service
+    ): bool {
+
+        // tbd once db is set up
+        return false;
+    }
+
+    public function getMailById(int $mailId): Mail
     {
-        $conn = ConnectionManager::connect();
         // tbd
         return new Mail(0, 0, 0, 0, [], 0, 0, 0, []);
     }
 
-    public static function getAllMailByCustomerEmail(string $customerEmail): array // of Mail
+    public function getAllMailByCustomerEmail(string $customerEmail): array // of Mail
     {
-        $conn = ConnectionManager::connect();
         // tbd
         return [];
     }
 
-    public static function getAddressById(int $addressId): Address
+    public function getAddressById(int $addressId): Address
     {
-        $conn = ConnectionManager::connect();
         // tbd
         return new Address(1, "", "", 0, 0, []);
     }
 
-    public static function getMailItemById(int $mailItemId): MailItem
+    public function getMailItemById(int $mailItemId): MailItem
     {
-        $conn = ConnectionManager::connect();
         // tbd
         return new MailItem(0, 0, "", "", 0, 0, 0, "");
     }
 
-    public static function getMailStatusesByMailId(int $mailid): array // of MailStatus
+    public function getMailStatusesByMailId(int $mailid): array // of MailStatus
     {
-        $conn = ConnectionManager::connect();
         // tbd
         return [];
     }
 
-    public static function getMailStatusByStatusId(int $statusId): MailStatus
+    public function getMailStatusByStatusId(int $statusId): MailStatus
     {
-        $conn = ConnectionManager::connect();
         // tbd
         return new MailStatus(0, 0, 0, 0, "", "");
     }
 
-    public static function getServiceRate(array $service): array
+    public function getServiceRate(array $service): array
     {
         /*
         Should return array $rates:
@@ -64,12 +72,11 @@ class MailDAO
         "addWeight" => $addWeight
         ]
         */
-        $conn = ConnectionManager::connect();
         // tbd
         return [];
     }
 
-    public static function getServiceTime(array $service): array
+    public function getServiceTime(array $service): array
     {
         /*
         Should return array $period:
@@ -78,19 +85,17 @@ class MailDAO
         "max" => $maxDays
         ]
         */
-        $conn = ConnectionManager::connect();
         // tbd
         return [];
     }
 
-    public static function isMailPaid(int $mailId): bool
+    public function isMailPaid(int $mailId): bool
     {
-        $conn = ConnectionManager::connect();
         //tbd
         return false;
     }
 
-    public static function getMailTrackingNum(int $mailId): int
+    public function getMailTrackingNum(int $mailId): int
     {
         // if untracked, return 0
         // tbd

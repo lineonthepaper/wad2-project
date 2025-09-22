@@ -34,3 +34,8 @@ playwright-report/
 
 .vercel
 .env*.local
+
+/vendor/
+
+/pgsql/
+.phpunit.result.cache

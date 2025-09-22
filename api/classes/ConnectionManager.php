@@ -7,15 +7,19 @@
 
 class ConnectionManager
 {
-    public static function connect()
+    public static function connect(bool $useServer = true)
     {
-        $host = $_ENV['PGHOST'];
-        $port = $_ENV['PGPORT'];
-        $db = $_ENV['PGDATABASE'];
-        $user = $_ENV['PGUSER'];
-        $password = $_ENV['PGPASSWORD'];
+        if ($useServer) {
+            $host = $_ENV['PGHOST'];
+            $port = $_ENV['PGPORT'];
+            $db = $_ENV['PGDATABASE'];
+            $user = $_ENV['PGUSER'];
+            $password = $_ENV['PGPASSWORD'];
 
-        $connection_string = "host=" . $host . " port=" . $port . " dbname=" . $db . " user=" . $user . " password=" . $password . " sslmode=require";
+            $connection_string = "host=" . $host . " port=" . $port . " dbname=" . $db . " user=" . $user . " password=" . $password . " sslmode=require";
+        } else {
+            $connection_string = "host=localhost port=5432 dbname=wad2 user=postgres password=root";
+        }
 
         $conn = pg_connect($connection_string);
 

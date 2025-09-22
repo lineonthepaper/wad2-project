@@ -91,6 +91,12 @@ Deploy without pushing to github
 vercel --prod
 ```
 
+Deploy to preview environment
+
+```sh
+vercel deploy --target=preview
+```
+
 Update local env file
 
 ```sh

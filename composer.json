@@ -1,0 +1,17 @@
+{
+  "name": "lineon/wad2-project",
+  "require-dev": {
+    "phpunit/phpunit": "^9.6"
+  },
+  "autoload": {
+    "classmap": [
+      "api"
+    ]
+  },
+  "authors": [
+    {
+      "name": "lineonthepaper"
+    }
+  ],
+  "description": ""
+}
