@@ -18,6 +18,7 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@unhead/vue": "^2.0.17",
+    "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
