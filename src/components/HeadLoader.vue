@@ -1,7 +1,17 @@
 <script setup>
 import { useHead } from '@unhead/vue'
+import { routes } from '../router/routes.js'
+import { watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const props = defineProps(['title'])
+const route = useRoute()
+var title = ''
+
+for (let r of routes) {
+  if (r.path === route.path) {
+    title = r.title
+  }
+}
 
 useHead({
   meta: [
@@ -19,6 +29,24 @@ useHead({
       rel: 'stylesheet',
     },
   ],
-  titleTemplate: `${props.title} - Fluffy Shipping`,
+  titleTemplate: `%s - Fluffy Shipping`,
 })
+
+const headTitle = useHead({
+  title: title,
+})
+
+watch(
+  () => route.fullPath,
+  async () => {
+    for (let r of routes) {
+      if (r.path === route.path) {
+        title = r.title
+        headTitle.patch({ title: title })
+      }
+    }
+  },
+)
 </script>
+
+<script></script>

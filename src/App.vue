@@ -7,15 +7,10 @@ TODO:
 <script setup>
 import HeadLoader from './components/HeadLoader.vue'
 import NavBar from './components/NavBar.vue'
-
-import router from './router/routes.js'
-
-var path = router.currentRoute._value.path
 </script>
 
 <template>
-  <!-- to fix (not hardcode) -->
-  <HeadLoader title="Home" v-if="path === '/'" />
+  <HeadLoader />
   <header>
     <NavBar />
   </header>
