@@ -1,9 +1,3 @@
-<!--
-TODO:
-- image on the right
-- carousel
-- the nav at the bottom
--->
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 </script>
@@ -19,7 +13,9 @@ import { RouterLink, RouterView } from 'vue-router'
           Why fret when sending parcels? <br />
           Singapore Post to your rescue!
         </p>
-        <button type="button" class="btn btn-pink quicksand-semibold fw-bold">Ship</button>
+        <RouterLink :to="{ name: 'shipment' }"
+          ><button type="button" class="btn btn-pink quicksand-semibold fw-bold">Ship</button>
+        </RouterLink>
       </div>
     </div>
 
@@ -44,10 +40,44 @@ import { RouterLink, RouterView } from 'vue-router'
     </div>
 
     <div class="row justify-content-center text-center py-2">
-      <div class="col-md-3"><RouterLink :to="{ name: 'services' }">Our services</RouterLink></div>
-      <div class="col-md-3"><RouterLink :to="{ name: 'faq' }">FAQ</RouterLink></div>
       <div class="col-md-3">
-        <RouterLink :to="{ name: 'shipment' }">Create shipment</RouterLink>
+        <div class="card">
+          <RouterLink :to="{ name: 'services' }">
+            <img
+              src="../assets/home/services.png"
+              class="service-icon mx-auto"
+              alt="Hand holding up two gears."
+            />
+            <h5 class="card-title">Our services</h5>
+            <p class="px-3">No matter your destination, Fluffy Shipping can ship it!</p>
+          </RouterLink>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <RouterLink :to="{ name: 'faq' }">
+            <img
+              src="../assets/home/faq.png"
+              class="service-icon mx-auto"
+              alt="Two overlapping speech bubbles. The top bubble has a question mark in it."
+            />
+            <h5 class="card-title">FAQ</h5>
+            <p class="px-3">Any questions? Check these frequently asked questions out!</p>
+          </RouterLink>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <RouterLink :to="{ name: 'shipment' }">
+            <img
+              src="../assets/home/shipment.png"
+              class="service-icon mx-auto"
+              alt="A moving delivery van. It has a check mark on it."
+            />
+            <h5 class="card-title">Create Shipment</h5>
+            <p class="px-3">Ready to ship with Fluffy Shipping? We're ready when you are!</p>
+          </RouterLink>
+        </div>
       </div>
     </div>
 
@@ -61,4 +91,32 @@ import { RouterLink, RouterView } from 'vue-router'
   <RouterView />
 </template>
 
-<style scoped></style>
+<style scoped>
+.card a {
+  text-decoration: none;
+}
+
+.card a h5 {
+  color: #455a64;
+  font-weight: bold;
+}
+
+.card a:hover h5 {
+  color: #19252a;
+}
+
+.card a p {
+  color: #8796b3;
+}
+
+.card a:hover p {
+  color: #455a64;
+}
+
+.service-icon {
+  width: 50px;
+  display: block;
+  padding: 10px;
+  box-sizing: content-box;
+}
+</style>
