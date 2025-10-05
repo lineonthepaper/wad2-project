@@ -2,7 +2,7 @@
 
 class Mail
 {
-    private int $mailId;
+    private ?int $mailId;
     private string $customerEmail;
     private int $senderAddressId;
     private int $recipientAddressId;
@@ -15,8 +15,8 @@ class Mail
     private string $serviceZone;
 
     public function __construct(
-        int $mailId,
-        int $customerEmail,
+        ?int $mailId,
+        string $customerEmail,
         int $senderAddressId,
         int $recipientAddressId,
         array $mailItems,
@@ -38,7 +38,7 @@ class Mail
         $this->serviceZone = $service["zone"];
     }
 
-    public function getMailId(): int
+    public function getMailId(): ?int
     {
         return $this->mailId;
     }
@@ -98,7 +98,7 @@ class Mail
 
     public function getPostageRate(): float
     {
-        $rates = new MailDAO()->getServiceRate($this->getService());
+        $rates = (new MailDAO())->getServiceRate($this->getService());
 
         $baseRate = $rates["baseRate"];
         $addRate = $rates["addRate"];
@@ -120,5 +120,10 @@ class Mail
         }
 
         return $rate;
+    }
+
+    public function setMailId(int $mailId): void
+    {
+        $this->mailId = $mailId;
     }
 }

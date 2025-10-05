@@ -2,18 +2,18 @@
 
 class MailStatus
 {
-    private int $statusId;
+    private ?int $statusId;
     private int $mailId;
 
     private int $statusCode;
 
-    private int $statusTimestamp; // integer, unix timestamp
+    private ?int $statusTimestamp; // integer, unix timestamp
 
     private string $statusDescription;
 
     private string $statusLocation;
 
-    public function __construct(int $statusId, int $mailId, int $statusCode, int $statusTimestamp, string $statusDescription, string $statusLocation)
+    public function __construct(?int $statusId, int $mailId, int $statusCode, ?int $statusTimestamp, string $statusDescription, string $statusLocation)
     {
         $this->statusId = $statusId;
         $this->mailId = $mailId;
@@ -23,7 +23,7 @@ class MailStatus
         $this->statusLocation = $statusLocation;
     }
 
-    public function getStatusId(): int
+    public function getStatusId(): ?int
     {
         return $this->statusId;
     }
@@ -51,5 +51,15 @@ class MailStatus
     public function getStatusLocation(): string
     {
         return $this->statusLocation;
+    }
+
+    public function setStatusId(int $statusId): void
+    {
+        $this->statusId = $statusId;
+    }
+
+    public function setStatusTimestamp(int $statusTimestamp): void
+    {
+        $this->statusTimestamp = $statusTimestamp;
     }
 }

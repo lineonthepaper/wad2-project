@@ -2,8 +2,8 @@
 
 class MailItem
 {
-    private int $itemId;
-    private int $mailId;
+    private ?int $itemId;
+    private ?int $mailId;
 
     private string $itemDescription;
     private string $declaredCurrency; // 3 char currency code
@@ -13,8 +13,8 @@ class MailItem
     private string $hsCode;
 
     public function __construct(
-        int $itemId,
-        int $mailId,
+        ?int $itemId,
+        ?int $mailId,
         string $itemDescription,
         string $declaredCurrency,
         float $declaredValue,
@@ -32,12 +32,12 @@ class MailItem
         $this->hsCode = $hsCode;
     }
 
-    public function getItemId(): int
+    public function getItemId(): ?int
     {
         return $this->itemId;
     }
 
-    public function getMailId(): int
+    public function getMailId(): ?int
     {
         return $this->mailId;
     }
@@ -70,5 +70,10 @@ class MailItem
     public function getHsCode(): string
     {
         return $this->hsCode;
+    }
+
+    public function setItemId(int $itemId): void
+    {
+        $this->itemId = $itemId;
     }
 }

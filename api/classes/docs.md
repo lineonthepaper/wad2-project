@@ -1,3 +1,11 @@
+# to be updated (it's oudated :( )
+
+# Run PHPUnit (if installed)
+
+```sh
+./vendor/bin/phpunit
+```
+
 # Classes
 
 ## ConnectionManager
@@ -6,36 +14,37 @@ Constructor: bool $useServer = true
 
 ## Address
 
-Constructor: int $addressId, string $name, string $email, int $phone, int $phoneCountryCode, array $address
+Constructor: ?int $addressId, string $name, string $email, int $phone, int $phoneCountryCode, array $address
 
 Format of array $address:
 [
-    "address" => [$addressLine1, $addressLine2, $addressLine3],
+    "addressLines" => [$addressLine1, $addressLine2, $addressLine3],
 "postalCode" => $postalCode,
 "countryCode" => $countryCode
 ]
 
 Methods:
 
-- getAddressId(): int
+- getAddressId(): ?int
 - getName(): int
 - getEmail(): string
 - getAddress(): array as above
 
 ## MailItem
 
-Constructor: int $itemId, int $mailId, string $itemDescription, string $declaredCurrency, float $declaredValue, int $itemQuantity, string $hsCode
+Constructor: ?int $itemId, ?int $mailId, string $itemDescription, string $declaredCurrency, float $declaredValue, int $itemQuantity, string $hsCode
 
 Methods:
 
-- getItemId(): int
-- getMailId(): int
+- getItemId(): ?int
+- getMailId(): ?int
 - getItemDescription(): string
 - getDeclaredCurrency(): string
 - getDeclaredValue(): float
 - getItemWeight(): float
 - getItemQuantity(): int
 - getHsCode(): string
+- setItemId(int $ItemId): void
 
 ## MailStatus
 
@@ -52,7 +61,7 @@ Methods:
 
 ## Mail
 
-Constructor: int $mailId, int $customerEmail, int $senderAddressId, int $recipientAddressId, array $mailItems, float $parcelLength, float $parcelWidth, float $parcelHeight, array $service
+Constructor: ?int $mailId, string $customerEmail, int $senderAddressId, int $recipientAddressId, array $mailItems, float $parcelLength, float $parcelWidth, float $parcelHeight, array $service
 
 Format of array $service:
 [
@@ -63,7 +72,7 @@ Format of array $service:
 
 Methods:
 
-- getMailId(): int
+- getMailId(): ?int
 - getCustomerEmail(): string
 - getSenderAddressId(): int
 - getRecipientAddressId(): int
@@ -74,6 +83,7 @@ Methods:
 - getService(): array as above
 - getTotalWeight(): float
 - getPostageRate(): float
+- setMailId(int $mailId): void
 
 ## MailDAO
 
@@ -81,12 +91,15 @@ Constructor: bool $userServer = true
 
 Methods:
 
-- insertMail(int $customerEmail, int $senderAddressId, int $recipientAddressId, array $mailItems, float $parcelLength, float $parcelWidth, float $parcelHeight, array $service): void
-- getMailById(int $mailId): Mail
+- addAddress(string $name, string $email, int $phone, string $phoneCountryCode, array $address): bool
+- addMail(int $customerEmail, int $senderAddressId, int $recipientAddressId, array $mailItems, float $parcelLength, float $parcelWidth, float $parcelHeight, array $service): bool
+- addMailStatus(int $mailId, int $statusCode, string $statusDescription, string $statusLocation): bool
+- getMailById(int $mailId): ?Mail
 - getAllMailByCustomerEmail(string $customerEmail): array of Mail
-- getAddressById(int $addressId): Address
-- getMailItemById(int $mailItemId): MailItem
-- getMailStatusesById(int $mailId): array of MailStatus
+- getAddressById(int $addressId): ?Address
+- getMailItemByItemId(int $itemId): ?MailItem
+- getMailStatusesByMailId(int $mailId): array of MailStatus
+- getMailStatusByStatusId(int $statusId): ?MailStatus
 - getServiceRate(array $service): array $rates
   - $rates structure:
     [
@@ -146,3 +159,17 @@ Tests Account, AccountDAO:
 - testUpdatePassword
 - testUpdateDisplayName
 - testUpdateEmail
+
+## AddressTest.php
+
+Tests Address, MailDAO
+
+- testAddAddress
+- testGetAddressById
+
+## MailTest.php
+
+Tests Mail, MailItem, MailStatus, MailDAO
+
+- testAddMail (tbd)
+- testAddMailStatus

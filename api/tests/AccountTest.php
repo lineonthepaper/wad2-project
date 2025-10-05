@@ -4,10 +4,7 @@ use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . "/../bootstrap.php";
 
-function generateRandomString($length = 10)
-{
-    return substr(str_shuffle(str_repeat($x = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length / strlen($x)))), 1, $length);
-}
+require_once "testUtil.php";
 
 class AccountTest extends TestCase
 {
