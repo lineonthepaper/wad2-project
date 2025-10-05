@@ -82,11 +82,20 @@ hr {
 }
 
 .header {
-  background-image: url('../assets/pink_cloud_with_bg.png');
+  /* background-image: url('../assets/pink_cloud_with_bg.png');
   background-position: right bottom;
   background-size: 40% 110%;
+  background-repeat: no-repeat; */
+  background-image: url('../assets/airplane.png');
+  background-position: center;
+  background-size: cover !important;
   background-repeat: no-repeat;
   padding: 48px;
+}
+
+.header div {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
 }
 
 @media (max-width: 768px) {

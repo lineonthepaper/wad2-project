@@ -13,15 +13,14 @@ import { RouterLink, RouterView } from 'vue-router'
     <hr />
 
     <div class="row bg-light-pink justify-content-center header">
-      <div class="col-md-4 py-2">
+      <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
         <h1 class="jua text-hot-pink">Fluffy Shipping</h1>
         <p class="text-dark-pink quicksand-semibold">
           Why fret when sending parcels? <br />
           Singapore Post to your rescue!
         </p>
-        <button type="button" class="btn btn-pink quicksand-semibold">Ship</button>
+        <button type="button" class="btn btn-pink quicksand-semibold fw-bold">Ship</button>
       </div>
-      <div class="col-md-4 py-2 text-center">image goes here</div>
     </div>
 
     <hr />

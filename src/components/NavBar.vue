@@ -40,7 +40,7 @@ import { RouterLink, RouterView } from 'vue-router'
               <li class="nav-item">
                 <button type="button" class="btn btn-pink quicksand-semibold">
                   <RouterLink :to="{ name: 'login' }">
-                    <span id="loginBtn">Sign up/Login</span>
+                    <span class="fw-bold">Sign up/Login</span>
                   </RouterLink>
                 </button>
               </li>
@@ -65,7 +65,7 @@ li a {
   font-weight: bold;
 }
 li a:hover,
-#loginBtn:hover {
+button:hover a {
   color: #ff0044;
 }
 li {
@@ -78,9 +78,8 @@ img {
   max-width: 200px;
   vertical-align: middle;
 }
-#loginBtn {
+button a {
   color: white;
-  font-weight: bold;
 }
 .navbar-toggler-icon {
   background-image: url('../assets/fluffy_shipping_logo.png');
