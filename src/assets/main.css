@@ -68,6 +68,33 @@ h1.jua.text-hot-pink {
   border: 1px solid #ff759e !important;
 }
 
+.btn-white {
+  background-color: white !important;
+  transition-duration: 0.4s;
+  border: 1px solid #ff759e !important;
+  color: #ff759e !important;
+}
+
+.btn-white:hover {
+  background-color: #ff759e !important;
+  color: white !important;
+  border: 1px solid #ff759e !important;
+}
+
+.btn-pink-no-hover {
+  background-color: #ff759e !important;
+  transition-duration: 0.4s;
+  border: 1px solid #ff759e !important;
+  color: white !important;
+}
+
+.btn-white-no-hover {
+  background-color: white !important;
+  transition-duration: 0.4s;
+  border: 1px solid #ff759e !important;
+  color: #ff759e !important;
+}
+
 hr {
   margin: 8px 0px !important;
   color: #ff4275 !important;
@@ -81,21 +108,20 @@ hr {
   font-family: 'Quicksand';
 }
 
-.header {
-  /* background-image: url('../assets/pink_cloud_with_bg.png');
-  background-position: right bottom;
-  background-size: 40% 110%;
-  background-repeat: no-repeat; */
-  background-image: url('../assets/airplane.png');
+.airplane-header {
+  background-image: url('airplane.png');
   background-position: center;
-  background-size: cover !important;
+  background-size: cover;
   background-repeat: no-repeat;
   padding: 48px;
 }
 
-.header div {
+.airplane-header div {
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 8px;
+}
+.airplane-header h1 {
+  margin-top: 8px;
 }
 
 @media (max-width: 768px) {

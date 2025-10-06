@@ -9,6 +9,8 @@ import router from './router/routes.js'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
 
+import 'choices.js'
+
 const app = createApp(App)
 
 const head = createHead()
