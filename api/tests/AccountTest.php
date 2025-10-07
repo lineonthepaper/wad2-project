@@ -12,10 +12,13 @@ class AccountTest extends TestCase
     {
         $accountDAO = new AccountDAO(false);
         $success = $accountDAO->addAccount(
-            generateRandomString(),
-            generateRandomString(5) . "@notarealemail.address",
-            Account::hashPassword(generateRandomString()),
-            true
+            new Account(
+                null,
+                generateRandomString(),
+                generateRandomString(5) . "@notarealemail.address",
+                Account::hashPassword(generateRandomString()),
+                true
+            )
         );
         $expectedResult = true;
 
@@ -25,23 +28,23 @@ class AccountTest extends TestCase
     public function testGetAccountById()
     {
         $accountDAO = new AccountDAO(false);
-        $account = $accountDAO->getAccountById(11);
+        $account = $accountDAO->getAccountById(1);
 
-        $this->assertEquals("qHF9APZLwJ", $account->getDisplayName());
+        $this->assertEquals("muh hee ow", $account->getDisplayName());
     }
 
     public function testGetAccountByEmail()
     {
         $accountDAO = new AccountDAO(false);
-        $account = $accountDAO->getAccountByEmail("mBeRQ@notarealemail.address");
+        $account = $accountDAO->getAccountByEmail("muhheeow@fakeemail.com");
 
-        $this->assertEquals("qHF9APZLwJ", $account->getDisplayName());
+        $this->assertEquals("muh hee ow", $account->getDisplayName());
     }
 
     public function testUpdatePassword()
     {
         $accountDAO = new AccountDAO(false);
-        $success = $accountDAO->updatePassword(11, Account::hashPassword(generateRandomString()));
+        $success = $accountDAO->updatePassword(2, Account::hashPassword(generateRandomString()));
 
         $this->assertEquals(true, $success);
     }
@@ -49,7 +52,7 @@ class AccountTest extends TestCase
     public function testUpdateDisplayName()
     {
         $accountDAO = new AccountDAO(false);
-        $success = $accountDAO->updateDisplayName(12, generateRandomString());
+        $success = $accountDAO->updateDisplayName(2, "aow");
 
         $this->assertEquals(true, $success);
     }
@@ -57,7 +60,7 @@ class AccountTest extends TestCase
     public function testUpdateEmail()
     {
         $accountDAO = new AccountDAO(false);
-        $success = $accountDAO->updateEmail(12, generateRandomString(5) . "@notarealemail.address");
+        $success = $accountDAO->updateEmail(2, generateRandomString(5) . "@notarealemail.address");
 
         $this->assertEquals(true, $success);
     }

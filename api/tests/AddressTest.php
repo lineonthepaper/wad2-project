@@ -39,6 +39,6 @@ class AddressTest extends TestCase
 
         $addressObj = $mailDAO->getAddressById(1);
 
-        $this->assertEquals("aqBmhMCWVF", $addressObj->getName());
+        $this->assertEquals("Cotton cat", $addressObj->getName());
     }
 }

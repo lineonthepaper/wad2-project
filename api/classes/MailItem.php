@@ -10,7 +10,7 @@ class MailItem
     private float $declaredValue;
     private float $itemWeight;
     private int $itemQuantity;
-    private string $hsCode;
+    private ?string $hsCode;
 
     public function __construct(
         ?int $itemId,
@@ -20,7 +20,7 @@ class MailItem
         float $declaredValue,
         float $itemWeight,
         int $itemQuantity,
-        string $hsCode
+        ?string $hsCode
     ) {
         $this->itemId = $itemId;
         $this->mailId = $mailId;

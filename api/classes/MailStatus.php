@@ -38,7 +38,7 @@ class MailStatus
         return $this->statusCode;
     }
 
-    public function getStatusTimestamp(): int
+    public function getStatusTimestamp(): ?int
     {
         return $this->statusTimestamp;
     }

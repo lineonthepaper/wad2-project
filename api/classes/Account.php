@@ -2,14 +2,14 @@
 
 class Account
 {
-    private int $accountId;
+    private ?int $accountId;
     private string $displayName;
     private string $email;
     private string $passwordHashed;
     private bool $isStaff;
 
     public function __construct(
-        int $accountId,
+        ?int $accountId,
         string $displayName,
         string $email,
         string $passwordHashed,
@@ -55,5 +55,10 @@ class Account
     public function verifyPassword(string $password): bool
     {
         return password_verify($password, $this->passwordHashed);
+    }
+
+    public function setAccountId(int $accountId): void
+    {
+        $this->accountId = $accountId;
     }
 }

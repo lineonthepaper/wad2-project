@@ -10,17 +10,17 @@ class AccountDAO
         $this->conn = ConnectionManager::connect($useServer);
     }
 
-    public function addAccount(string $displayName, string $email, string $passwordHashed, bool $isStaff): bool
+    public function addAccount(Account $newAccount): bool
     {
         $query = "insert into 
         account(display_name, email, pw_hashed, is_staff)
         values($1, $2, $3, $4)
         ";
         $params = [
-            $displayName,
-            $email,
-            $passwordHashed,
-            $isStaff
+            $newAccount->getDisplayName(),
+            $newAccount->getEmail(),
+            $newAccount->getPasswordHashed(),
+            $newAccount->isStaff()
         ];
 
         $success = pg_query_params($this->conn, $query, $params);
@@ -35,7 +35,7 @@ class AccountDAO
         where account_id = $1";
         $params = [$accountId];
 
-        $res = pg_fetch_array(pg_query_params($this->conn, $query, $params), 0, PGSQL_ASSOC);
+        $res = pg_fetch_array(pg_query_params($this->conn, $query, $params), null, PGSQL_ASSOC);
 
         if ($res == false) {
             return null;
@@ -57,7 +57,7 @@ class AccountDAO
         where email = $1";
         $params = [$email];
 
-        $res = pg_fetch_array(pg_query_params($this->conn, $query, $params), 0, PGSQL_ASSOC);
+        $res = pg_fetch_array(pg_query_params($this->conn, $query, $params), null, PGSQL_ASSOC);
 
         if ($res == false) {
             return null;

@@ -42,7 +42,8 @@ class MailDAO
         $query = "insert into 
         mail(customer_email, sender_address_id, recipient_address_id, parcel_length, parcel_width, parcel_height,
         has_been_paid, tracking_number, service_name, service_type, service_zone) 
-        values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)";
+        values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        returning mail_id";
         $params = [
             $newMail->getCustomerEmail(),
             $newMail->getSenderAddressId(),
@@ -61,11 +62,11 @@ class MailDAO
             return false;
         }
 
-        $newMailId = pg_fetch_array($result, null, PGSQL_ASSOC)["mail_id"];
+        $newMailId = pg_fetch_result($result, "mail_id");
 
         foreach ($newMail->getMailItems() as $mailItem) {
             $query2 = "insert into 
-            mail(mail_id, item_description, declared_currency, declared_value, item_weight, item_quantity, hs_code)
+            mail_item(mail_id, item_description, declared_currency, declared_value, item_weight, item_quantity, hs_code)
             values($1, $2, $3, $4, $5, $6, $7)";
             $params2 = [
                 $newMailId,
@@ -161,7 +162,7 @@ class MailDAO
         }
 
         foreach ($res as $m) {
-            $mailId = $res["mail_id"];
+            $mailId = $m["mail_id"];
             $query2 = "select * from mail_item where mail_id = $1";
             $params2 = [$mailId];
 
@@ -184,17 +185,17 @@ class MailDAO
             }
             $mail[] = new Mail(
                 $mailId,
-                $res["customer_email"],
-                $res["sender_address_id"],
-                $res["recipient_address_id"],
+                $m["customer_email"],
+                $m["sender_address_id"],
+                $m["recipient_address_id"],
                 $mailItems,
-                $res["parcel_length"],
-                $res["parcel_width"],
-                $res["parcel_height"],
+                $m["parcel_length"],
+                $m["parcel_width"],
+                $m["parcel_height"],
                 [
-                    "name" => $res["service_name"],
-                    "type" => $res["service_type"],
-                    "zone" => $res["service_zone"]
+                    "name" => $m["service_name"],
+                    "type" => $m["service_type"],
+                    "zone" => $m["service_zone"]
                 ]
             );
         }
@@ -271,7 +272,7 @@ class MailDAO
                 $mS["status_id"],
                 $mailId,
                 $mS["status_code"],
-                $mS["status_time_stamp"],
+                strtotime($mS["status_time_stamp"]),
                 $mS["status_description"],
                 $mS["status_location"]
             );
@@ -295,7 +296,7 @@ class MailDAO
             $statusId,
             $res["mail_id"],
             $res["status_code"],
-            $res["status_time_stamp"],
+            strtotime($res["status_time_stamp"]),
             $res["status_description"],
             $res["status_location"]
         );
@@ -315,7 +316,7 @@ class MailDAO
 
         $query = "select service_base_cost, service_add_cost, service_base_weight, service_add_weight 
         from service_cost 
-        where service_name = $1, service_type = $2, service_zone = $3";
+        where service_name = $1 and service_type = $2 and service_zone = $3";
         $params = [
             $service["name"],
             $service["type"],
@@ -348,7 +349,7 @@ class MailDAO
 
         $query = "select service_minimum_days, service_maximum_days 
         from service_cost 
-        where service_name = $1, service_type = $2, service_zone = $3";
+        where service_name = $1 and service_type = $2 and service_zone = $3";
         $params = [
             $service["name"],
             $service["type"],

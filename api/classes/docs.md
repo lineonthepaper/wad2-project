@@ -1,5 +1,3 @@
-# to be updated (it's oudated :( )
-
 # Run PHPUnit (if installed)
 
 ```sh
@@ -14,7 +12,7 @@ Constructor: bool $useServer = true
 
 ## Address
 
-Constructor: ?int $addressId, string $name, string $email, int $phone, int $phoneCountryCode, array $address
+Constructor: ?int $addressId, string $name, string $email, int $phone, string $phoneCountryCode, array $address
 
 Format of array $address:
 [
@@ -29,10 +27,14 @@ Methods:
 - getName(): int
 - getEmail(): string
 - getAddress(): array as above
+- getPhoneNumberString(): string
+- getPhone(): int
+- getPhoneCountryCode(): string
+- setAddressId(int $addressId): void
 
 ## MailItem
 
-Constructor: ?int $itemId, ?int $mailId, string $itemDescription, string $declaredCurrency, float $declaredValue, int $itemQuantity, string $hsCode
+Constructor: ?int $itemId, ?int $mailId, string $itemDescription, string $declaredCurrency, float $declaredValue, float $itemWeight, int $itemQuantity, ?string $hsCode
 
 Methods:
 
@@ -48,16 +50,18 @@ Methods:
 
 ## MailStatus
 
-Constructor: int $statusId, int $mailId, int $statusCode, int $statusTimestamp, string $statusDescription, string $statusLocation
+Constructor: ?int $statusId, int $mailId, int $statusCode, ?int $statusTimestamp, string $statusDescription, string $statusLocation
 
 Methods:
 
-- getStatusId(): int
+- getStatusId(): ?int
 - getMailId(): int
 - getStatusCode(): int
-- getStatusTimeStamp(): int
+- getStatusTimeStamp(): ?int
 - getStatusDescription(): string
 - getStatusLocation(): string
+- setStatusId(int $statusId): void
+- setStatusTimestamp(int $statusTimestamp): void
 
 ## Mail
 
@@ -91,9 +95,9 @@ Constructor: bool $userServer = true
 
 Methods:
 
-- addAddress(string $name, string $email, int $phone, string $phoneCountryCode, array $address): bool
-- addMail(int $customerEmail, int $senderAddressId, int $recipientAddressId, array $mailItems, float $parcelLength, float $parcelWidth, float $parcelHeight, array $service): bool
-- addMailStatus(int $mailId, int $statusCode, string $statusDescription, string $statusLocation): bool
+- addAddress(Address $newAddress): bool
+- addMail(Mail $newMail): bool
+- addMailStatus(MailStatus $newMailStatus): bool
 - getMailById(int $mailId): ?Mail
 - getAllMailByCustomerEmail(string $customerEmail): array of Mail
 - getAddressById(int $addressId): ?Address
@@ -119,7 +123,7 @@ Methods:
 
 ## Account
 
-Constructor: int $accountId, string $displayName, string $email, string $passwordHashed, bool $isStaff
+Constructor: ?int $accountId, string $displayName, string $email, string $passwordHashed, bool $isStaff
 
 Static methods:
 
@@ -133,6 +137,7 @@ Methods:
 - isStaff(): bool
 - getPasswordHashed(): string
 - verifyPassword(string $password): bool
+- setAccountId(int $accountId): void
 
 ## AccountDAO
 
@@ -140,7 +145,7 @@ Constructor: bool $userServer = true
 
 Methods:
 
-- addAccount(string $displayName, string $email, string $passwordHashed, bool $isStaff): bool
+- addAccount(Account $newAccount): bool
 - getAccountById(int $accountId): ?Account
 - getAccountByEmail(string $email): ?Account
 - updatePassword(int $accountId, string $newPasswordHashed): bool
@@ -171,5 +176,15 @@ Tests Address, MailDAO
 
 Tests Mail, MailItem, MailStatus, MailDAO
 
-- testAddMail (tbd)
+- testAddMail
 - testAddMailStatus
+- testGetMailById
+- testGetAllMailByCustomerEmail
+- testGetAddressById
+- testGetMailItemByItemId
+- testGetMailStatusesByMailId
+- testGetMailStatusByStatusId
+- testGetServiceRate
+- testGetServiceTime
+- testIsMailPaid
+- testGetMailTrackingNum

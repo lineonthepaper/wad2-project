@@ -1,5 +1,6 @@
 <?php
 
+use PharIo\Manifest\ManifestDocumentLoadingException;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . "/../bootstrap.php";
@@ -17,15 +18,15 @@ class MailTest extends TestCase
         }
 
         $service = [
-            "name" => "Basic Mail",
-            "type" => "Mail",
+            "name" => "Basic Package",
+            "type" => "Packets",
             "zone" => 1
         ];
 
         $success = $mailDAO->addMail(
             new Mail(
                 null,
-                "mBeRQ@notarealemail.address",
+                "muhheeow@fakeemail.com",
                 1,
                 1,
                 $mailItems,
@@ -45,7 +46,7 @@ class MailTest extends TestCase
         $success = $mailDAO->addMailStatus(
             new MailStatus(
                 null,
-                3,
+                1,
                 generateRandomNumbers(3),
                 null,
                 generateRandomString(10),
@@ -59,6 +60,90 @@ class MailTest extends TestCase
     public function testGetMailById()
     {
         $mailDAO = new MailDAO(false);
-        // $mailObj = $mailDAO->getMailById()
+        $mailObj = $mailDAO->getMailById(1);
+        $this->assertEquals("muhheeow@fakeemail.com", $mailObj->getCustomerEmail());
+    }
+
+    public function testGetAllMailByCustomerEmail()
+    {
+        $mailDAO = new MailDAO(false);
+        $mailArr = $mailDAO->getAllMailByCustomerEmail("muhheeow@fakeemail.com");
+        $this->assertEquals(true, sizeof($mailArr) > 0);
+    }
+
+    public function testGetAddressById()
+    {
+        $mailDAO = new MailDAO(false);
+        $address = $mailDAO->getAddressById(1);
+        $this->assertEquals("Cotton cat", $address->getName());
+    }
+
+    public function testGetMailItemByItemId()
+    {
+        $mailDAO = new MailDAO(false);
+        $item = $mailDAO->getMailItemByItemId(1);
+        $this->assertEquals("Cat food", $item->getItemDescription());
+    }
+
+    public function testGetMailStatusesByMailId()
+    {
+        $mailDAO = new MailDAO(false);
+        $statusArr = $mailDAO->getMailStatusesByMailId(1);
+        $this->assertEquals(true, sizeof($statusArr) > 0);
+    }
+
+    public function testGetMailStatusByStatusId()
+    {
+        $mailDAO = new MailDAO(false);
+        $status = $mailDAO->getMailStatusByStatusId(1);
+        $this->assertEquals(200, $status->getStatusCode());
+    }
+
+    public function testGetServiceRate()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $service = [
+            "name" => "Basic Mail",
+            "type" => "Documents",
+            "zone" => 1
+        ];
+
+        $rates = $mailDAO->getServiceRate($service);
+
+        $this->assertEquals(0.85, $rates["baseRate"]);
+    }
+
+    public function testGetServiceTime()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $service = [
+            "name" => "Basic Mail",
+            "type" => "Documents",
+            "zone" => 1
+        ];
+
+        $period = $mailDAO->getServiceTime($service);
+
+        $this->assertEquals(5, $period["min"]);
+    }
+
+    public function testIsMailPaid()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $paid = $mailDAO->isMailPaid(1);
+
+        $this->assertEquals(false, $paid);
+    }
+
+    public function testGetMailTrackingNum()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $trackingNum = $mailDAO->getMailTrackingNum(1);
+
+        $this->assertEquals(0, $trackingNum);
     }
 }
