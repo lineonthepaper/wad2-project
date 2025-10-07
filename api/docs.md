@@ -1,3 +1,13 @@
+# Axios connections
+
+## accounts.php
+
+| Request Method | Parameters                                                                   | Returns                                                         |
+| -------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| POST           | method: addAccount <br> displayName: <br> email: <br> password: <br> isStaff | message                                                         |
+| POST           | method: getAccountById <br> accountId:                                       | message, accountId, displayName, email, passwordHashed, isStaff |
+| POST           | method: getAccountByEmail <br> email:                                        | message, accountId, displayName, email, passwordHashed, isStaff |
+
 # Run PHPUnit (if installed)
 
 ```sh
