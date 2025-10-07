@@ -1,7 +1,3 @@
-<!-- TO DO
- - postal code verification
-  -->
-
 <script setup>
 import { onMounted, ref } from 'vue'
 
