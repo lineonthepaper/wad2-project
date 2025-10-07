@@ -90,4 +90,12 @@ button a {
   padding: 0px;
   border: 0px;
 }
+li a {
+  color: #ff4275;
+  text-decoration: none;
+  font-weight: bold;
+}
+li {
+  padding: 0px 10px;
+}
 </style>
