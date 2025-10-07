@@ -1,0 +1,1 @@
+<template>delivery details</template>

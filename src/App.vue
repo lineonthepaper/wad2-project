@@ -7,6 +7,7 @@ TODO:
 <script setup>
 import HeadLoader from './components/HeadLoader.vue'
 import NavBar from './components/NavBar.vue'
+import FooterBar from './components/FooterBar.vue'
 </script>
 
 <template>
@@ -15,7 +16,7 @@ import NavBar from './components/NavBar.vue'
     <NavBar />
   </header>
 
-  <footer></footer>
+  <footer><FooterBar /></footer>
 </template>
 
 <style scoped></style>
