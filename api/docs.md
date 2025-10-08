@@ -2,17 +2,38 @@
 
 ## accounts.php
 
-| Request Method | Parameters                                                                   | Returns                                                         |
-| -------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| POST           | method: addAccount <br> displayName: <br> email: <br> password: <br> isStaff | message                                                         |
-| POST           | method: getAccountById <br> accountId:                                       | message, accountId, displayName, email, passwordHashed, isStaff |
-| POST           | method: getAccountByEmail <br> email:                                        | message, accountId, displayName, email, passwordHashed, isStaff |
+| Request Method | Parameters                                                                    | response.data returns                      |
+| -------------- | ----------------------------------------------------------------------------- | ------------------------------------------ |
+| POST           | method: addAccount <br> displayName: <br> email: <br> password: <br> isStaff: | message                                    |
+| POST           | method: getAccountById <br> accountId:                                        | message <br> if successful: account object |
+| POST           | method: getAccountByEmail <br> email:                                         | message <br> if successful: account object |
 
-# Run PHPUnit (if installed)
+## mail.php
 
-```sh
-./vendor/bin/phpunit
-```
+| Request Method | Parameters                                                                                                                                                                                                                                                                                                                                                 | response.data returns                                   |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| POST           | method: addMail <br> customerEmail: <br> senderAddressId: <br> recipientAddressId: <br> mailItems: {array of mailItem arrays, with keys ["itemDescription", "declaredCurrency", "declaredValue", "itemWeight", "itemQuantity", "hsCode"]} <br> parcelLength: <br> parcelWidth: <br> parcelHeight: <br> service: {array with keys ["name", "type", "zone"]} | message                                                 |
+| POST           | method: addMailStatus <br> mailId: <br> statusCode: <br> statusTimestamp: <br> statusDescription: <br> statusLocation:                                                                                                                                                                                                                                     | message                                                 |
+| POST           | method: getMailById <br> mailId:                                                                                                                                                                                                                                                                                                                           | message <br> if successful: mail object                 |
+| POST           | method: getAllMailByCustomerEmail <br> customerEmail:                                                                                                                                                                                                                                                                                                      | message <br> if successful: array of mail objects       |
+| POST           | method: getMailItemByItemId <br> itemId:                                                                                                                                                                                                                                                                                                                   | message <br> if successful: mailItem object             |
+| POST           | method: getMailStatusesByMailId <br> mailId:                                                                                                                                                                                                                                                                                                               | message <br> if successful: array of mailStatus objects |
+| POST           | method: getMailStatusByStatusId <br> statusId                                                                                                                                                                                                                                                                                                              | message <br> if successful: mailStatus object           |
+| POST           | method: getServiceRate <br> name: <br> type: <br> zone:                                                                                                                                                                                                                                                                                                    | message <br> if successful: serviceRate object          |
+| POST           | method: getServiceTime <br> name: <br> type: <br> zone:                                                                                                                                                                                                                                                                                                    | message <br> if successful: serviceTime object          |
+| POST           | method: isMailPaid <br> mailId:                                                                                                                                                                                                                                                                                                                            | isMailPaid                                              |
+| POST           | method: getMailTrackingNum <br> mailId:                                                                                                                                                                                                                                                                                                                    | trackingNum                                             |
+| POST           | method: getMatchingServices <br> zone: <br> type: <br> weight: <br> height: <br> width: <br> length:                                                                                                                                                                                                                                                       | services object                                         |
+| POST           | method: getServiceInfo <br> name: <br> type:                                                                                                                                                                                                                                                                                                               | message <br> if successful: info object                 |
+| POST           | method: getZone <br> countryCode:                                                                                                                                                                                                                                                                                                                          | message <br> if successful: zone                        |
+| POST           | method: getCountryCode <br> countryName:                                                                                                                                                                                                                                                                                                                   | message <br> if successful: countryCode                 |
+
+## addresses.php
+
+| Request Method | Parameters                                                                                                                                                                                                                                 | response.data returns                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| POST           | method: addAddress <br> name: <br> email: <br> phone: <br> phoneCountryCode: <br> address: {array with keys ["addressLines", "postalCode", "countryCode"] where "addressLines" is an array with 3 values, one value for each address line} | message                                    |
+| POST           | method: getAddressById <br> addressId:                                                                                                                                                                                                     | message <br> if successful: address object |
 
 # Classes
 
@@ -41,6 +62,7 @@ Methods:
 - getPhone(): int
 - getPhoneCountryCode(): string
 - setAddressId(int $addressId): void
+- jsonSerialize(): mixed
 
 ## MailItem
 
@@ -57,6 +79,7 @@ Methods:
 - getItemQuantity(): int
 - getHsCode(): string
 - setItemId(int $ItemId): void
+- jsonSerialize(): mixed
 
 ## MailStatus
 
@@ -72,6 +95,7 @@ Methods:
 - getStatusLocation(): string
 - setStatusId(int $statusId): void
 - setStatusTimestamp(int $statusTimestamp): void
+- jsonSerialize(): mixed
 
 ## Mail
 
@@ -98,6 +122,7 @@ Methods:
 - getTotalWeight(): float
 - getPostageRate(): float
 - setMailId(int $mailId): void
+- jsonSerialize(): mixed
 
 ## MailDAO
 
@@ -130,6 +155,10 @@ Methods:
     ]
 - isMailPaid(int $mailId): bool
 - getMailTrackingNum(int $mailId): int
+- getMatchingServices(int $zone, string $type, float $weight, float $height, float $width, float $length): array of $service with keys ["name", "type", "zone"]
+- getServiceInfo(array $service): ?array with keys ["name", "type", "isTracked", "maxWeight", "maxHeight", "maxWidth", "maxLength"]
+- getZone(string $countryCode): ?int
+- getCountryCode(string $countryName): ?string
 
 ## Account
 
@@ -148,6 +177,7 @@ Methods:
 - getPasswordHashed(): string
 - verifyPassword(string $password): bool
 - setAccountId(int $accountId): void
+- jsonSerialize(): mixed
 
 ## AccountDAO
 
@@ -198,3 +228,13 @@ Tests Mail, MailItem, MailStatus, MailDAO
 - testGetServiceTime
 - testIsMailPaid
 - testGetMailTrackingNum
+- testGetMatchingServices
+- testGetServiceInfo
+- testGetZone
+- testGetCountryCode
+
+# Run PHPUnit (if installed)
+
+```sh
+./vendor/bin/phpunit
+```

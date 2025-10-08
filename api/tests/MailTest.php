@@ -1,6 +1,5 @@
 <?php
 
-use PharIo\Manifest\ManifestDocumentLoadingException;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . "/../bootstrap.php";
@@ -145,5 +144,41 @@ class MailTest extends TestCase
         $trackingNum = $mailDAO->getMailTrackingNum(1);
 
         $this->assertEquals(0, $trackingNum);
+    }
+
+    public function testGetMatchingServices()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $matching = $mailDAO->getMatchingServices(0, "Packets", 0.1, 0.1, 0.1, 0.1);
+
+        $this->assertEquals(1, sizeof($matching));
+    }
+
+    public function testGetServiceInfo()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $info = $mailDAO->getServiceInfo(["name" => "Tracked Letterbox", "type" => "Packets"]);
+
+        $this->assertEquals(true, $info["isTracked"]);
+    }
+
+    public function testGetZone()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $zone = $mailDAO->getZone("SG");
+
+        $this->assertEquals(0, $zone);
+    }
+
+    public function testGetCountryCode()
+    {
+        $mailDAO = new MailDAO(false);
+
+        $code = $mailDAO->getCountryCode("Singapore");
+
+        $this->assertEquals("SG", $code);
     }
 }

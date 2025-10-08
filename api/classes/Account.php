@@ -1,6 +1,6 @@
 <?php
 
-class Account
+class Account implements JsonSerializable
 {
     private ?int $accountId;
     private string $displayName;
@@ -60,5 +60,10 @@ class Account
     public function setAccountId(int $accountId): void
     {
         $this->accountId = $accountId;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return get_object_vars($this);
     }
 }

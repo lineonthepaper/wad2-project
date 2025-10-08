@@ -1,6 +1,6 @@
 <?php
 
-class MailItem
+class MailItem implements JsonSerializable
 {
     private ?int $itemId;
     private ?int $mailId;
@@ -75,5 +75,10 @@ class MailItem
     public function setItemId(int $itemId): void
     {
         $this->itemId = $itemId;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return get_object_vars($this);
     }
 }

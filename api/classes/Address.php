@@ -1,6 +1,6 @@
 <?php
 
-class Address
+class Address implements JsonSerializable
 {
     private ?int $addressId;
 
@@ -87,5 +87,10 @@ class Address
     public function setAddressId(int $addressId): void
     {
         $this->addressId = $addressId;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return get_object_vars($this);
     }
 }

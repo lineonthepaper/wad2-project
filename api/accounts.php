@@ -45,11 +45,7 @@ if ($method === "POST") {
             if ($account) {
                 echo json_encode([
                     "message" => "Found account.",
-                    "accountId" => $account->getAccountId(),
-                    "displayName" => $account->getDisplayName(),
-                    "email" => $account->getEmail(),
-                    "passwordHashed" => $account->getPasswordHashed(),
-                    "isStaff" => $account->isStaff()
+                    "account" => $account->jsonSerialize()
                 ]);
                 exit;
             } else {
@@ -70,11 +66,7 @@ if ($method === "POST") {
             if ($account) {
                 echo json_encode([
                     "message" => "Found account.",
-                    "accountId" => $account->getAccountId(),
-                    "displayName" => $account->getDisplayName(),
-                    "email" => $account->getEmail(),
-                    "passwordHashed" => $account->getPasswordHashed(),
-                    "isStaff" => $account->isStaff()
+                    "account" => $account->jsonSerialize()
                 ]);
                 exit;
             } else {

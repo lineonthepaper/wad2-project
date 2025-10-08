@@ -1,6 +1,6 @@
 <?php
 
-class MailStatus
+class MailStatus implements JsonSerializable
 {
     private ?int $statusId;
     private int $mailId;
@@ -61,5 +61,10 @@ class MailStatus
     public function setStatusTimestamp(int $statusTimestamp): void
     {
         $this->statusTimestamp = $statusTimestamp;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return get_object_vars($this);
     }
 }

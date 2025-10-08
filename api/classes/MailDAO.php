@@ -394,4 +394,78 @@ class MailDAO
 
         return $res;
     }
+
+    public function getMatchingServices(int $zone, string $type, float $weight, float $height, float $width, float $length): array
+    {
+
+        if ($type == "Packets") {
+            $addon = " and s.service_type = 'Packets'";
+        } else {
+            $addon = "";
+        }
+        $query = "select s.service_name as name, s.service_type as type, service_zone as zone from service s, service_cost sc where 
+        s.service_name = sc.service_name and s.service_type = sc.service_type and service_zone = $1 and max_weight >= $2 and max_height >= $3
+        and max_width >= $4 and max_length >= $5" . $addon;
+
+        $params = [$zone, $weight, $height, $width, $length];
+
+        $res = pg_fetch_all(pg_query_params($this->conn, $query, $params));
+
+        if ($res === false) {
+            return [];
+        }
+
+        return $res;
+    }
+
+    public function getServiceInfo(array $service): ?array
+    {
+        $query = "select * from service where service_name = $1 and service_type = $2";
+        $params = [$service["name"], $service["type"]];
+
+        $res = pg_fetch_array(pg_query_params($this->conn, $query, $params), 0, PGSQL_ASSOC);
+
+        if ($res === false) {
+            return null;
+        }
+
+        return [
+            "name" => $res["service_name"],
+            "type" => $res["service_type"],
+            "isTracked" => $res["is_tracked"] === "t" ? true : false,
+            "maxWeight" => $res["max_weight"],
+            "maxHeight" => $res["max_height"],
+            "maxWidth" => $res["max_width"],
+            "maxLength" => $res["max_length"]
+        ];
+    }
+
+    public function getZone(string $countryCode): ?int
+    {
+
+        $query = "select zone_id from zone where country_code = $1";
+        $params = [$countryCode];
+
+        $res = pg_fetch_result(pg_query_params($this->conn, $query, $params), 0, 0);
+
+        if ($res === false) {
+            return null;
+        }
+
+        return $res;
+    }
+
+    public function getCountryCode(string $countryName): ?string
+    {
+        $query = "select country_code from country where country_name = $1";
+        $params = [$countryName];
+
+        $res = pg_fetch_result(pg_query_params($this->conn, $query, $params), 0, 0);
+
+        if ($res === false) {
+            return null;
+        }
+
+        return $res;
+    }
 }
