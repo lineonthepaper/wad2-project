@@ -6,6 +6,8 @@ header("Content-Type: application/json");
 
 $method = $_SERVER["REQUEST_METHOD"];
 
+$useServer = true;
+
 if ($method === "POST") {
     $payload = json_decode(file_get_contents('php://input'), true);
     if (!is_array($payload)) $payload = [];
@@ -14,7 +16,7 @@ if ($method === "POST") {
 
     if ($method == "addAddress") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $success = $mailDAO->addAddress(new Address(
                 null,
                 $payload["name"],
@@ -39,7 +41,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getAddressById") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $address = $mailDAO->getAddressById($payload["addressId"]);
             if ($address) {
                 echo json_encode([

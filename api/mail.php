@@ -6,6 +6,8 @@ header("Content-Type: application/json");
 
 $method = $_SERVER["REQUEST_METHOD"];
 
+$useServer = true;
+
 if ($method === "POST") {
     $payload = json_decode(file_get_contents('php://input'), true);
     if (!is_array($payload)) $payload = [];
@@ -14,7 +16,7 @@ if ($method === "POST") {
 
     if ($method == "addMail") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $mailItems = [];
             foreach ($payload["mailItems"] as $mailItem) {
                 $mailItems[] = new MailItem(
@@ -58,7 +60,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "addMailStatus") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $success = $mailDAO->addMailStatus(
                 new MailStatus(
                     null,
@@ -86,7 +88,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getMailById") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $mail = $mailDAO->getMailById($payload["mailId"]);
             if ($mail) {
                 echo json_encode([
@@ -105,7 +107,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getAllMailByCustomerEmail") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $mailArr = $mailDAO->getAllMailByCustomerEmail($payload["customerEmail"]);
 
             if ($mailArr) {
@@ -125,7 +127,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getMailItemByItemId") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $mailItem = $mailDAO->getMailItemByItemId($payload["itemId"]);
             if ($mailItem) {
                 echo json_encode(["message" => "Found mail item.", "mailItem" => $mailItem->jsonSerialize()]);
@@ -141,7 +143,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getMailStatusesByMailId") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $mailStatusArr = $mailDAO->getMailStatusesByMailId($payload["mailId"]);
 
             if ($mailStatusArr) {
@@ -161,7 +163,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getMailStatusByStatusId") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $mailStatus = $mailDAO->getMailStatusByStatusId($payload["statusId"]);
             if ($mailStatus) {
                 echo json_encode(["message" => "Found mail status.", "mailStatus" => $mailStatus->jsonSerialize()]);
@@ -177,7 +179,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getServiceRate") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $serviceRate = $mailDAO->getServiceRate(
                 [
                     $payload["name"],
@@ -199,7 +201,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getServiceTime") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $serviceTime = $mailDAO->getServiceTime(
                 [
                     $payload["name"],
@@ -221,7 +223,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "isMailPaid") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $isMailPaid = $mailDAO->isMailPaid($payload["mailId"]);
 
             echo json_encode(["isMailPaid" => $isMailPaid]);
@@ -233,7 +235,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getMailTrackingNum") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $trackingNum = $mailDAO->getMailTrackingNum($payload["mailId"]);
 
             echo json_encode(["trackingNum" => $trackingNum]);
@@ -245,7 +247,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getMatchingServices") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $services = $mailDAO->getMatchingServices(
                 $payload["zone"],
                 $payload["type"],
@@ -264,7 +266,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getServiceInfo") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $info = $mailDAO->getServiceInfo(
                 $payload["name"],
                 $payload["type"]
@@ -284,7 +286,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getZone") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $zone = $mailDAO->getZone(
                 $payload["countryCode"]
             );
@@ -303,7 +305,7 @@ if ($method === "POST") {
         }
     } elseif ($method == "getCountryCode") {
         try {
-            $mailDAO = new MailDAO();
+            $mailDAO = new MailDAO($useServer);
             $code = $mailDAO->getCountryCode(
                 $payload["countryName"]
             );

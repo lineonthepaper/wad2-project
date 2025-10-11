@@ -6,6 +6,8 @@ header("Content-Type: application/json");
 
 $method = $_SERVER["REQUEST_METHOD"];
 
+$useServer = true;
+
 if ($method === "POST") {
     $payload = json_decode(file_get_contents('php://input'), true);
     if (!is_array($payload)) $payload = [];
@@ -14,7 +16,7 @@ if ($method === "POST") {
 
     if ($method == "addAccount") {
         try {
-            $accountDAO = new AccountDAO();
+            $accountDAO = new AccountDAO($useServer);
             $success = $accountDAO->addAccount(
                 new Account(
                     null,
@@ -40,7 +42,7 @@ if ($method === "POST") {
 
     if ($method == "getAccountById") {
         try {
-            $accountDAO = new AccountDAO();
+            $accountDAO = new AccountDAO($useServer);
             $account = $accountDAO->getAccountById($payload["accountId"]);
             if ($account) {
                 echo json_encode([
@@ -61,7 +63,7 @@ if ($method === "POST") {
 
     if ($method == "getAccountByEmail") {
         try {
-            $accountDAO = new AccountDAO();
+            $accountDAO = new AccountDAO($useServer);
             $account = $accountDAO->getAccountByEmail($payload["email"]);
             if ($account) {
                 echo json_encode([
