@@ -155,7 +155,7 @@ Methods:
     ]
 - isMailPaid(int $mailId): bool
 - getMailTrackingNum(int $mailId): int
-- getMatchingServices(int $zone, string $type, float $weight, float $height, float $width, float $length): array of $service with keys ["name", "type", "zone"]
+- getMatchingServices(int $zone, string $type, float $weight, float $height, float $width, float $length): array of $service with keys ["name", "min", "max", "basecost", "baseweight", "addcost", "addweight"]
 - getServiceInfo(array $service): ?array with keys ["name", "type", "isTracked", "maxWeight", "maxHeight", "maxWidth", "maxLength"]
 - getZone(string $countryCode): ?int
 - getCountryCode(string $countryName): ?string

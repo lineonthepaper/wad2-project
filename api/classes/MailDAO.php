@@ -403,7 +403,9 @@ class MailDAO
         } else {
             $addon = "";
         }
-        $query = "select s.service_name as name, s.service_type as type, service_zone as zone from service s, service_cost sc where 
+        $query = "select s.service_name as name, service_minimum_days as min, service_maximum_days as max, 
+        service_base_cost as basecost, service_base_weight as baseweight, service_add_cost as addcost, 
+        service_add_weight as addweight from service s, service_cost sc where 
         s.service_name = sc.service_name and s.service_type = sc.service_type and service_zone = $1 and max_weight >= $2 and max_height >= $3
         and max_width >= $4 and max_length >= $5" . $addon;
 
