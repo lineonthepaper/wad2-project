@@ -5,40 +5,62 @@ import ServicesSelection from '@/components/shipment/ServicesSelection.vue'
 import ShipmentDetails from '@/components/shipment/ShipmentDetails.vue'
 import DeliveryDetails from '@/components/shipment/DeliveryDetails.vue'
 
-const briefInfo = shallowRef(BriefInfo)
-const servicesSelection = shallowRef(ServicesSelection)
-const shipmentDetails = shallowRef(ShipmentDetails)
-const deliveryDetails = shallowRef(DeliveryDetails)
-
-const sections = ref([
-  { title: 'Brief Information', id: 'briefInfo', info: briefInfo },
-  {
-    title: 'Select Services',
-    id: 'services',
-    info: servicesSelection,
-  },
-  {
-    title: 'Shipment Details',
-    id: 'shipment',
-    info: shipmentDetails,
-  },
-  {
-    title: 'Delivery Details',
-    id: 'delivery',
-    info: deliveryDetails,
-  },
-])
+import axios from 'axios'
 </script>
 
 <script>
 export default {
   data() {
+    const briefInfo = shallowRef(BriefInfo)
+    const servicesSelection = shallowRef(ServicesSelection)
+    const shipmentDetails = shallowRef(ShipmentDetails)
+    const deliveryDetails = shallowRef(DeliveryDetails)
+
+    const sections = ref([
+      {
+        title: 'Brief Information',
+        id: 'briefInfo',
+        info: briefInfo,
+        eventEmit: {
+          'update-country': this.receiveUpdateCountry,
+          'update-shipment-type': this.receiveUpdateShipmentType,
+          'update-dimensions': this.receiveUpdateDimensions,
+        },
+        data: {},
+        props: {},
+      },
+      {
+        title: 'Select Services',
+        id: 'services',
+        info: servicesSelection,
+        eventEmit: {
+          'update-select': this.receiveUpdateSelect,
+        },
+        data: {},
+        props: {},
+      },
+      {
+        title: 'Shipment Details',
+        id: 'shipment',
+        info: shipmentDetails,
+        data: {},
+        props: {},
+      },
+      {
+        title: 'Delivery Details',
+        id: 'delivery',
+        info: deliveryDetails,
+        data: {},
+        props: {},
+      },
+    ])
     return {
       currentElement: 'briefInfo',
+      sections,
     }
   },
   methods: {
-    toggle(id, event = null) {
+    toggle(id, index, event = null) {
       if (event) {
         if (event.key != 'Enter' && event.key != ' ') {
           return
@@ -48,6 +70,101 @@ export default {
         this.currentElement = null
       } else {
         this.currentElement = id
+      }
+
+      // compute all previous sections
+      for (let i = 0; i < index; i++) {
+        console.log(this.sections[i])
+        if (i == 0) {
+          this.processBriefInfo()
+        }
+      }
+    },
+    receiveUpdateCountry(sendFormId, country) {
+      // console.log('received ' + sendFormId + ' ' + country)
+      this.sections[0].data[sendFormId] = country
+    },
+    receiveUpdateShipmentType(shipmentType) {
+      // console.log('received ' + shipmentType)
+      this.sections[0].data['shipmentType'] = shipmentType
+    },
+    receiveUpdateDimensions(dimension, value) {
+      // console.log('received ' + dimension + ' ' + value)
+      this.sections[0].data[dimension] = value
+      // console.log(this.sections[0])
+    },
+    receiveUpdateSelect(foundService) {
+      this.sections[1].data['selectedService'] = foundService
+      // console.log(this.sections)
+    },
+    processBriefInfo() {
+      console.log('processing brief info')
+      if (
+        'sendFrom' in this.sections[0].data &&
+        'sendTo' in this.sections[0].data &&
+        'shipmentType' in this.sections[0].data &&
+        'weight' in this.sections[0].data &&
+        'length' in this.sections[0].data &&
+        'width' in this.sections[0].data &&
+        'height' in this.sections[0].data
+      ) {
+        // continue
+        let zone = null
+        axios
+          .post('/api/mail.php', {
+            method: 'getZone',
+            countryCode: this.sections[0].data.sendTo,
+          })
+          .then((response) => {
+            // console.log(response.data)
+            zone = response.data.zone
+
+            // console.log('searching for matching services...')
+            axios
+              .post('/api/mail.php', {
+                method: 'getMatchingServices',
+                zone: zone,
+                type: this.sections[0].data.shipmentType,
+                weight: this.sections[0].data.weight,
+                height: this.sections[0].data.height,
+                width: this.sections[0].data.width,
+                length: this.sections[0].data.length,
+              })
+              .then((response) => {
+                // console.log(response.data.services)
+
+                this.sections[1].props.services = []
+
+                for (let s of response.data.services) {
+                  let price = Number(s.basecost)
+
+                  let curWeight = Number(this.sections[0].data.weight) - Number(s.baseweight)
+
+                  while (curWeight > 0) {
+                    curWeight -= Number(s.addweight)
+                    price += Number(s.addcost)
+                  }
+
+                  this.sections[1].props.services.push({
+                    name: s.name,
+                    min: s.min,
+                    max: s.max,
+                    price: price.toFixed(2),
+                    selected: false,
+                  })
+                }
+                // console.log(this.sections[1].props.services)
+              })
+              .catch((error) => {
+                console.error(error)
+              })
+          })
+          .catch((error) => {
+            console.error(error)
+          })
+      } else {
+        // abort and display no services
+        this.sections[1].props.services = []
       }
     },
   },
@@ -73,10 +190,10 @@ export default {
       <div class="col-md-8">
         <div class="section">
           <div
-            @click="toggle(section.id)"
+            @click="toggle(section.id, index)"
             class="section-toggler"
             tabindex="0"
-            @keydown="toggle(section.id, $event)"
+            @keydown="toggle(section.id, index, $event)"
           >
             <div class="text-dark-slate-blue justify-content-between d-flex">
               <h2 class="d-inline-block">{{ section.title }}</h2>
@@ -85,64 +202,11 @@ export default {
             </div>
           </div>
           <div class="section-info" :class="{ 'section-info-show': currentElement == section.id }">
-            <component :is="section.info" />
+            <component :is="section.info" v-on="section.eventEmit" :props="section.props" />
           </div>
         </div>
       </div>
     </div>
-
-    <!-- <div class="row justify-content-center">
-      <div class="col-1 d-flex justify-content-center">
-        <div class="number number-selected">1</div>
-      </div>
-      <div class="col-md-8">
-        <div class="section">
-          <div @click="toggle('briefInfo')" class="section-toggler">
-            <div class="text-dark-slate-blue justify-content-between d-flex">
-              <h2 class="d-inline-block">Brief Information</h2>
-              <h2 class="d-inline-block downarrow" v-if="currentElement != 'briefInfo'">▼</h2>
-              <h2 class="d-inline-block uparrow" v-else>▲</h2>
-            </div>
-          </div>
-          <div class="section-info" :class="{ 'section-info-show': currentElement == 'briefInfo' }">
-            blah blah blah
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row justify-content-center">
-      <div class="col-1 d-flex justify-content-center">
-        <div class="number">2</div>
-      </div>
-      <div class="col-md-8">
-        <div class="section">
-          <h2 class="text-dark-slate-blue">Select Service</h2>
-        </div>
-      </div>
-    </div>
-
-    <div class="row justify-content-center">
-      <div class="col-1 d-flex justify-content-center">
-        <div class="number">3</div>
-      </div>
-      <div class="col-md-8">
-        <div class="section">
-          <h2 class="text-dark-slate-blue">Shipment Details</h2>
-        </div>
-      </div>
-    </div>
-
-    <div class="row justify-content-center">
-      <div class="col-1 d-flex justify-content-center">
-        <div class="number">4</div>
-      </div>
-      <div class="col-md-8">
-        <div class="section">
-          <h2 class="text-dark-slate-blue">Delivery Details</h2>
-        </div>
-      </div>
-    </div> -->
   </div>
 </template>
 

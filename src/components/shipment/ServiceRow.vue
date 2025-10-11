@@ -1,10 +1,10 @@
 <template>
   <tr>
-    <td>aa</td>
-    <td>aa</td>
-    <td>aa</td>
+    <td>{{ service }}</td>
+    <td>{{ transitTime }}</td>
+    <td>{{ price }}</td>
     <td>
-      <div class="checkbox" @click="selected = !selected">
+      <div class="checkbox" @click="toggleSelect()">
         <img src="/shipment/stamp.png" alt="Stamp" :class="{ 'img-selected': selected }" />
       </div>
     </td>
@@ -14,9 +14,14 @@
 <script>
 export default {
   data() {
-    return {
-      selected: true,
-    }
+    return {}
+  },
+  props: ['service', 'transitTime', 'price', 'selected'],
+  emites: ['toggle-select'],
+  methods: {
+    toggleSelect() {
+      this.$emit('toggle-select', this.selected)
+    },
   },
 }
 </script>
