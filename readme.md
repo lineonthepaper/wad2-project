@@ -94,7 +94,7 @@ vercel --prod
 Deploy to preview environment
 
 ```sh
-vercel deploy --target=preview
+vercel deploy
 ```
 
 Update local env file
@@ -102,5 +102,3 @@ Update local env file
 ```sh
 vercel env pull
 ```
-
-# phpunit testing
