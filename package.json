@@ -22,7 +22,11 @@
     "bootstrap": "^5.3.8",
     "choices.js": "^11.1.0",
     "pinia": "^3.0.3",
+<<<<<<< HEAD
     "vue": "^3.5.18",
+=======
+    "vue": "^3.5.22",
+>>>>>>> 8ea627c (B)
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
@@ -38,7 +42,11 @@
     "globals": "^16.3.0",
     "jsdom": "^26.1.0",
     "prettier": "3.6.2",
+<<<<<<< HEAD
     "vite": "^7.0.6",
+=======
+    "vite": "^7.1.9",
+>>>>>>> 8ea627c (B)
     "vite-plugin-vue-devtools": "^8.0.0",
     "vitest": "^3.2.4"
   }
