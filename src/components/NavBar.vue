@@ -25,16 +25,16 @@ import { RouterLink, RouterView } from 'vue-router'
           </button>
           <div class="collapse navbar-collapse justify-content-end" id="navbarCollapseContent">
             <ul class="navbar-nav align-items-end align-items-md-center">
-              <li class="nav-item">
+              <li class="nav-item text-end">
                 <RouterLink :to="{ name: 'home' }">Home</RouterLink>
               </li>
-              <li class="nav-item">
+              <li class="nav-item text-end">
                 <RouterLink :to="{ name: 'shipment' }">Create Shipment</RouterLink>
               </li>
-              <li class="nav-item">
+              <li class="nav-item text-end">
                 <RouterLink :to="{ name: 'cart' }">Shipment Cart</RouterLink>
               </li>
-              <li class="nav-item">
+              <li class="nav-item text-end">
                 <RouterLink :to="{ name: 'help' }">Help</RouterLink>
               </li>
               <li class="nav-item">
