@@ -37,8 +37,13 @@
     </div>
 
     <div class="row py-2 justify-content-center">
-      <div class="col text-center">
+      <div class="col-6 text-center">
         <button type="button" class="btn btn-pink" @click="numRows++">Add Item</button>
+      </div>
+      <div class="col-6 text-center">
+        <button type="button" class="btn btn-pink" @click="numRows > 1 ? numRows-- : null">
+          Remove Item
+        </button>
       </div>
     </div>
   </div>
