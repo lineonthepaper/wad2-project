@@ -142,10 +142,13 @@ export default {
       <div class="col-md-6">
         <h4 class="text-dark-slate-blue">Measurements</h4>
         <div class="mb-3" v-for="dimension in dimensions" :key="dimension.name">
-          <label for="parcelWeightInput" class="text-dark-slate-blue">{{ dimension.title }}</label>
+          <label :for="'parcel' + dimension.title + 'Input'" class="text-dark-slate-blue">
+            {{ dimension.title }}
+          </label>
           <input
             type="number"
             class="form-control"
+            :id="'parcel' + dimension.title + 'Input'"
             @change="updateDimensions(dimension.name, dimension.textInput)"
             v-model.number="dimension.textInput"
             inputmode="numeric"
