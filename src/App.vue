@@ -12,11 +12,13 @@ import FooterBar from './components/FooterBar.vue'
 
 <template>
   <HeadLoader />
-  <header>
-    <NavBar />
-  </header>
 
-  <footer><FooterBar /></footer>
+  <div class="flex-column justify-content-between d-flex flex-grow-1 flex-shrink-0 min-vh-100">
+    <header>
+      <NavBar />
+    </header>
+    <footer><FooterBar /></footer>
+  </div>
 </template>
 
 <style scoped></style>
