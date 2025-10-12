@@ -97,7 +97,7 @@ import { RouterLink, RouterView } from 'vue-router'
 }
 
 .card a h5 {
-  color: #455a64;
+  color: var(--dark-slate-blue);
   font-weight: bold;
 }
 
@@ -106,11 +106,11 @@ import { RouterLink, RouterView } from 'vue-router'
 }
 
 .card a p {
-  color: #8796b3;
+  color: var(--slate-blue);
 }
 
 .card a:hover p {
-  color: #455a64;
+  color: var(--dark-slate-blue);
 }
 
 .service-icon {
