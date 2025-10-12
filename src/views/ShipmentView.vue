@@ -57,9 +57,14 @@ export default {
     return {
       currentElement: 'briefInfo',
       sections,
+      componentKey: 0,
     }
   },
   methods: {
+    forceRerender() {
+      this.componentKey++
+      console.log('rerendering...')
+    },
     toggle(id, index, event = null) {
       if (event) {
         if (event.key != 'Enter' && event.key != ' ') {
@@ -109,15 +114,16 @@ export default {
         'height' in this.sections[0].data
       ) {
         // continue
+        this.sections[1].props = {}
         let zone = null
         axios
           .post('/api/mail.php', {
             method: 'getZone',
             countryCode: this.sections[0].data.sendTo,
           })
-          .then((response) => {
-            // console.log(response.data)
-            zone = response.data.zone
+          .then((zoneResponse) => {
+            console.log(zoneResponse.data)
+            zone = zoneResponse.data.zone
 
             // console.log('searching for matching services...')
             axios
@@ -130,12 +136,12 @@ export default {
                 width: this.sections[0].data.width,
                 length: this.sections[0].data.length,
               })
-              .then((response) => {
-                // console.log(response.data.services)
+              .then((serviceResponse) => {
+                console.log(serviceResponse.data.services)
 
                 this.sections[1].props.services = []
 
-                for (let s of response.data.services) {
+                for (let s of serviceResponse.data.services) {
                   let price = Number(s.basecost)
 
                   let curWeight = Number(this.sections[0].data.weight) - Number(s.baseweight)
@@ -153,6 +159,8 @@ export default {
                     selected: false,
                   })
                 }
+
+                this.forceRerender()
                 // console.log(this.sections[1].props.services)
               })
               .catch((error) => {
@@ -202,7 +210,12 @@ export default {
             </div>
           </div>
           <div class="section-info" :class="{ 'section-info-show': currentElement == section.id }">
-            <component :is="section.info" v-on="section.eventEmit" :props="section.props" />
+            <component
+              :is="section.info"
+              v-on="section.eventEmit"
+              :props="section.props"
+              :key="section.id === 'services' ? componentKey : null"
+            />
           </div>
         </div>
       </div>

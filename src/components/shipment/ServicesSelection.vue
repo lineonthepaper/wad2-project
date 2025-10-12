@@ -1,6 +1,10 @@
 <template>
   <div class="container-fluid">
-    <table class="table">
+    <div v-if="!('services' in props)">Loading...</div>
+    <div v-else-if="props.services.length === 0">
+      No services could be found. Please check your inputs.
+    </div>
+    <table class="table" v-else>
       <thead>
         <tr>
           <th>Service</th>
