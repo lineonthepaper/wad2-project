@@ -13,41 +13,51 @@
   font-optical-sizing: auto;
 }
 
+:root {
+  --hot-pink: #ff4275;
+  --dark-pink: #ff759e;
+  --pink: #ff9096;
+  --dark-slate-blue: #455a64;
+  --slate-blue: #8796b3;
+  --light-pink: #ffe8ee;
+  --pink-grey: #f1d9df;
+}
+
 .jua {
   font-family: 'Jua', sans-serif;
 }
 
 h1.jua.text-hot-pink {
   -webkit-text-stroke-width: 2px;
-  -webkit-text-stroke-color: #ff4275;
+  -webkit-text-stroke-color: var(--hot-pink);
 }
 
 .text-hot-pink {
-  color: #ff4275;
+  color: var(--hot-pink);
 }
 
 .text-dark-pink {
-  color: #ff759e;
+  color: var(--dark-pink);
 }
 
 .text-pink {
-  color: #ff9096;
+  color: var(--pink);
 }
 
 .text-dark-slate-blue {
-  color: #455a64;
+  color: var(--dark-slate-blue);
 }
 
 .text-slate-blue {
-  color: #8796b3;
+  color: var(--slate-blue);
 }
 
 .bg-light-pink {
-  background-color: #ffe8ee;
+  background-color: var(--light-pink);
 }
 
 .bg-pink-grey {
-  background-color: #f1d9df;
+  background-color: var(--pink-grey);
 }
 
 .quicksand-semibold {
@@ -56,9 +66,9 @@ h1.jua.text-hot-pink {
 }
 
 .btn-pink {
-  background-color: #ff759e !important;
+  background-color: var(--dark-pink) !important;
   transition-duration: 0.4s;
-  border: 1px solid #ff759e !important;
+  border: 1px solid var(--dark-pink) !important;
   color: white !important;
 }
 
@@ -67,47 +77,47 @@ h1.jua.text-hot-pink {
 }
 
 .btn-pink:hover span {
-  color: #ff759e;
+  color: var(--dark-pink);
 }
 
 .btn-pink:hover {
   background-color: white !important;
-  color: #ff759e !important;
-  border: 1px solid #ff759e !important;
+  color: var(--dark-pink) !important;
+  border: 1px solid var(--pink) !important;
 }
 
 .btn-white {
   background-color: white !important;
   transition-duration: 0.4s;
-  border: 1px solid #ff759e !important;
-  color: #ff759e !important;
+  border: 1px solid var(--dark-pink) !important;
+  color: var(--dark-pink) !important;
 }
 
 .btn-white:hover {
-  background-color: #ff759e !important;
+  background-color: var(--dark-pink) !important;
   color: white !important;
-  border: 1px solid #ff759e !important;
+  border: 1px solid var(--dark-pink) !important;
 }
 
 .btn-pink-no-hover {
-  background-color: #ff759e !important;
+  background-color: var(--dark-pink) !important;
   transition-duration: 0.4s;
-  border: 1px solid #ff759e !important;
+  border: 1px solid var(--dark-pink) !important;
   color: white !important;
 }
 
 .btn-white-no-hover {
   background-color: white !important;
   transition-duration: 0.4s;
-  border: 1px solid #ff759e !important;
-  color: #ff759e !important;
+  border: 1px solid var(--dark-pink) !important;
+  color: var(--dark-pink) !important;
 }
 
 hr {
   margin: 8px 0px !important;
-  color: #ff4275 !important;
+  color: var(--hot-pink) !important;
   height: 2px;
-  background-color: #ff4275;
+  background-color: var(--hot-pink);
 }
 
 /* effectively the same as body for our case*/
@@ -130,6 +140,10 @@ hr {
 }
 .airplane-header h1 {
   margin-top: 8px;
+}
+
+input::placeholder {
+  color: var(--slate-blue) !important;
 }
 
 @media (max-width: 768px) {

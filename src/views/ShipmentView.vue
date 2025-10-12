@@ -148,7 +148,7 @@ export default {
 
 <style scoped>
 .section {
-  border: 2px #ff759e solid;
+  border: 2px var(--dark-pink) solid;
   border-radius: 8px;
   padding: 20px;
   margin: 10px;
@@ -167,13 +167,13 @@ export default {
 }
 
 .section-info-show {
-  max-height: 100vh;
+  max-height: calc(1px * infinity);
   overflow: visible;
   transition: max-height 0.35s;
 }
 
 .number {
-  border: 2px #ff759e solid;
+  border: 2px var(--dark-pink) solid;
   border-radius: 50%;
   aspect-ratio: 1 / 1;
   height: 1.5em;
@@ -186,11 +186,11 @@ export default {
   background-color: white;
   margin: 10px;
   font-size: 2em;
-  color: #455a64;
+  color: var(--dark-slate-blue);
 }
 
 .number-selected {
-  background-color: #ff759e;
+  background-color: var(--dark-pink);
   color: white;
 }
 </style>
