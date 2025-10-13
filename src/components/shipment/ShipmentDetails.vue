@@ -46,9 +46,7 @@
         <button type="button" class="btn btn-pink" @click="numRows++">Add Item</button>
       </div>
       <div class="col-6 text-start">
-        <button type="button" class="btn btn-pink" @click="numRows > 1 ? numRows-- : null">
-          Remove Item
-        </button>
+        <button type="button" class="btn btn-pink" @click="removeRow">Remove Item</button>
       </div>
     </div>
   </div>
@@ -88,11 +86,27 @@ export default {
     return {
       refNumbers,
       numRows: 1,
+      items: {},
     }
   },
   methods: {
+    removeRow() {
+      if (this.numRows > 1) {
+        this.numRows--
+      }
+      for (let rowNum in this.items) {
+        if (rowNum > this.numRows) {
+          delete this.items[rowNum]
+        }
+      }
+    },
     receiveUpdateItemRow(rowId, inputName, value) {
       console.log('received ' + inputName + ' ' + value + ' on row ' + rowId)
+      if (!(rowId in this.items)) {
+        this.items[rowId] = {}
+      }
+      this.items[rowId][inputName] = value
+      console.log(this.items)
     },
   },
 }
