@@ -2,13 +2,24 @@
   <tr>
     <!-- Item Description -->
     <td>
-      <input type="text" class="form-control form-control-lg" />
+      <input
+        type="text"
+        class="form-control form-control-lg"
+        v-model="inputs.itemDescription"
+        @change="updateItemRow(rowId, 'itemDescription', inputs.itemDescription)"
+      />
     </td>
 
     <!-- Declared Currency -->
     <td>
       <div style="width: 8em">
-        <select :id="'declaredCurrency' + rowId" class="form-control p-2 rounded" tabindex="0">
+        <select
+          :id="'declaredCurrency' + rowId"
+          class="form-control p-2 rounded"
+          tabindex="0"
+          v-model="inputs.itemCurrency"
+          @change="updateItemRow(rowId, 'itemCurrency', inputs.itemCurrency)"
+        >
           <option v-for="currency of currencyData" :key="currency.code" :value="currency.code">
             {{ currency.code }}
           </option>
@@ -18,7 +29,13 @@
 
     <!-- Declared Value -->
     <td>
-      <input type="number" class="form-control form-control-lg" style="width: 5em" />
+      <input
+        type="number"
+        class="form-control form-control-lg"
+        style="width: 6em"
+        v-model="inputs.itemValue"
+        @change="updateItemRow(rowId, 'itemValue', inputs.itemValue)"
+      />
     </td>
 
     <!-- Item Weight -->
@@ -26,14 +43,22 @@
       <input
         type="number"
         class="form-control form-control-lg"
-        style="width: 5em"
+        style="width: 6em"
         placeholder="in kg"
+        v-model="inputs.itemWeight"
+        @change="updateItemRow(rowId, 'itemWeight', inputs.itemWeight)"
       />
     </td>
 
     <!-- Item Quantity -->
     <td>
-      <input type="number" class="form-control form-control-lg" style="width: 4em" />
+      <input
+        type="number"
+        class="form-control form-control-lg"
+        style="width: 5em"
+        v-model="inputs.itemQuantity"
+        @change="updateItemRow(rowId, 'itemQuantity', inputs.itemQuantity)"
+      />
     </td>
   </tr>
 </template>
@@ -57,7 +82,7 @@ import Choices from 'choices.js'
 
 import '/node_modules/choices.js/public/assets/styles/choices.css'
 
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const props = defineProps({
   rowId: Number,
@@ -78,8 +103,29 @@ onMounted(() => {
 
 <script>
 export default {
+  emits: ['update-item-row'],
   data() {
-    return {}
+    let itemDescription = null
+    let itemCurrency = null
+    let itemValue = null
+    let itemWeight = null
+    let itemQuantity = null
+    const inputs = ref([
+      { name: 'itemDescription', input: itemDescription },
+      { name: 'itemCurrency', input: itemCurrency },
+      { name: 'itemValue', input: itemValue },
+      { name: 'itemWeight', input: itemWeight },
+      { name: 'itemQuantity', input: itemQuantity },
+    ])
+    return {
+      inputs,
+    }
+  },
+  methods: {
+    updateItemRow(rowId, inputName, value) {
+      console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
+      this.$emit('update-item-row', rowId, inputName, value)
+    },
   },
 }
 </script>

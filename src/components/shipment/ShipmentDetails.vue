@@ -31,16 +31,21 @@
           </tr>
         </thead>
         <tbody>
-          <ItemRow v-for="i in numRows" :key="i" :row-id="i" />
+          <ItemRow
+            v-for="i in numRows"
+            :key="i"
+            :row-id="i"
+            @update-item-row="receiveUpdateItemRow"
+          />
         </tbody>
       </table>
     </div>
 
     <div class="row py-2 justify-content-center">
-      <div class="col-6 text-center">
+      <div class="col-6 text-end">
         <button type="button" class="btn btn-pink" @click="numRows++">Add Item</button>
       </div>
-      <div class="col-6 text-center">
+      <div class="col-6 text-start">
         <button type="button" class="btn btn-pink" @click="numRows > 1 ? numRows-- : null">
           Remove Item
         </button>
@@ -84,6 +89,11 @@ export default {
       refNumbers,
       numRows: 1,
     }
+  },
+  methods: {
+    receiveUpdateItemRow(rowId, inputName, value) {
+      console.log('received ' + inputName + ' ' + value + ' on row ' + rowId)
+    },
   },
 }
 </script>
