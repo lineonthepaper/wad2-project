@@ -193,7 +193,13 @@ export default {
 
     <div class="row justify-content-center" v-for="(section, index) in sections" :key="section.id">
       <div class="col-1 d-flex justify-content-center">
-        <div class="number" :class="{ 'number-selected': currentElement == section.id }">
+        <div
+          :class="[
+            'section-toggler',
+            'number',
+            { 'number-selected': currentElement == section.id },
+          ]"
+        >
           {{ index + 1 }}
         </div>
       </div>
@@ -207,8 +213,8 @@ export default {
           >
             <div class="text-dark-slate-blue justify-content-between d-flex">
               <h2 class="d-inline-block">{{ section.title }}</h2>
-              <h2 class="d-inline-block downarrow" v-if="currentElement != section.id">▼</h2>
-              <h2 class="d-inline-block uparrow" v-else>▲</h2>
+              <h2 class="d-inline-block downarrow" v-if="currentElement != section.id">+</h2>
+              <h2 class="d-inline-block uparrow" v-else>–</h2>
             </div>
           </div>
           <div class="section-info" :class="{ 'section-info-show': currentElement == section.id }">
