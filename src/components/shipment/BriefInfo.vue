@@ -47,13 +47,7 @@ export default {
     }
   },
   methods: {
-    toggleShipmentType(name, event = null) {
-      if (event) {
-        if (event.key != ' ' && event.key != 'Enter') {
-          return
-        }
-        event.preventDefault()
-      }
+    toggleShipmentType(name) {
       if (this.shipmentType == name) {
         this.shipmentType = null
       } else {
@@ -102,7 +96,7 @@ export default {
             class="btn w-75 fs-5"
             :class="[shipmentType == type.name ? 'btn-pink-no-hover' : 'btn-white-no-hover']"
             @click="toggleShipmentType(type.name)"
-            @keydown="toggleShipmentType(type.name, $event)"
+            @keydown.enter="(toggleShipmentType(type.name), $event.preventDefault())"
           >
             <img
               :src="type.imgUrl"
