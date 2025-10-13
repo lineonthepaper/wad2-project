@@ -106,7 +106,12 @@ export default {
         this.items[rowId] = {}
       }
       this.items[rowId][inputName] = value
-      console.log(this.items)
+      // console.log(this.items)
+
+      this.updateAllItems()
+    },
+    updateAllItems() {
+      this.$emit('update-all-items', this.items)
     },
   },
 }

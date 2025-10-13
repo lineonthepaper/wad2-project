@@ -43,7 +43,9 @@ export default {
         title: 'Shipment Details',
         id: 'shipment',
         info: shipmentDetails,
-        eventEmit: {},
+        eventEmit: {
+          'update-all-items': this.receiveUpdateAllItems,
+        },
         data: {},
         props: {},
       },
@@ -80,6 +82,9 @@ export default {
         if (i == 0) {
           this.processBriefInfo()
         }
+        if (i == 2) {
+          this.registerCompleteItems()
+        }
       }
     },
     receiveUpdateCountry(sendFormId, country) {
@@ -98,6 +103,20 @@ export default {
     receiveUpdateSelect(foundService) {
       this.sections[1].data['selectedService'] = foundService
       // console.log(this.sections)
+    },
+    receiveUpdateAllItems(items) {
+      this.sections[2].data['items'] = items
+      console.log(this.sections[2].data['items'])
+    },
+    registerCompleteItems() {
+      this.sections[2].data['completeItems'] = {}
+      for (let rowId in this.sections[2].data['items']) {
+        if (Object.keys(this.sections[2].data['items'][rowId]).length === 5) {
+          this.sections[2].data['completeItems'][rowId] = this.sections[2].data['items'][rowId]
+        }
+      }
+
+      console.log(this.sections[2].data['completeItems'])
     },
     processBriefInfo() {
       console.log('processing brief info')
