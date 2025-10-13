@@ -7,6 +7,7 @@
         class="form-control form-control-lg"
         v-model="inputs.itemDescription"
         @change="updateItemRow(rowId, 'itemDescription', inputs.itemDescription)"
+        required
       />
     </td>
 
@@ -19,6 +20,7 @@
           tabindex="0"
           v-model="inputs.itemCurrency"
           @change="updateItemRow(rowId, 'itemCurrency', inputs.itemCurrency)"
+          required
         >
           <option v-for="currency of currencyData" :key="currency.code" :value="currency.code">
             {{ currency.code }}
@@ -35,6 +37,7 @@
         style="width: 6em"
         v-model="inputs.itemValue"
         @change="updateItemRow(rowId, 'itemValue', inputs.itemValue)"
+        required
       />
     </td>
 
@@ -47,6 +50,7 @@
         placeholder="in kg"
         v-model="inputs.itemWeight"
         @change="updateItemRow(rowId, 'itemWeight', inputs.itemWeight)"
+        required
       />
     </td>
 
@@ -58,6 +62,7 @@
         style="width: 5em"
         v-model="inputs.itemQuantity"
         @change="updateItemRow(rowId, 'itemQuantity', inputs.itemQuantity)"
+        required
       />
     </td>
   </tr>

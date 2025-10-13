@@ -100,6 +100,7 @@ export default {
           class="form-control mb-1 p-2 rounded"
           tabindex="0"
           @change="updateCountry(sendForm.id, $event)"
+          required
         >
           <option v-for="country of countries" :key="country.code2" :value="country.code2">
             {{ country.name }}
@@ -112,6 +113,7 @@ export default {
           class="form-control mb-1 p-2 rounded"
           tabindex="0"
           @change="updateCountry(sendForm.id, $event)"
+          required
         >
           <option value="SG">Singapore</option>
         </select>
@@ -153,6 +155,7 @@ export default {
             v-model.number="dimension.textInput"
             inputmode="numeric"
             :placeholder="dimension.placeholder"
+            required
           />
         </div>
       </div>
