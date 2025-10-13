@@ -67,12 +67,7 @@ export default {
       this.componentKey++
       console.log('rerendering...')
     },
-    toggle(id, index, event = null) {
-      if (event) {
-        if (event.key != 'Enter' && event.key != ' ') {
-          return
-        }
-      }
+    toggle(id, index) {
       if (this.currentElement == id) {
         this.currentElement = null
       } else {
@@ -209,7 +204,7 @@ export default {
             @click="toggle(section.id, index)"
             class="section-toggler"
             tabindex="0"
-            @keydown="toggle(section.id, index, $event)"
+            @keydown.enter="toggle(section.id, index)"
           >
             <div class="text-dark-slate-blue justify-content-between d-flex">
               <h2 class="d-inline-block">{{ section.title }}</h2>

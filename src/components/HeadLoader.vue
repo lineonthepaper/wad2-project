@@ -21,7 +21,7 @@ useHead({
     { name: 'viewport', content: 'width=device-width, initial-scale=1.0', charset: 'UTF-8' },
   ],
   link: [
-    { rel: 'icon', href: '/favicon.ico' },
+    { rel: 'icon', href: '/public/favicon.ico' },
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
     {
