@@ -101,7 +101,7 @@ export default {
       }
     },
     receiveUpdateItemRow(rowId, inputName, value) {
-      console.log('received ' + inputName + ' ' + value + ' on row ' + rowId)
+      // console.log('received ' + inputName + ' ' + value + ' on row ' + rowId)
       if (!(rowId in this.items)) {
         this.items[rowId] = {}
       }
