@@ -194,6 +194,8 @@ export default {
             'number',
             { 'number-selected': currentElement == section.id },
           ]"
+          @keydown.enter="toggle(section.id, index)"
+          @click="toggle(section.id, index)"
         >
           {{ index + 1 }}
         </div>
