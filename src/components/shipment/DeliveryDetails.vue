@@ -42,7 +42,7 @@
         <div class="col-md-8">
           <h4 class="text-dark-slate-blue">{{ address.title }} Address</h4>
           <div class="row">
-            <div class="col-lg-8">
+            <div class="col-xl-8">
               <div v-for="i in 3" :key="i">
                 <label :for="address.id + 'Line' + i" class="text-dark-slate-blue"
                   >Address Line {{ i }}</label
@@ -56,7 +56,7 @@
               </div>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-xl-4">
               <div class="row">
                 <div class="col-sm-6">
                   <label :for="address.id + 'City'" class="text-dark-slate-blue">City</label>

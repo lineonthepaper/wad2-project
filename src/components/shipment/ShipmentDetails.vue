@@ -118,15 +118,21 @@ export default {
 </script>
 
 <style scoped>
-@media screen and (max-width: 576px) {
+@media screen and (max-width: 510px) {
+  .table {
+    transform: scale(0.8);
+  }
+}
+
+@media screen and (max-width: 450px) {
   .table {
     transform: scale(0.7);
   }
 }
 
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 320px) {
   .table {
-    transform: scale(0.6);
+    transform: scale(0.55);
   }
 }
 </style>
