@@ -8,12 +8,13 @@
         v-model="inputs.itemDescription"
         @change="updateItemRow(rowId, 'itemDescription', inputs.itemDescription)"
         required
+        style="max-width: 20em"
       />
     </td>
 
     <!-- Declared Currency -->
     <td>
-      <div style="width: 8em">
+      <div style="max-width: 8em">
         <select
           :id="'declaredCurrency' + rowId"
           class="form-control p-2 rounded"
@@ -34,7 +35,7 @@
       <input
         type="number"
         class="form-control form-control-lg"
-        style="width: 6em"
+        style="max-width: 6em"
         v-model="inputs.itemValue"
         @change="updateItemRow(rowId, 'itemValue', inputs.itemValue)"
         required
@@ -46,7 +47,7 @@
       <input
         type="number"
         class="form-control form-control-lg"
-        style="width: 6em"
+        style="max-width: 5em"
         placeholder="in kg"
         v-model="inputs.itemWeight"
         @change="updateItemRow(rowId, 'itemWeight', inputs.itemWeight)"
@@ -59,7 +60,7 @@
       <input
         type="number"
         class="form-control form-control-lg"
-        style="width: 5em"
+        style="max-width: 5em"
         v-model="inputs.itemQuantity"
         @change="updateItemRow(rowId, 'itemQuantity', inputs.itemQuantity)"
         required

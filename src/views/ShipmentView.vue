@@ -219,7 +219,7 @@ export default {
           {{ index + 1 }}
         </div>
       </div>
-      <div class="col-md-8">
+      <div class="col-lg-10 col-md-11">
         <div class="section">
           <div
             @click="toggle(section.id, index)"

@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="row py-2">
+    <div class="row py-2 justify-content-center">
       <h4 class="text-dark-slate-blue pt-2">Item Details</h4>
 
       <table class="table">
@@ -116,3 +116,17 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+@media screen and (max-width: 576px) {
+  .table {
+    transform: scale(0.7);
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .table {
+    transform: scale(0.6);
+  }
+}
+</style>
