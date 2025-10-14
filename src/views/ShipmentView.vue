@@ -53,7 +53,9 @@ export default {
         title: 'Delivery Details',
         id: 'delivery',
         info: deliveryDetails,
-        eventEmit: {},
+        eventEmit: {
+          'update-delivery-details': this.receiveUpdateDeliveryDetails,
+        },
         data: {},
         props: {},
       },
@@ -90,6 +92,7 @@ export default {
     receiveUpdateCountry(sendFormId, country) {
       // console.log('received ' + sendFormId + ' ' + country)
       this.sections[0].data[sendFormId] = country
+      this.sections[3].props[sendFormId] = country
     },
     receiveUpdateShipmentType(shipmentType) {
       // console.log('received ' + shipmentType)
@@ -117,6 +120,10 @@ export default {
       }
 
       console.log(this.sections[2].data['completeItems'])
+    },
+    receiveUpdateDeliveryDetails(details) {
+      this.sections[3].data = details
+      console.log(this.sections[3].data)
     },
     processBriefInfo() {
       console.log('processing brief info')
