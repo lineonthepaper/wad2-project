@@ -9,11 +9,15 @@ import { RouterLink, RouterView } from 'vue-router'
 
 import zoneData from '/json/zoneData.json'
 import serviceData from '/json/serviceData.json'
+
+import { useShipmentStore } from '@/stores/shipment'
 </script>
 
 <script>
 export default {
   data() {
+    const shipment = useShipmentStore()
+
     const briefInfo = shallowRef(BriefInfo)
     const servicesSelection = shallowRef(ServicesSelection)
     const shipmentDetails = shallowRef(ShipmentDetails)
@@ -77,6 +81,7 @@ export default {
       componentKey: 0,
       objectsEqual,
       arraysEqual,
+      shipment,
     }
   },
   methods: {
@@ -106,6 +111,8 @@ export default {
       // console.log('received ' + sendFormId + ' ' + country)
       this.sections[0].data[sendFormId] = country
       this.sections[3].props[sendFormId] = country
+      this.shipment.sender.country = country
+      this.shipment.recipient.country = country
     },
     receiveUpdateShipmentType(shipmentType) {
       // console.log('received ' + shipmentType)
@@ -115,6 +122,7 @@ export default {
       // console.log('received ' + dimension + ' ' + value)
       this.sections[0].data[dimension] = value
       // console.log(this.sections[0])
+      this.shipment.dimensions[dimension] = value
     },
     receiveUpdateSelect(foundService) {
       this.sections[1].data['selectedService'] = foundService
@@ -125,16 +133,19 @@ export default {
             Object.fromEntries(Object.entries(foundService).filter((e) => e[0] != 'selected')),
           )
         ) {
-          console.log('same')
+          // console.log('same')
           service.selected = true
         }
       }
       // console.log(this.sections[1].data)
       this.sections[3].props['isTracked'] = foundService.isTracked
+
+      this.shipment.service = foundService
     },
     receiveUpdateRefNumbers(refInputs) {
       this.sections[2].data['refNumbers'] = refInputs
       // console.log(this.sections[2].data['refNumbers'])
+      this.shipment.refNumbers = refInputs
     },
     receiveUpdateAllItems(items) {
       this.sections[2].data['items'] = items
@@ -149,10 +160,36 @@ export default {
         }
       }
       // console.log(this.sections[2].data['completeItems'])
+      this.shipment.items = this.sections[2].data['completeItems']
     },
     receiveUpdateDeliveryDetails(details) {
       this.sections[3].data = details
       console.log(this.sections[3].data)
+
+      let properties = [
+        'name',
+        'phoneCode',
+        'phoneNumber',
+        'email',
+        'line1',
+        'line2',
+        'line3',
+        'city',
+        'state',
+        'postalCode',
+      ]
+
+      for (let property of properties) {
+        if (details.sender[property] !== null && details.sender[property] !== '') {
+          this.shipment.sender[property] = details.sender[property]
+        }
+      }
+
+      for (let property of properties) {
+        if (details.recipient[property] !== null && details.recipient[property] !== '') {
+          this.shipment.recipient[property] = details.recipient[property]
+        }
+      }
     },
     processBriefInfo() {
       console.log('processing brief info')
@@ -363,6 +400,7 @@ export default {
       </div>
     </div>
   </div>
+  <!-- <button @click="console.log(shipment.$state)">View state</button> -->
   <RouterView />
 </template>
 
