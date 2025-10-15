@@ -146,6 +146,12 @@ input::placeholder {
   color: var(--slate-blue) !important;
 }
 
+a {
+  color: var(--hot-pink) !important;
+  text-decoration: none !important;
+  font-weight: bold;
+}
+
 @media (max-width: 768px) {
   .header {
     background-size: 50% 110%;

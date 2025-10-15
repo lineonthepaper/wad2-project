@@ -133,8 +133,16 @@
         </div>
       </div>
     </div>
-    <div class="row">
-      <h4 class="text-dark-slate-blue">Other Information</h4>
+    <div class="row text-dark-slate-blue" v-if="'isTracked' in props">
+      <h4>Other Information</h4>
+      <div v-if="props.isTracked">
+        Please drop off your mail at any
+        <a href="https://www.singpost.com/locate-us">SingPost Post Office.</a>
+      </div>
+      <div v-else>
+        You may drop off your mail at any
+        <a href="https://www.singpost.com/locate-us">SingPost Posting Box.</a>
+      </div>
     </div>
   </div>
 </template>
