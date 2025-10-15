@@ -29,11 +29,11 @@
           <h1 class="title">{{ service.service_name }}</h1>
           <p class="description">{{ service.description }}</p>
 
-          <div class="action-buttons mt-3">
+          <!-- <div class="action-buttons mt-3">
             <button class="btn-outline">LOCATE US</button>
             <button class="btn-outline">CHECK DELIVERY RATES</button>
             <button class="btn-outline">CALCULATE RATES</button>
-          </div>
+          </div> -->
 
           <p class="delivery-note mt-4">
             {{ service.deliveryNote }}
@@ -59,7 +59,7 @@
         </button>
       </div>
 
-   
+
       <div v-if="activeTab === 'info'" class="info-section">
         <table class="info-table">
           <tr>
