@@ -47,6 +47,7 @@ export default {
         id: 'shipment',
         info: shipmentDetails,
         eventEmit: {
+          'update-ref-numbers': this.receiveUpdateRefNumbers,
           'update-all-items': this.receiveUpdateAllItems,
         },
         data: {},
@@ -130,6 +131,10 @@ export default {
       }
       // console.log(this.sections[1].data)
       this.sections[3].props['isTracked'] = foundService.isTracked
+    },
+    receiveUpdateRefNumbers(refInputs) {
+      this.sections[2].data['refNumbers'] = refInputs
+      // console.log(this.sections[2].data['refNumbers'])
     },
     receiveUpdateAllItems(items) {
       this.sections[2].data['items'] = items

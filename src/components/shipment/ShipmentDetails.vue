@@ -11,8 +11,9 @@
           type="text"
           :id="ref.name + 'Input'"
           class="form-control"
-          v-model="ref.textInput"
+          v-model="refInputs[ref.name]"
           :placeholder="ref.placeholder"
+          @change="updateRefNumbers"
         />
       </div>
     </div>
@@ -62,31 +63,34 @@ export default {
   data() {
     let senderRef = null
     let senderVAT = null
-    let receiverVAT = null
+    let recipientVAT = null
     const refNumbers = ref([
       {
         title: 'Sender Reference',
         name: 'senderRef',
-        textInput: senderRef,
         placeholder: 'optional',
       },
       {
         title: 'Sender VAT Number',
         name: 'senderVAT',
-        textInput: senderVAT,
         placeholder: 'optional',
       },
       {
-        title: 'Receiver VAT Number',
-        name: 'receiverVAT',
-        textInput: receiverVAT,
+        title: 'Recipient VAT Number',
+        name: 'recipientVAT',
         placeholder: 'optional',
       },
     ])
+    const refInputs = ref({
+      senderRef: this.senderRef,
+      senderVAT: this.senderVAT,
+      recipientVAT: this.recipientVAT,
+    })
     return {
       refNumbers,
       numRows: 1,
       items: {},
+      refInputs,
     }
   },
   methods: {
@@ -112,6 +116,10 @@ export default {
     },
     updateAllItems() {
       this.$emit('update-all-items', this.items)
+    },
+    updateRefNumbers() {
+      // console.log(this.refInputs)
+      this.$emit('update-ref-numbers', this.refInputs)
     },
   },
 }
