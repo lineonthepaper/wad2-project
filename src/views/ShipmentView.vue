@@ -6,6 +6,8 @@ import ShipmentDetails from '@/components/shipment/ShipmentDetails.vue'
 import DeliveryDetails from '@/components/shipment/DeliveryDetails.vue'
 
 import axios from 'axios'
+
+import zoneData from '/json/zoneData.json'
 </script>
 
 <script>
@@ -138,57 +140,50 @@ export default {
       ) {
         // continue
         this.sections[1].props = {}
+
         let zone = null
+
+        for (let obj of zoneData) {
+          if (obj.country_code == this.sections[0].data.sendTo) {
+            zone = obj.zone_id
+          }
+        }
+
         axios
           .post('/api/mail.php', {
-            method: 'getZone',
-            countryCode: this.sections[0].data.sendTo,
+            method: 'getMatchingServices',
+            zone: zone,
+            type: this.sections[0].data.shipmentType,
+            weight: this.sections[0].data.weight,
+            height: this.sections[0].data.height,
+            width: this.sections[0].data.width,
+            length: this.sections[0].data.length,
           })
-          .then((zoneResponse) => {
-            console.log(zoneResponse.data)
-            zone = zoneResponse.data.zone
+          .then((serviceResponse) => {
+            console.log(serviceResponse.data.services)
 
-            // console.log('searching for matching services...')
-            axios
-              .post('/api/mail.php', {
-                method: 'getMatchingServices',
-                zone: zone,
-                type: this.sections[0].data.shipmentType,
-                weight: this.sections[0].data.weight,
-                height: this.sections[0].data.height,
-                width: this.sections[0].data.width,
-                length: this.sections[0].data.length,
+            this.sections[1].props.services = []
+
+            for (let s of serviceResponse.data.services) {
+              let price = Number(s.basecost)
+
+              let curWeight = Number(this.sections[0].data.weight) - Number(s.baseweight)
+
+              while (curWeight > 0) {
+                curWeight -= Number(s.addweight)
+                price += Number(s.addcost)
+              }
+
+              this.sections[1].props.services.push({
+                name: s.name,
+                min: s.min,
+                max: s.max,
+                price: price.toFixed(2),
+                selected: false,
               })
-              .then((serviceResponse) => {
-                console.log(serviceResponse.data.services)
+            }
 
-                this.sections[1].props.services = []
-
-                for (let s of serviceResponse.data.services) {
-                  let price = Number(s.basecost)
-
-                  let curWeight = Number(this.sections[0].data.weight) - Number(s.baseweight)
-
-                  while (curWeight > 0) {
-                    curWeight -= Number(s.addweight)
-                    price += Number(s.addcost)
-                  }
-
-                  this.sections[1].props.services.push({
-                    name: s.name,
-                    min: s.min,
-                    max: s.max,
-                    price: price.toFixed(2),
-                    selected: false,
-                  })
-                }
-
-                this.forceRerender()
-                // console.log(this.sections[1].props.services)
-              })
-              .catch((error) => {
-                console.error(error)
-              })
+            this.forceRerender()
           })
           .catch((error) => {
             console.error(error)
