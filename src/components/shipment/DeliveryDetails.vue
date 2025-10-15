@@ -72,6 +72,7 @@
                   :required="i === 1 ? true : null"
                   v-model="inputs[address.id]['line' + i]"
                   @change="updateDeliveryDetails"
+                  :placeholder="i > 1 ? 'optional' : null"
                 />
               </div>
             </div>
