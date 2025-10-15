@@ -176,6 +176,26 @@ export default {
 
         newProps.services = []
 
+        const addToNewProps = function (obj, sections) {
+          let price = Number(obj.service_base_cost)
+
+          let curWeight = Number(sections[0].data.weight) - Number(obj.service_base_weight)
+
+          while (curWeight > 0) {
+            curWeight -= Number(obj.service_add_weight)
+            price += Number(obj.service_add_cost)
+          }
+
+          newProps.services.push({
+            name: obj.service_name,
+            min: obj.service_minimum_days,
+            max: obj.service_maximum_days,
+            price: price.toFixed(2),
+            isTracked: obj.is_tracked,
+            selected: false,
+          })
+        }
+
         for (let obj of serviceData) {
           if (
             obj.service_zone == zone &&
@@ -185,23 +205,7 @@ export default {
             obj.max_length >= this.sections[0].data.length &&
             obj.service_type == this.sections[0].data.shipmentType
           ) {
-            let price = Number(obj.service_base_cost)
-
-            let curWeight = Number(this.sections[0].data.weight) - Number(obj.service_base_weight)
-
-            while (curWeight > 0) {
-              curWeight -= Number(obj.service_add_weight)
-              price += Number(obj.service_add_cost)
-            }
-
-            newProps.services.push({
-              name: obj.service_name,
-              min: obj.service_minimum_days,
-              max: obj.service_maximum_days,
-              price: price.toFixed(2),
-              isTracked: obj.is_tracked,
-              selected: false,
-            })
+            addToNewProps(obj, this.sections)
           }
         }
 
@@ -214,29 +218,13 @@ export default {
               obj.max_width >= this.sections[0].data.width &&
               obj.max_length >= this.sections[0].data.length
             ) {
-              let price = Number(obj.service_base_cost)
-
-              let curWeight = Number(this.sections[0].data.weight) - Number(obj.service_base_weight)
-
-              while (curWeight > 0) {
-                curWeight -= Number(obj.service_add_weight)
-                price += Number(obj.service_add_cost)
-              }
-
-              newProps.services.push({
-                name: obj.service_name,
-                min: obj.service_minimum_days,
-                max: obj.service_maximum_days,
-                price: price.toFixed(2),
-                isTracked: obj.is_tracked,
-                selected: false,
-              })
+              addToNewProps(obj, this.sections)
             }
           }
         }
 
         // check if newProps and this.sections[1].props are the same
-        console.log(this.sections[1].props)
+        // console.log(this.sections[1].props)
         if (Object.keys(this.sections[1].props).length === 0) {
           this.sections[1].props = newProps
         } else {
