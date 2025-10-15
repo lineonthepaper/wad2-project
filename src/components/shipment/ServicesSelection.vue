@@ -4,29 +4,31 @@
     <div v-else-if="props.services.length === 0">
       No services could be found. Please check your inputs.
     </div>
-    <table class="table" v-else>
-      <thead>
-        <tr>
-          <th>Service</th>
-          <th>Transit Time</th>
-          <th>Tracked?</th>
-          <th>Price (SGD)</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <ServiceRow
-          v-for="s in props.services"
-          :key="s.name"
-          :service="s.name"
-          :transitTime="s.min + '-' + s.max + ' days'"
-          :price="s.price"
-          :selected="s.selected"
-          :isTracked="s.isTracked"
-          @toggleSelect="getSelect(s.name)"
-        />
-      </tbody>
-    </table>
+    <div class="row justify-content-center" v-else>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Transit Time</th>
+            <th>Tracked?</th>
+            <th>Price (SGD)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <ServiceRow
+            v-for="s in props.services"
+            :key="s.name"
+            :service="s.name"
+            :transitTime="s.min + '-' + s.max + ' days'"
+            :price="s.price"
+            :selected="s.selected"
+            :isTracked="s.isTracked"
+            @toggleSelect="getSelect(s.name)"
+          />
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -72,3 +74,23 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+@media screen and (max-width: 510px) {
+  .table {
+    transform: scale(0.8);
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .table {
+    transform: scale(0.7);
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .table {
+    transform: scale(0.55);
+  }
+}
+</style>
