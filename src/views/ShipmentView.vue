@@ -63,10 +63,19 @@ export default {
         props: {},
       },
     ])
+
+    const objectsEqual = (o1, o2) =>
+      Object.keys(o1).length === Object.keys(o2).length &&
+      Object.keys(o1).every((p) => o1[p] === o2[p])
+
+    const arraysEqual = (a1, a2) =>
+      a1.length === a2.length && a1.every((o, index) => objectsEqual(o, a2[index]))
     return {
       currentElement: 'briefInfo',
       sections,
       componentKey: 0,
+      objectsEqual,
+      arraysEqual,
     }
   },
   methods: {
@@ -108,7 +117,19 @@ export default {
     },
     receiveUpdateSelect(foundService) {
       this.sections[1].data['selectedService'] = foundService
-      // console.log(this.sections)
+      for (let service of this.sections[1].props.services) {
+        if (
+          this.objectsEqual(
+            Object.fromEntries(Object.entries(service).filter((e) => e[0] != 'selected')),
+            Object.fromEntries(Object.entries(foundService).filter((e) => e[0] != 'selected')),
+          )
+        ) {
+          console.log('same')
+          service.selected = true
+        }
+      }
+      // console.log(this.sections[1].data)
+      this.sections[3].props['isTracked'] = foundService.isTracked
     },
     receiveUpdateAllItems(items) {
       this.sections[2].data['items'] = items
@@ -130,6 +151,8 @@ export default {
     },
     processBriefInfo() {
       console.log('processing brief info')
+      let newProps = {}
+
       if (
         'sendFrom' in this.sections[0].data &&
         'sendTo' in this.sections[0].data &&
@@ -140,7 +163,7 @@ export default {
         'height' in this.sections[0].data
       ) {
         // continue
-        this.sections[1].props = {}
+        // this.sections[1].props = {}
 
         let zone = null
 
@@ -151,7 +174,7 @@ export default {
           }
         }
 
-        this.sections[1].props.services = []
+        newProps.services = []
 
         for (let obj of serviceData) {
           if (
@@ -171,7 +194,7 @@ export default {
               price += Number(obj.service_add_cost)
             }
 
-            this.sections[1].props.services.push({
+            newProps.services.push({
               name: obj.service_name,
               min: obj.service_minimum_days,
               max: obj.service_maximum_days,
@@ -182,10 +205,7 @@ export default {
           }
         }
 
-        if (
-          this.sections[1].props.services.length == 0 &&
-          this.sections[0].data.shipmentType == 'Documents'
-        ) {
+        if (newProps.services.length == 0 && this.sections[0].data.shipmentType == 'Documents') {
           for (let obj of serviceData) {
             if (
               obj.service_zone == zone &&
@@ -203,7 +223,7 @@ export default {
                 price += Number(obj.service_add_cost)
               }
 
-              this.sections[1].props.services.push({
+              newProps.services.push({
                 name: obj.service_name,
                 min: obj.service_minimum_days,
                 max: obj.service_maximum_days,
@@ -212,6 +232,26 @@ export default {
                 selected: false,
               })
             }
+          }
+        }
+
+        // check if newProps and this.sections[1].props are the same
+        console.log(this.sections[1].props)
+        if (Object.keys(this.sections[1].props).length === 0) {
+          this.sections[1].props = newProps
+        } else {
+          let temp = this.sections[1].props.services
+          if (
+            !this.arraysEqual(
+              newProps.services.map((service) =>
+                Object.fromEntries(Object.entries(service).filter((e) => e[0] != 'selected')),
+              ),
+              temp.map((service) =>
+                Object.fromEntries(Object.entries(service).filter((e) => e[0] != 'selected')),
+              ),
+            )
+          ) {
+            this.sections[1].props = newProps
           }
         }
       } else {
