@@ -60,6 +60,10 @@ h1.jua.text-hot-pink {
   background-color: var(--pink-grey);
 }
 
+.bg-pink {
+  background-color: var(--pink) !important;
+}
+
 .quicksand-semibold {
   font-family: 'Quicksand', sans-serif;
   font-weight: 600;

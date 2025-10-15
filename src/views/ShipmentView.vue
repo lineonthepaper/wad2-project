@@ -96,9 +96,9 @@ export default {
         if (i == 0) {
           this.processBriefInfo()
         }
-        if (i == 2) {
-          this.registerCompleteItems()
-        }
+        // if (i == 2) {
+        //   this.registerCompleteItems()
+        // }
       }
     },
     receiveUpdateCountry(sendFormId, country) {
@@ -133,7 +133,8 @@ export default {
     },
     receiveUpdateAllItems(items) {
       this.sections[2].data['items'] = items
-      console.log(this.sections[2].data['items'])
+      // console.log(this.sections[2].data['items'])
+      this.registerCompleteItems()
     },
     registerCompleteItems() {
       this.sections[2].data['completeItems'] = {}
@@ -142,8 +143,7 @@ export default {
           this.sections[2].data['completeItems'][rowId] = this.sections[2].data['items'][rowId]
         }
       }
-
-      console.log(this.sections[2].data['completeItems'])
+      // console.log(this.sections[2].data['completeItems'])
     },
     receiveUpdateDeliveryDetails(details) {
       this.sections[3].data = details
@@ -248,10 +248,54 @@ export default {
       }
     },
   },
+  computed: {
+    briefInfoCompletion() {
+      return Object.keys(this.sections[0].data).length / 7
+    },
+    servicesCompletion() {
+      return Object.keys(this.sections[1].data).length / 1
+    },
+    shipmentDetailsCompletion() {
+      if (!('completeItems' in this.sections[2].data)) {
+        return 0
+      }
+      return Object.keys(this.sections[2].data['completeItems']).length > 0 ? 1 : 0
+    },
+    deliveryDetailsCompletion() {
+      if (!('sender' in this.sections[3].data) || !('recipient' in this.sections[3].data)) {
+        return 0
+      }
+      let senderCount = 0
+      let recipientCount = 0
+      let requiredProperties = ['name', 'line1', 'city', 'state', 'postalCode']
+      for (let r of requiredProperties) {
+        if (this.sections[3].data.sender[r] !== null) {
+          senderCount++
+        }
+        if (this.sections[3].data.recipient[r] !== null) {
+          recipientCount++
+        }
+      }
+      return (senderCount + recipientCount) / 10
+    },
+    overallCompletion() {
+      return (
+        ((this.briefInfoCompletion +
+          this.servicesCompletion +
+          this.shipmentDetailsCompletion +
+          this.deliveryDetailsCompletion) /
+          4) *
+        100
+      )
+    },
+  },
 }
 </script>
 
 <template>
+  <div class="progress fixed-bottom bg-light border-danger-subtle border" role="progressbar">
+    <div class="progress-bar bg-pink" :style="'width:' + overallCompletion + '%'"></div>
+  </div>
   <div class="container-fluid">
     <hr />
     <div class="row bg-light-pink justify-content-center airplane-header">
