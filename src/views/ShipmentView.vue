@@ -355,11 +355,11 @@ export default {
 
     <div class="row">
       <div class="col text-center">
-        <RouterLink :to="{ name: 'cart' }">
+        <component :to="{ name: 'cart' }" :is="overallCompletion == 100 ? 'RouterLink' : 'span'">
           <button type="button" class="btn btn-pink next-btn" :disabled="overallCompletion != 100">
             Add to Cart
           </button>
-        </RouterLink>
+        </component>
       </div>
     </div>
   </div>
