@@ -9,6 +9,7 @@
         <tr>
           <th>Service</th>
           <th>Transit Time</th>
+          <th>Tracked?</th>
           <th>Price (SGD)</th>
           <th></th>
         </tr>
@@ -21,6 +22,7 @@
           :transitTime="s.min + '-' + s.max + ' days'"
           :price="s.price"
           :selected="s.selected"
+          :isTracked="s.isTracked"
           @toggleSelect="getSelect(s.name)"
         />
       </tbody>

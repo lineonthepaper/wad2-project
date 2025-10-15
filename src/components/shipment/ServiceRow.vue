@@ -2,6 +2,7 @@
   <tr>
     <td>{{ service }}</td>
     <td>{{ transitTime }}</td>
+    <td>{{ isTracked ? 'Yes' : 'No' }}</td>
     <td>{{ price }}</td>
     <td>
       <div class="checkbox" @click="toggleSelect()">
@@ -16,7 +17,7 @@ export default {
   data() {
     return {}
   },
-  props: ['service', 'transitTime', 'price', 'selected'],
+  props: ['service', 'transitTime', 'price', 'isTracked', 'selected'],
   emites: ['toggle-select'],
   methods: {
     toggleSelect() {

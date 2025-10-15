@@ -176,6 +176,7 @@ export default {
               min: obj.service_minimum_days,
               max: obj.service_maximum_days,
               price: price.toFixed(2),
+              isTracked: obj.is_tracked,
               selected: false,
             })
           }
@@ -207,6 +208,7 @@ export default {
                 min: obj.service_minimum_days,
                 max: obj.service_maximum_days,
                 price: price.toFixed(2),
+                isTracked: obj.is_tracked,
                 selected: false,
               })
             }
