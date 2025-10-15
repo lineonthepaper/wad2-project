@@ -5,7 +5,7 @@ import ServicesSelection from '@/components/shipment/ServicesSelection.vue'
 import ShipmentDetails from '@/components/shipment/ShipmentDetails.vue'
 import DeliveryDetails from '@/components/shipment/DeliveryDetails.vue'
 
-import axios from 'axios'
+import { RouterLink, RouterView } from 'vue-router'
 
 import zoneData from '/json/zoneData.json'
 import serviceData from '/json/serviceData.json'
@@ -269,10 +269,13 @@ export default {
       let recipientCount = 0
       let requiredProperties = ['name', 'line1', 'city', 'state', 'postalCode']
       for (let r of requiredProperties) {
-        if (this.sections[3].data.sender[r] !== null) {
+        if (this.sections[3].data.sender[r] !== null && this.sections[3].data.sender[r] !== '') {
           senderCount++
         }
-        if (this.sections[3].data.recipient[r] !== null) {
+        if (
+          this.sections[3].data.recipient[r] !== null &&
+          this.sections[3].data.recipient[r] !== ''
+        ) {
           recipientCount++
         }
       }
@@ -344,7 +347,18 @@ export default {
         </div>
       </div>
     </div>
+
+    <div class="row">
+      <div class="col text-center">
+        <RouterLink :to="{ name: 'cart' }">
+          <button type="button" class="btn btn-pink next-btn" :disabled="overallCompletion != 100">
+            Add to Cart
+          </button>
+        </RouterLink>
+      </div>
+    </div>
   </div>
+  <RouterView />
 </template>
 
 <style scoped>

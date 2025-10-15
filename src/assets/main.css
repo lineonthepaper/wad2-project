@@ -117,6 +117,11 @@ h1.jua.text-hot-pink {
   color: var(--dark-pink) !important;
 }
 
+.next-btn {
+  font-size: 1.5em !important;
+  padding: 0.5em 0.8em !important;
+}
+
 hr {
   margin: 8px 0px !important;
   color: var(--hot-pink) !important;
