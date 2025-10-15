@@ -8,6 +8,7 @@ import DeliveryDetails from '@/components/shipment/DeliveryDetails.vue'
 import axios from 'axios'
 
 import zoneData from '/json/zoneData.json'
+import serviceData from '/json/serviceData.json'
 </script>
 
 <script>
@@ -146,48 +147,41 @@ export default {
         for (let obj of zoneData) {
           if (obj.country_code == this.sections[0].data.sendTo) {
             zone = obj.zone_id
+            break
           }
         }
 
-        axios
-          .post('/api/mail.php', {
-            method: 'getMatchingServices',
-            zone: zone,
-            type: this.sections[0].data.shipmentType,
-            weight: this.sections[0].data.weight,
-            height: this.sections[0].data.height,
-            width: this.sections[0].data.width,
-            length: this.sections[0].data.length,
-          })
-          .then((serviceResponse) => {
-            console.log(serviceResponse.data.services)
+        this.sections[1].props.services = []
 
-            this.sections[1].props.services = []
+        for (let obj of serviceData) {
+          if (
+            obj.service_zone == zone &&
+            obj.max_weight >= this.sections[0].data.weight &&
+            obj.max_height >= this.sections[0].data.height &&
+            obj.max_width >= this.sections[0].data.width &&
+            obj.max_length >= this.sections[0].data.length
+          ) {
+            if (this.sections[0].data.shipmentType == 'Packets' && obj.service_type != 'Packets') {
+              break
+            }
+            let price = Number(obj.service_base_cost)
 
-            for (let s of serviceResponse.data.services) {
-              let price = Number(s.basecost)
+            let curWeight = Number(this.sections[0].data.weight) - Number(obj.service_base_weight)
 
-              let curWeight = Number(this.sections[0].data.weight) - Number(s.baseweight)
-
-              while (curWeight > 0) {
-                curWeight -= Number(s.addweight)
-                price += Number(s.addcost)
-              }
-
-              this.sections[1].props.services.push({
-                name: s.name,
-                min: s.min,
-                max: s.max,
-                price: price.toFixed(2),
-                selected: false,
-              })
+            while (curWeight > 0) {
+              curWeight -= Number(obj.service_add_weight)
+              price += Number(obj.service_add_cost)
             }
 
-            this.forceRerender()
-          })
-          .catch((error) => {
-            console.error(error)
-          })
+            this.sections[1].props.services.push({
+              name: obj.service_name,
+              min: obj.service_minimum_days,
+              max: obj.service_maximum_days,
+              price: price.toFixed(2),
+              selected: false,
+            })
+          }
+        }
       } else {
         // abort and display no services
         this.sections[1].props.services = []
