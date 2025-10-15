@@ -7,6 +7,8 @@ import Choices from 'choices.js'
 
 import '/node_modules/choices.js/public/assets/styles/choices.css'
 
+import { blockNonNumericInput, enforceMinMax } from './utils'
+
 onMounted(() => {
   const sendFrom = document.querySelector('#sendFrom')
 
@@ -53,10 +55,42 @@ export default {
     let width = null
     let height = null
     const dimensions = ref([
-      { title: 'Weight', name: 'weight', textInput: weight, placeholder: 'in kg' },
-      { title: 'Length', name: 'length', textInput: length, placeholder: 'in cm' },
-      { title: 'Width', name: 'width', textInput: width, placeholder: 'in cm' },
-      { title: 'Height', name: 'height', textInput: height, placeholder: 'in cm' },
+      {
+        title: 'Weight',
+        name: 'weight',
+        textInput: weight,
+        placeholder: 'in kg',
+        min: 0.01,
+        max: 2,
+        step: 0.01,
+      },
+      {
+        title: 'Length',
+        name: 'length',
+        textInput: length,
+        placeholder: 'in cm',
+        min: 0.1,
+        max: 60,
+        step: 1,
+      },
+      {
+        title: 'Width',
+        name: 'width',
+        textInput: width,
+        placeholder: 'in cm',
+        min: 0.1,
+        max: 60,
+        step: 1,
+      },
+      {
+        title: 'Height',
+        name: 'height',
+        textInput: height,
+        placeholder: 'in cm',
+        min: 0.1,
+        max: 60,
+        step: 1,
+      },
     ])
     return {
       countries: countryData,
@@ -146,16 +180,24 @@ export default {
           <label :for="'parcel' + dimension.title + 'Input'" class="text-dark-slate-blue">
             {{ dimension.title }}
           </label>
-          <input
-            type="number"
-            class="form-control"
-            :id="'parcel' + dimension.title + 'Input'"
-            @change="updateDimensions(dimension.name, dimension.textInput)"
-            v-model.number="dimension.textInput"
-            inputmode="numeric"
-            :placeholder="dimension.placeholder"
-            required
-          />
+          <div class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              :id="'parcel' + dimension.title + 'Input'"
+              @change="updateDimensions(dimension.name, dimension.textInput)"
+              v-model.number="dimension.textInput"
+              inputmode="numeric"
+              :placeholder="'from ' + dimension.min + ' to ' + dimension.max"
+              required
+              :min="dimension.min"
+              :max="dimension.max"
+              @keyup="enforceMinMax($event.target)"
+              :step="dimension.step"
+              @keypress="blockNonNumericInput($event)"
+            />
+            <span class="input-group-text">{{ dimension.placeholder }}</span>
+          </div>
         </div>
       </div>
     </div>

@@ -39,6 +39,7 @@
         v-model="inputs.itemValue"
         @change="updateItemRow(rowId, 'itemValue', inputs.itemValue)"
         required
+        @keypress="blockNonNumericInput($event)"
       />
     </td>
 
@@ -52,6 +53,10 @@
         v-model="inputs.itemWeight"
         @change="updateItemRow(rowId, 'itemWeight', inputs.itemWeight)"
         required
+        @keypress="blockNonNumericInput($event)"
+        max="2"
+        min="0"
+        @keyup="enforceMinMax($event.target)"
       />
     </td>
 
@@ -64,6 +69,7 @@
         v-model="inputs.itemQuantity"
         @change="updateItemRow(rowId, 'itemQuantity', inputs.itemQuantity)"
         required
+        @keypress="blockNonNumericInput($event)"
       />
     </td>
   </tr>
@@ -89,6 +95,8 @@ import Choices from 'choices.js'
 import '/node_modules/choices.js/public/assets/styles/choices.css'
 
 import { onMounted, ref } from 'vue'
+
+import { blockNonNumericInput, enforceMinMax } from './utils'
 
 const props = defineProps({
   rowId: Number,
