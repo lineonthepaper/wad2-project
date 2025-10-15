@@ -114,7 +114,6 @@
             <div class="card-body d-flex flex-column">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <h5 class="card-title mb-0">{{ service.service_name }}</h5>
-                <span class="badge bg-primary">{{ service.service_type }}</span>
               </div>
 
               <p class="card-text text-muted flex-grow-1">{{ getServiceDescription(service.service_name) }}</p>
