@@ -5,7 +5,7 @@
     <td>{{ isTracked ? 'Yes' : 'No' }}</td>
     <td>{{ price }}</td>
     <td>
-      <div class="checkbox" @click="toggleSelect()">
+      <div class="checkbox" @click="toggleSelect()" role="checkbox" :aria-checked="selected">
         <img src="/shipment/stamp.png" alt="Stamp" :class="{ 'img-selected': selected }" />
       </div>
     </td>
@@ -18,7 +18,7 @@ export default {
     return {}
   },
   props: ['service', 'transitTime', 'price', 'isTracked', 'selected'],
-  emites: ['toggle-select'],
+  emits: ['toggle-select'],
   methods: {
     toggleSelect() {
       this.$emit('toggle-select', this.selected)
