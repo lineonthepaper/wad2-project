@@ -35,8 +35,13 @@ const sendForms = ref([
 ])
 
 const shipmentTypes = ref([
-  { name: 'Document', imgUrl: '/shipment/document.png', imgAlt: 'Document icon' },
-  { name: 'Package', imgUrl: '/shipment/package.png', imgAlt: 'Package icon' },
+  {
+    name: 'Document',
+    imgUrl: '/shipment/document.png',
+    imgAlt: 'Document icon',
+    value: 'Documents',
+  },
+  { name: 'Package', imgUrl: '/shipment/package.png', imgAlt: 'Package icon', value: 'Packets' },
 ])
 </script>
 
@@ -121,14 +126,14 @@ export default {
           <button
             type="button"
             class="btn w-75 fs-5"
-            :class="[shipmentType == type.name ? 'btn-pink-no-hover' : 'btn-white-no-hover']"
-            @click="toggleShipmentType(type.name)"
-            @keydown.enter="(toggleShipmentType(type.name), $event.preventDefault())"
+            :class="[shipmentType == type.value ? 'btn-pink-no-hover' : 'btn-white-no-hover']"
+            @click="toggleShipmentType(type.value)"
+            @keydown.enter="(toggleShipmentType(type.value), $event.preventDefault())"
           >
             <img
               :src="type.imgUrl"
               :alt="type.imgAlt"
-              :class="{ invert: shipmentType == type.name }"
+              :class="{ invert: shipmentType == type.value }"
             />
             <br />
             {{ type.name }}

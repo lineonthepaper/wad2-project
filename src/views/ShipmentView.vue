@@ -159,11 +159,9 @@ export default {
             obj.max_weight >= this.sections[0].data.weight &&
             obj.max_height >= this.sections[0].data.height &&
             obj.max_width >= this.sections[0].data.width &&
-            obj.max_length >= this.sections[0].data.length
+            obj.max_length >= this.sections[0].data.length &&
+            obj.service_type == this.sections[0].data.shipmentType
           ) {
-            if (this.sections[0].data.shipmentType == 'Packets' && obj.service_type != 'Packets') {
-              break
-            }
             let price = Number(obj.service_base_cost)
 
             let curWeight = Number(this.sections[0].data.weight) - Number(obj.service_base_weight)
@@ -180,6 +178,38 @@ export default {
               price: price.toFixed(2),
               selected: false,
             })
+          }
+        }
+
+        if (
+          this.sections[1].props.services.length == 0 &&
+          this.sections[0].data.shipmentType == 'Documents'
+        ) {
+          for (let obj of serviceData) {
+            if (
+              obj.service_zone == zone &&
+              obj.max_weight >= this.sections[0].data.weight &&
+              obj.max_height >= this.sections[0].data.height &&
+              obj.max_width >= this.sections[0].data.width &&
+              obj.max_length >= this.sections[0].data.length
+            ) {
+              let price = Number(obj.service_base_cost)
+
+              let curWeight = Number(this.sections[0].data.weight) - Number(obj.service_base_weight)
+
+              while (curWeight > 0) {
+                curWeight -= Number(obj.service_add_weight)
+                price += Number(obj.service_add_cost)
+              }
+
+              this.sections[1].props.services.push({
+                name: obj.service_name,
+                min: obj.service_minimum_days,
+                max: obj.service_maximum_days,
+                price: price.toFixed(2),
+                selected: false,
+              })
+            }
           }
         }
       } else {
