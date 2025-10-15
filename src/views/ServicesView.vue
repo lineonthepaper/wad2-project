@@ -139,14 +139,6 @@
                   <span class="badge" :class="getServiceTypeBadgeClass(service.service_type)">
                     {{ service.service_type }}
                   </span>
-                  <div class="text-warning">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="far fa-star"></i>
-                    <small class="text-muted">({{ getRatingCount(service.service_name) }})</small>
-                  </div>
                 </div>
               </div>
             </div>
@@ -315,18 +307,6 @@ export default {
       return serviceType === 'Documents' ? 'bg-info' : 'bg-success';
     },
 
-    getRatingCount(serviceName) {
-      const ratingMap = {
-        "Basic Mail": 132,
-        "Basic Package": 88,
-        "Registered Mail": 150,
-        "Registered Package": 95,
-        "Standard Large": 117,
-        "Standard Regular": 73,
-        "Tracked Letterbox": 200
-      };
-      return ratingMap[serviceName] || 100;
-    },
 
     goToDetail(serviceId) {
       this.$router.push(`/service/${serviceId}`);
