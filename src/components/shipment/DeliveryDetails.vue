@@ -119,7 +119,7 @@
                 type="text"
                 class="form-control mb-1"
                 required
-                readonly
+                disabled
                 :value="
                   address.id == 'sender'
                     ? senderCountry
