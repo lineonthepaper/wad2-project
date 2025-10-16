@@ -74,24 +74,35 @@
             </p>
           </div>
 
-          <div class="col order-first order-md-last py-2 justify-content-center text-center">
-            stamp
+          <div class="col order-first order-md-last py-sm-5 justify-content-center text-center">
+            <!-- stamp -->
+            <div
+              class="checkbox mx-auto"
+              role="checkbox"
+              :aria-checked="s.selected"
+              @click="s.selected = !s.selected"
+            >
+              <img src="/shipment/stamp.png" alt="Stamp" :class="{ 'img-selected': s.selected }" />
+            </div>
           </div>
         </div>
 
         <div class="row">
-          <div class="col-md-8">
+          <div class="col">
             <h3>Weight: {{ s.dimensions.weight }} kg</h3>
             <h3>Declared Value:</h3>
-          </div>
-          <div class="col-md-4 text-center">
-            <button type="button" class="btn btn-pink next-btn">Check Out</button>
           </div>
         </div>
         <!-- {{ s.sender }}
         {{ s.recipient }}
         {{ s.service }} -->
         <!-- {{ s.dimensions }} -->
+      </div>
+    </div>
+
+    <div class="row justify-content-center py-2">
+      <div class="col text-center">
+        <button type="button" class="btn btn-pink next-btn">Check Out</button>
       </div>
     </div>
   </div>
@@ -120,3 +131,46 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.checkbox {
+  height: 7em;
+  width: 7em;
+  border: 1px solid black;
+  border-radius: 2px;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox img {
+  height: 0px;
+  margin-left: -50%;
+  margin-top: -50%;
+  transform: rotate(-25deg);
+}
+
+.checkbox .img-selected {
+  height: 200%;
+  transform: rotate(0deg);
+  transition: transform 0.25s ease-in;
+}
+
+@media screen and (max-width: 992px) {
+  .checkbox {
+    transform: scale(0.8);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .checkbox {
+    transform: scale(0.7);
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .checkbox {
+    transform: scale(0.5);
+  }
+}
+</style>

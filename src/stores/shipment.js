@@ -33,6 +33,7 @@ export const useShipmentStore = defineStore('shipment', {
     refNumbers: {},
     dimensions: {},
     complete: false,
+    selected: false,
   }),
   getters: {},
   actions: {},
