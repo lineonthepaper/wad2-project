@@ -11,8 +11,7 @@ import LoginForm from '@/views/LoginView.vue'
 import ServicesView from '../views/ServicesView.vue'
 import ServiceDetail from '../views/ServiceDetail.vue'
 import customerDB from '@/views/customerDB.vue'
-import faq from '@/views/faq.vue'
-import tc from '@/views/t&c.vue'
+
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -26,8 +25,7 @@ export const routes = [
   { path: '/login', component: LoginForm },
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
   { path: '/CDB', component: customerDB },
-  { path:'/faq1', component:faq},
-  { path:'/tc',component:tc }
+
 ]
 
 
