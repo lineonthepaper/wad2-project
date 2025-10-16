@@ -41,7 +41,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
     <div class="row justify-content-center text-center py-2">
       <div class="col-md-3">
-        <div class="card">
+        <div class="card h-100">
           <RouterLink :to="{ name: 'services' }">
             <img
               src="../assets/home/services.png"
@@ -54,7 +54,7 @@ import { RouterLink, RouterView } from 'vue-router'
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card">
+        <div class="card h-100">
           <RouterLink :to="{ name: 'faq' }">
             <img
               src="../assets/home/faq.png"
@@ -67,7 +67,7 @@ import { RouterLink, RouterView } from 'vue-router'
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card">
+        <div class="card h-100">
           <RouterLink :to="{ name: 'shipment' }">
             <img
               src="../assets/home/shipment.png"
