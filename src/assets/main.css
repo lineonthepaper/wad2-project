@@ -129,6 +129,13 @@ hr {
   background-color: var(--hot-pink);
 }
 
+.hr-slate-blue {
+  margin: 8px 0px !important;
+  color: var(--slate-blue) !important;
+  height: 2px;
+  background-color: var(--slate-blue);
+}
+
 /* effectively the same as body for our case*/
 #app {
   background-color: white;

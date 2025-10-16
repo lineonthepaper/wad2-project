@@ -22,9 +22,10 @@
         <div class="row">
           <h2>{{ s.service.name }}</h2>
         </div>
+        <hr class="hr-slate-blue" />
         <div class="row">
           <div class="col-md-4 py-2" v-for="send in sendFromOrTo" :key="send.id">
-            <h3>Send From</h3>
+            <h3>{{ send.title }}</h3>
             <p>
               <input
                 type="text"
