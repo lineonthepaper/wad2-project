@@ -334,6 +334,15 @@ export default {
       )
     },
   },
+  watch: {
+    overallCompletion(value) {
+      if (value === 100) {
+        this.shipment.complete = true
+      } else {
+        this.shipment.complete = false
+      }
+    },
+  },
 }
 </script>
 
