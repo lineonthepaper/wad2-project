@@ -62,7 +62,7 @@
               <input
                 type="text"
                 disabled
-                :value="s[send.id].country"
+                :value="getCountryName(s[send.id].country)"
                 class="form-control w-50 d-inline"
               />
               <input
@@ -112,6 +112,8 @@
 import { useShipmentStore } from '@/stores/shipment'
 import { useCartStore } from '@/stores/cart'
 import { ref } from 'vue'
+
+import countryData from '/json/countryData.json'
 </script>
 
 <script>
@@ -128,6 +130,17 @@ export default {
       cart,
       sendFromOrTo,
     }
+  },
+  methods: {
+    getCountryName(countryCode) {
+      let countryName = null
+      for (let obj of countryData) {
+        if (obj.code2 == countryCode) {
+          countryName = obj.name
+        }
+      }
+      return countryName
+    },
   },
 }
 </script>
