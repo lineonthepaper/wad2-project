@@ -293,9 +293,11 @@ export default {
       }
     },
     addToCart() {
-      this.cart.shipments.push(this.shipment.$state)
-      this.shipment.$reset()
-      console.log('added to cart')
+      if (this.shipment.complete == true) {
+        this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
+        this.shipment.$reset()
+        console.log('added to cart')
+      }
     },
   },
   computed: {
