@@ -24,7 +24,7 @@ export const routes = [
   { path: '/signup', component: SignupForm },
   { path: '/login', component: LoginForm },
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
-  { path: '/CDB', component: customerDB },
+  { path: '/CDB', component: customerDB }
 
 ]
 
