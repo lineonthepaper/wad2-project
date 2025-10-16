@@ -8,10 +8,18 @@
     </div>
     <hr />
 
-    <div class="row">
-      <!-- <button @click="console.log(cart.$state)">Cart state</button>
+    <!-- <div class="row">
+      <button @click="console.log(cart.$state)">Cart state</button>
       <button @click="cart.shipments.push(shipment.$state)">Add shipment to cart</button>
-      <button @click="console.log(shipment.$state)">Shipment state</button> -->
+      <button @click="console.log(shipment.$state)">Shipment state</button>
+    </div> -->
+
+    <div
+      class="row justify-content-center"
+      v-for="(shipment, index) in cart.shipments"
+      :key="index"
+    >
+      <div class="col-lg-10 border">sdfsdfds</div>
     </div>
   </div>
 </template>
