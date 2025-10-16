@@ -7,11 +7,14 @@ import Choices from 'choices.js'
 
 import '/node_modules/choices.js/public/assets/styles/choices.css'
 
+import { blockNonNumericInput, enforceMinMax } from './utils'
+
 onMounted(() => {
   const sendFrom = document.querySelector('#sendFrom')
 
   const fromChoices = new Choices(sendFrom, {
-    placeholder: false,
+    placeholder: true,
+    placeholderValue: 'Country',
     itemSelectText: '',
   })
 
@@ -20,7 +23,8 @@ onMounted(() => {
   const sendTo = document.querySelector('#sendTo')
 
   const toChoices = new Choices(sendTo, {
-    placeholder: false,
+    placeholder: true,
+    placeholderValue: 'Country',
     itemSelectText: '',
   })
 
@@ -33,19 +37,68 @@ const sendForms = ref([
 ])
 
 const shipmentTypes = ref([
-  { name: 'Document', imgUrl: '/shipment/document.png', imgAlt: 'Document icon' },
-  { name: 'Package', imgUrl: '/shipment/package.png', imgAlt: 'Package icon' },
+  {
+    name: 'Document',
+    imgUrl: '/shipment/document.png',
+    imgAlt: 'Document icon',
+    value: 'Documents',
+  },
+  { name: 'Package', imgUrl: '/shipment/package.png', imgAlt: 'Package icon', value: 'Packets' },
 ])
 </script>
 
 <script>
 export default {
   data() {
+    let weight = null
+    let length = null
+    let width = null
+    let height = null
+    const dimensions = ref([
+      {
+        title: 'Weight',
+        name: 'weight',
+        textInput: weight,
+        placeholder: 'in kg',
+        min: 0.01,
+        max: 2,
+        step: 0.01,
+      },
+      {
+        title: 'Length',
+        name: 'length',
+        textInput: length,
+        placeholder: 'in cm',
+        min: 0.1,
+        max: 60,
+        step: 1,
+      },
+      {
+        title: 'Width',
+        name: 'width',
+        textInput: width,
+        placeholder: 'in cm',
+        min: 0.1,
+        max: 60,
+        step: 1,
+      },
+      {
+        title: 'Height',
+        name: 'height',
+        textInput: height,
+        placeholder: 'in cm',
+        min: 0.1,
+        max: 60,
+        step: 1,
+      },
+    ])
     return {
       countries: countryData,
       shipmentType: null,
+      dimensions,
     }
   },
+  emits: ['update-country', 'update-shipment-type', 'update-dimensions'],
   methods: {
     toggleShipmentType(name) {
       if (this.shipmentType == name) {
@@ -53,6 +106,15 @@ export default {
       } else {
         this.shipmentType = name
       }
+
+      this.$emit('update-shipment-type', this.shipmentType)
+    },
+    updateCountry(sendFormId, event) {
+      // console.log(event.target.value)
+      this.$emit('update-country', sendFormId, event.target.value)
+    },
+    updateDimensions(dimension, value) {
+      this.$emit('update-dimensions', dimension, value)
     },
   },
 }
@@ -70,19 +132,23 @@ export default {
           :id="sendForm.id"
           class="form-control mb-1 p-2 rounded"
           tabindex="0"
+          @change="updateCountry(sendForm.id, $event)"
+          required
         >
-          <option
-            :selected="country.code2 == 'SG'"
-            v-for="country of countries"
-            :key="country.code2"
-            :value="country.name"
-          >
+          <option v-for="country of countries" :key="country.code2" :value="country.code2">
             {{ country.name }}
           </option>
         </select>
 
-        <select v-else :id="sendForm.id" class="form-control mb-1 p-2 rounded" tabindex="0">
-          <option value="Singapore">Singapore</option>
+        <select
+          v-else
+          :id="sendForm.id"
+          class="form-control mb-1 p-2 rounded"
+          tabindex="0"
+          @change="updateCountry(sendForm.id, $event)"
+          required
+        >
+          <option value="SG">Singapore</option>
         </select>
       </div>
     </div>
@@ -94,14 +160,14 @@ export default {
           <button
             type="button"
             class="btn w-75 fs-5"
-            :class="[shipmentType == type.name ? 'btn-pink-no-hover' : 'btn-white-no-hover']"
-            @click="toggleShipmentType(type.name)"
-            @keydown.enter="(toggleShipmentType(type.name), $event.preventDefault())"
+            :class="[shipmentType == type.value ? 'btn-pink-no-hover' : 'btn-white-no-hover']"
+            @click="toggleShipmentType(type.value)"
+            @keydown.enter="(toggleShipmentType(type.value), $event.preventDefault())"
           >
             <img
               :src="type.imgUrl"
               :alt="type.imgAlt"
-              :class="{ invert: shipmentType == type.name }"
+              :class="{ invert: shipmentType == type.value }"
             />
             <br />
             {{ type.name }}
@@ -110,24 +176,28 @@ export default {
       </div>
       <div class="col-md-6">
         <h4 class="text-dark-slate-blue">Measurements</h4>
-        <div class="mb-3">
-          <label for="parcelWeightInput" class="text-dark-slate-blue">Weight</label>
-          <input type="text" class="form-control" id="parcelWeightInput" />
-        </div>
-
-        <div class="mb-3">
-          <label for="parcelLengthInput" class="text-dark-slate-blue">Length</label>
-          <input type="text" class="form-control" id="parcelLengthInput" />
-        </div>
-
-        <div class="mb-3">
-          <label for="parcelWidthInput" class="text-dark-slate-blue">Width</label>
-          <input type="text" class="form-control" id="parcelWidthInput" />
-        </div>
-
-        <div class="mb-3">
-          <label for="parcelHeightInput" class="text-dark-slate-blue">Height</label>
-          <input type="text" class="form-control" id="parcelHeightInput" />
+        <div class="mb-3" v-for="dimension in dimensions" :key="dimension.name">
+          <label :for="'parcel' + dimension.title + 'Input'" class="text-dark-slate-blue">
+            {{ dimension.title }}
+          </label>
+          <div class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              :id="'parcel' + dimension.title + 'Input'"
+              @change="updateDimensions(dimension.name, dimension.textInput)"
+              v-model.number="dimension.textInput"
+              inputmode="numeric"
+              :placeholder="'from ' + dimension.min + ' to ' + dimension.max"
+              required
+              :min="dimension.min"
+              :max="dimension.max"
+              @keyup="enforceMinMax($event.target)"
+              :step="dimension.step"
+              @keypress="blockNonNumericInput($event)"
+            />
+            <span class="input-group-text">{{ dimension.placeholder }}</span>
+          </div>
         </div>
       </div>
     </div>

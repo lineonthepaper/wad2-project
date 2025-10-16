@@ -39,3 +39,5 @@ playwright-report/
 
 /pgsql/
 .phpunit.result.cache
+
+notes.md

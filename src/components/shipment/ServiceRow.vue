@@ -1,10 +1,11 @@
 <template>
   <tr>
-    <td>aa</td>
-    <td>aa</td>
-    <td>aa</td>
+    <td>{{ service }}</td>
+    <td>{{ transitTime }}</td>
+    <td>{{ isTracked ? 'Yes' : 'No' }}</td>
+    <td>{{ price }}</td>
     <td>
-      <div class="checkbox" @click="selected = !selected">
+      <div class="checkbox" @click="toggleSelect()" role="checkbox" :aria-checked="selected">
         <img src="/shipment/stamp.png" alt="Stamp" :class="{ 'img-selected': selected }" />
       </div>
     </td>
@@ -14,9 +15,14 @@
 <script>
 export default {
   data() {
-    return {
-      selected: true,
-    }
+    return {}
+  },
+  props: ['service', 'transitTime', 'price', 'isTracked', 'selected'],
+  emits: ['toggle-select'],
+  methods: {
+    toggleSelect() {
+      this.$emit('toggle-select', this.selected)
+    },
   },
 }
 </script>
