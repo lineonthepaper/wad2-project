@@ -1,1 +1,475 @@
-<template>the faq</template>
+<template>
+<div class="container py-4">
+    <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+
+    <div class="faq-search">
+      <input type="text" id="faqSearch" class="form-control" placeholder="Type your question..." />
+    </div>
+
+    <ul class="nav nav-tabs mt-4" id="faqTabs" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#gettingStarted">Getting Started</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#payment">Payment</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#services">Selecting a Service</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#labels">Printing Labels</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tracking">Track Your Parcels</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#registration">Registration Process</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#shipment">Shipment Details</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#packaging">Ordering Packaging Materials</button></li>
+    </ul>
+
+    <div class="tab-content mt-3" id="faqContent">
+      <div class="tab-pane fade show active" id="gettingStarted">
+        <div class="accordion" id="accordionGettingStarted">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#gs1">
+                What are the requirements to use ezy2ship?
+              </button>
+            </h2>
+            <div id="gs1" class="accordion-collapse collapse">
+              <div class="accordion-body">You need a working PC with internet connection and a printer.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#gs2">
+                Which operating systems and browsers do ezy2ship support?
+              </button>
+            </h2>
+            <div id="gs2" class="accordion-collapse collapse">
+              <div class="accordion-body">ezy2ship is designed to work on the following operating systems and browsers:
+                <ol>
+                  <li><u>Windows XP (32 bit)</u><br> Internet explorer 8, Firefox FF10/FF11, Google chrome v17/v18</li>
+                  <li><u>Windows 7 (32 bit)</u><br>Internet explorer 8 and above, Firefox FF10/FF11, Google chrome v17/v18</li>
+                  <li><u>Windows 7 (64 bit)</u><br>Internet explorer 8, Firefox FF10/FF11, Google chrome v17/v18</li>
+                  <li><u>MAC OS X 10.6 and 10.7</u><br>Safari 5 and 5.1</li>
+                  <li><u>Adobe Acrobat 6 or later versions</u></li>
+                  <li><u>Active scripting needs to be enabled</u></li>
+                  <li><u>Pop-up blocker needs to be disabled</u></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#gs3">
+                How do I ship as a non-registered consumer?
+              </button>
+            </h2>
+            <div id="gs3" class="accordion-collapse collapse">
+              <div class="accordion-body">Please click on “Ship as Guest” in the login page of <a href="https://www.ezy2ship.net/" target="_blank"> www.ezy2ship.net</a></div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#gs4">
+                What is the difference between “Sign Up” and “Ship as Guest”?
+              </button>
+            </h2>
+            <div id="gs4" class="accordion-collapse collapse">
+              <div class="accordion-body">Signed up accounts will enjoy additional features such as Address book, Bulk-upload of shipments and past shipments tracking functions.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="payment">
+        <div class="accordion" id="accordionPayment">
+           <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#p1">
+                How do I proceed with my transaction after I completed the payment for my shipment?
+              </button>
+            </h2>
+            <div id="p1" class="accordion-collapse collapse">
+              <div class="accordion-body">Please do not close the vPOST payment browser after you have completed your payment. Click “Done” on the payment browser and you will be redirected to ezy2ship website.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#p2">
+                If I made a payment but decided not to send the item, can I get a refund?
+              </button>
+            </h2>
+            <div id="p2" class="accordion-collapse collapse">
+              <div class="accordion-body">Please note that no refund would be allowed once a booking has been confirmed and paid.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#p3">
+                If the package I weighed at home is at a lower weight than your final lodgement weight, why must I top up the difference?
+              </button>
+            </h2>
+            <div id="p3" class="accordion-collapse collapse">
+              <div class="accordion-body">Different weighing scales and location may register difference in weight. Please be assured that our weighing scales are calibrated and certified by the Office of Weights and Measures every year.</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#p4">
+                If the weight of the item is at a lower weight than I have paid for, can I get a refund?
+              </button>
+            </h2>
+            <div id="p4" class="accordion-collapse collapse">
+              <div class="accordion-body">Please note that there will be no refund once a booking has been confirmed and paid. Do ensure your declared package weight corresponds to the actual weight of your item before making payment.</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#p5">
+                What happens if there is a short payment for the item that I am sending?
+              </button>
+            </h2>
+            <div id="p5" class="accordion-collapse collapse">
+              <div class="accordion-body">If your item is collected by our courier, our customer service staff will contact you to top-up the difference. If your item is submitted at our post office, our counter staff will collect the short payment when you submit your item.  Please take note that your item would be on hold until payment has been received.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="services">
+        <div class="accordion" id="accordionServices">
+           <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#s1">
+                What are the services available in ezy2ship?
+              </button>
+            </h2>
+            <div id="s1" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                <ul>
+                  <li>For Registered Article service, please click <a href="https://www.singpost.com/business/mail-solutions/mailing/registered-service" target="_blank">here</a></li>
+                  <li>For Speedpost International services available, please click <a href="https://www.speedpost.com.sg/what-we-offer/international-delivery.html" target="_blank">here</a></li>
+                  <li>For Speedpost Domestic services services available, please click <a href="https://www.speedpost.com.sg/what-we-offer/local-delivery.html" target="_blank">here</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#s2">
+                Why do I sometimes get fewer service options to choose from?
+              </button>
+            </h2>
+            <div id="s2" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                <ul>
+                  <li>The service options available are determined by the origin, destination, weight, dimension and/or category of your parcel.</li>
+                  <li>If no services are displayed under “Enter a shipment” in Step 2, please return to Step 1 and check your destination country, weight, dimension and/or category of shipment entered.</li>
+                </ul> </div>
+            </div>
+          </div>
+           
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="labels">
+        <div class="accordion" id="accordionLabels">
+           <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#l1">
+                What do I do with the shipping labels and documents once they are printed?
+              </button>
+            </h2>
+            <div id="l1" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                <ol>
+                  <li><u>For Speedpost International Shipments</u> 
+                    <br><br>Affix the shipping label securely onto the parcel. The addresses and barcodes on the shipping label must be in clear view to facilitate scanning of details for shipping purposes.
+                    <br><br>All supporting documents e.g. 1 copy of the CN23/CP71 are to be placed inside the clear plastic pocket provided for international shipments. Please remember to sign-off the Customs Declaration (CN23) and commercial invoice. 
+                    <br><br>1 copy of tax invoice will be generated once your shipment is confirmed. The tax invoice is for your reference and retention.
+                  </li>
+                  <li><u>For Speedpost Domestic shipments</u>
+                    <br><br>Affix the shipping label securely onto the parcel. The addresses and barcodes on the shipping label must be in clear view to facilitate scanning of details for shipping purposes.
+                    <br><br>1 copy of tax invoice will be generated once your shipment is confirmed. The tax invoice is for your reference and retention. 
+                  </li>
+                  <li><u>Mail shipments</u>
+                    <br><br>Affix the mail shipping label securely onto the letter / document / small packets. The addresses and barcodes on the mail label must be in clear view to facilitate machine reading of details for posting purposes.
+                    <br><br>For mail items, there would only be 1 mail label generated for Domestic and International mail items.
+                    <br><br>1 copy of tax invoice will be generated once your shipment is confirmed. The tax invoice is for your reference and retention.
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#l2">
+                What should I do if the shipping label printed on white A4 size paper is too big for my package?
+              </button>
+            </h2>
+            <div id="l2" class="accordion-collapse collapse">
+              <div class="accordion-body">You may cut the shipping label to size before affixing onto your package with adhesive tape (preferably). The delivery address must be visible to facilitate delivery. The rest of the supporting documents (eg. commercial invoice) must be placed inside the clear plastic pocket</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#l3">
+                What kind of printer and paper should I use to print ezy2ship labels?
+              </button>
+            </h2>
+            <div id="l3" class="accordion-collapse collapse">
+              <div class="accordion-body">Use only white paper printed on a laser or high quality ink jet printer. Self-adhesive labels with thermal / label printer are also acceptable.</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#l4">
+                Would I be able to change the delivery address or other details of my package after printing the labels for my parcel?
+              </button>
+            </h2>
+            <div id="l4" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                For Speedpost International and Domestic Delivery Services, online changes cannot be made once you have confirmed and paid for your shipments. If you need to edit/cancel your shipment, please call our Speedpost hotline: +65 62225777. <br>
+                For mail items, you are not allowed to make any changes or other details once labels are printed. <br>
+                Please note that no refund is allowed for Consumers once a booking in ezy2ship has been confirmed and paid. <br>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#l5">
+                Can I print the labels in ezy2ship and send the package to the nearest post office?
+              </button>
+            </h2>
+            <div id="l5" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                You can assign to drop off your package at a post office under Step 4 - “Collection” screen. <br>
+                For Registered Service items, you will need to hand over the items to our counter staff at any post office for posting. <br>
+                All ezy2ship items not handed over to our counter staff (for example: if the items are dropped into our posting boxes) will be processed as ordinary mail. <br>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="tracking">
+        <div class="accordion" id="accordionTracking">
+           <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#t1">
+                What should I do if no one picks up my package after I requested for a collection pick-up?
+              </button>
+            </h2>
+            <div id="t1" class="accordion-collapse collapse">
+              <div class="accordion-body">A collection request is considered successful when there is a Job Number. generated for your package. Please ensure that you see a “Collection scheduled” under your Shipment history. Please call our Speedpost hotline: +65 62225777 and quote the Job Number. (eg. EZYxxxxxxxxxx) if your package is not picked up within the requested collection time.</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#t2">
+                How do I track my shipment from ezy2ship ?
+              </button>
+            </h2>
+            <div id="t2" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                If you have a registered account, you can track your shipments under History/Tracking – Shipments history screen. <br>
+                Alternatively, tracking is also available: <br>
+                Speedpost items – <a href="https://www.speedpost.com.sg/" target="_blank">www.speedpost.com.sg</a> or SingPost mobile app <br>
+                Mail items – <a href="https://www.singpost.com/" target="_blank"> www.singpost.com</a>or SingPost mobile app
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#t3">
+                Can I obtain proof of delivery from ezy2ship?
+              </button>
+            </h2>
+            <div id="t3" class="accordion-collapse collapse">
+              <div class="accordion-body">If you wish to obtain a copy of the proof of delivery for Speedpost items and Registered Service items (subject to additional charges), please call our SingPost customer service hotline at 1605.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="registration">
+        <div class="accordion" id="accordionRegistration">
+           <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#r1">
+                How do I register for ezy2ship?
+              </button>
+            </h2>
+            <div id="r1" class="accordion-collapse collapse">
+              <div class="accordion-body">You may register as a user by clicking on “Sign Up” on the ezy2ship login page</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#r2">
+                What happens if I forget my username and/or password?
+              </button>
+            </h2>
+            <div id="r2" class="accordion-collapse collapse">
+              <div class="accordion-body">You may click on “Forgot your password” link and enter your username and e-mail address. An email will be sent to you with your username and new password details. If you forget your username (for Consumers), please register for a new ezy2ship account using another email account.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="shipment">
+        <div class="accordion" id="accordionShipment">
+           <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sh1">
+                Why do I get an error message on my address input?
+              </button>
+            </h2>
+            <div id="sh1" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                Please refrain from keying your address into one single address line. It is recommended to always key in your address  in the following format: <br>
+                Name Line 1 – Recipient Name (35 characters limit) <br>
+                Name Line 2 – Company name (if any, 35 characters limit) <br>
+                Address line 1 – Block number (35 characters limit)<br>
+                Address line 2 – Street name and unit number (35 characters limit)<br>
+                Address line 3 – Building name (35 characters limit)<br>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sh2">
+                What if there is a difference between my recorded weight and the actual weight of the item after lodgement?
+              </button>
+            </h2>
+            <div id="sh2" class="accordion-collapse collapse">
+              <div class="accordion-body">Should there be a difference between your recorded weight and the actual weight after lodgement, we will contact you to top-up the cost difference. If your item is submitted at our post offices, our post office counter staff will collect the short payment at the counter when you submit your item.</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sh3">
+                Why is my item not accepted when I make a slight change to the shipment details on the shipping label? Will I get a refund?
+              </button>
+            </h2>
+            <div id="sh3" class="accordion-collapse collapse">
+              <div class="accordion-body">Shipment details (i.e. destination, collection and delivery address, weight, etc) determine the price of your postage. Please ensure your shipment details are correct before you proceed to make payment for your shipment. There will be no refund on your shipment once a booking in ezy2ship has been confirmed and paid.</div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sh4">
+                Why do I keep getting an error message in the dimensions that I enter?
+              </button>
+            </h2>
+            <div id="sh4" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                Your item could be too large. We are unable to process shipments beyond the maximum dimension.
+                Please click <a href="https://www.speedpost.com.sg/images/pdf/country_max_wtg_dim.pdf" target="_blank">here</a> for Package Maximum Weight and Dimension by Country for Speedpost services.
+                Please click <a href="https://www.singpost.com/support-centre/mailing-and-packaging-tips" target="_blank">here</a> for Maximum Weight and Dimension for Mail services.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sh5">
+                What happens if I do not know the postcode of the 'send to' address?
+              </button>
+            </h2>
+            <div id="sh5" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                Postcodes are mandatory when shipping to major international destinations such as China, South Korea, Japan, Spain, France, Australia, UK and USA. <br>
+                Without a postcode, deliveries may be subjected to failed deliveries or delays. <br>
+                For Singapore addresses, a postcode is always required. <br>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="packaging">
+        <div class="accordion" id="accordionPackaging">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed custom-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#pack1">
+                How can I get packaging supplies?
+              </button>
+            </h2>
+            <div id="pack1" class="accordion-collapse collapse">
+              <div class="accordion-body">To purchase packaging materials, please visit: <a href="https://shop.singpost.com/materials-packaging/packing-materials.html" target="_blank">https://shop.singpost.com/materials-packaging/packing-materials.html</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+ <a href="quickguide.pdf" download>
+  <button class="btn btn-primary need-help-btn">Download Quick Guide</button>
+</a>
+</template>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.getElementById('faqSearch').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.accordion-item').forEach(item => {
+    const question = item.querySelector('.accordion-button').textContent.toLowerCase();
+    item.style.display = question.includes(query) ? 'block' : 'none';
+    });
+});
+</script>
+
+<style scoped>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    li {
+      font-size: 15px;
+    }
+    .faq-search {
+      max-width: 500px;
+      margin: 20px auto;
+    }
+
+    .accordion-button::after {
+      display: none;
+    }
+
+    .custom-toggle {
+      position: relative;
+      padding-right: 2rem;
+    }
+
+    .custom-toggle::before {
+      content: '+';
+      position: absolute;
+      right: 1rem;
+      font-size: 1.2rem;
+      color: #333;
+      transition: all 0.2s ease;
+    }
+
+    .custom-toggle:not(.collapsed)::before {
+      content: '–';
+    }
+
+    .need-help-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+</style>
