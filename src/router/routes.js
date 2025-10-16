@@ -26,7 +26,7 @@ export const routes = [
   { path: '/login', component: LoginForm },
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
   { path: '/CDB', component: customerDB },
-  { path:'/faq', component:faq},
+  { path:'/faq1', component:faq},
   { path:'/tc',component:tc }
 ]
 
