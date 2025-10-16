@@ -1,3 +1,3 @@
-<templte>
+<template>
   Customer_db
-</templte>
+</template>
