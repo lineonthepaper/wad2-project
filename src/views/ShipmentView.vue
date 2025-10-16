@@ -114,8 +114,11 @@ export default {
       // console.log('received ' + sendFormId + ' ' + country)
       this.sections[0].data[sendFormId] = country
       this.sections[3].props[sendFormId] = country
-      this.shipment.sender.country = country
-      this.shipment.recipient.country = country
+      if (sendFormId == 'sendFrom') {
+        this.shipment.sender.country = country
+      } else if (sendFormId == 'sendTo') {
+        this.shipment.recipient.country = country
+      }
     },
     receiveUpdateShipmentType(shipmentType) {
       // console.log('received ' + shipmentType)
