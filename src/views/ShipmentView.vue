@@ -11,12 +11,14 @@ import zoneData from '/json/zoneData.json'
 import serviceData from '/json/serviceData.json'
 
 import { useShipmentStore } from '@/stores/shipment'
+import { useCartStore } from '@/stores/cart'
 </script>
 
 <script>
 export default {
   data() {
     const shipment = useShipmentStore()
+    const cart = useCartStore()
 
     const briefInfo = shallowRef(BriefInfo)
     const servicesSelection = shallowRef(ServicesSelection)
@@ -82,6 +84,7 @@ export default {
       objectsEqual,
       arraysEqual,
       shipment,
+      cart,
     }
   },
   methods: {
@@ -289,6 +292,11 @@ export default {
         this.sections[1].props.services = []
       }
     },
+    addToCart() {
+      this.cart.shipments.push(this.shipment.$state)
+      this.shipment.$reset()
+      console.log('added to cart')
+    },
   },
   computed: {
     briefInfoCompletion() {
@@ -402,7 +410,12 @@ export default {
     <div class="row">
       <div class="col text-center">
         <component :to="{ name: 'cart' }" :is="overallCompletion == 100 ? 'RouterLink' : 'span'">
-          <button type="button" class="btn btn-pink next-btn" :disabled="overallCompletion != 100">
+          <button
+            type="button"
+            class="btn btn-pink next-btn"
+            :disabled="overallCompletion != 100"
+            @click="overallCompletion == 100 ? addToCart() : null"
+          >
             Add to Cart
           </button>
         </component>
