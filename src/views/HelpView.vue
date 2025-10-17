@@ -7,14 +7,6 @@
           <div class="text-center text-md-start">
             <h1 class="display-6 fw-bold text-primary mb-3">Terms of Use</h1>
             <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start justify-content-center justify-content-md-start text-muted mb-3">
-              <div class="d-flex align-items-center mb-2 mb-md-0 me-md-3">
-                <i class="bi bi-calendar3 me-2"></i>
-                <small>Last Updated: October 17, 2025</small>
-              </div>
-              <div class="d-flex align-items-center">
-                <i class="bi bi-clock me-2"></i>
-                <small>Version 2.1</small>
-              </div>
             </div>
           </div>
           <div class="alert alert-light border" role="alert">
