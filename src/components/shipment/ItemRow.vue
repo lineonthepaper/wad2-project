@@ -98,6 +98,8 @@ import { onMounted, ref } from 'vue'
 
 import { blockNonNumericInput, enforceMinMax } from './utils'
 
+import axios from 'axios'
+
 const props = defineProps({
   rowId: Number,
 })
@@ -133,12 +135,39 @@ export default {
     ])
     return {
       inputs,
+      itemValue,
+      itemCurrency,
     }
   },
   methods: {
     updateItemRow(rowId, inputName, value) {
       console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
+      if (inputName == 'itemCurrency' || inputName == 'itemValue') {
+        if (this.itemCurrency !== null && this.itemValue !== null && this.itemValue !== '') {
+          let sgdValue = this.getSGD(this.itemCurrency, this.itemValue)
+          console.log(sgdValue)
+        }
+      }
       this.$emit('update-item-row', rowId, inputName, value)
+    },
+    getSGD(currency, price) {
+      axios
+        .get('https://api.fxratesapi.com/latest', {
+          params: {
+            api_key: import.meta.env.VITE_FXRATESAPI_KEY,
+            base: 'SGD',
+            places: 2,
+            currencies: currency,
+          },
+        })
+        .then((response) => {
+          console.log(response.data)
+          return response.data
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+      return 0
     },
   },
 }
