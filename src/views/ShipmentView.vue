@@ -384,13 +384,15 @@ export default {
     <div class="progress-bar bg-pink" :style="'width:' + overallCompletion + '%'"></div>
   </div>
   <div class="container-fluid">
-    <hr />
-    <div class="row bg-light-pink justify-content-center airplane-header">
-      <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-        <h1 class="jua text-hot-pink">Create Shipment</h1>
+    <header>
+      <hr />
+      <div class="row bg-light-pink justify-content-center airplane-header">
+        <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+          <h1 class="jua text-hot-pink">Create Shipment</h1>
+        </div>
       </div>
-    </div>
-    <hr />
+      <hr />
+    </header>
 
     <div class="row justify-content-center" v-for="(section, index) in sections" :key="section.id">
       <div class="col-1 d-flex justify-content-center">

@@ -4,22 +4,24 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <div class="container-fluid">
-    <hr />
+    <header>
+      <hr />
 
-    <div class="row bg-light-pink justify-content-center airplane-header">
-      <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-        <h1 class="jua text-hot-pink">Fluffy Shipping</h1>
-        <p class="text-dark-pink quicksand-semibold">
-          Why fret when sending parcels? <br />
-          Singapore Post to your rescue!
-        </p>
-        <RouterLink :to="{ name: 'shipment' }"
-          ><button type="button" class="btn btn-pink quicksand-semibold fw-bold">Ship</button>
-        </RouterLink>
+      <div class="row bg-light-pink justify-content-center airplane-header">
+        <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+          <h1 class="jua text-hot-pink">Fluffy Shipping</h1>
+          <p class="text-dark-pink quicksand-semibold">
+            Why fret when sending parcels? <br />
+            Singapore Post to your rescue!
+          </p>
+          <RouterLink :to="{ name: 'shipment' }"
+            ><button type="button" class="btn btn-pink quicksand-semibold fw-bold">Ship</button>
+          </RouterLink>
+        </div>
       </div>
-    </div>
 
-    <hr />
+      <hr />
+    </header>
 
     <div class="row justify-content-center py-2">
       <h2 class="text-dark-pink text-center fw-bold">
