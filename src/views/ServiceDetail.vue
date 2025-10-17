@@ -5,30 +5,64 @@ import serviceCatalogue from '/json/serviceCatalogue.json'
 
 const route = useRoute()
 
-
 const activeTab = ref('info')
 const service = ref(null)
 const services = ref([])
 const loading = ref(false)
 const error = ref(null)
+const imageLoaded = ref(false)
+const imageError = ref(false)
 
 const serviceId = computed(() => parseInt(route.params.id))
+
+// Image cache to prevent re-fetching
+const imageCache = new Map()
 
 const getServiceTypeBadgeClass = (serviceType) => {
   return serviceType === 'Documents' ? 'bg-info' : 'bg-success'
 }
 
-const handleImageError = (event) => {
-  event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image"
+const preloadImage = (url) => {
+  return new Promise((resolve, reject) => {
+    // Check cache first
+    if (imageCache.has(url)) {
+      resolve(url)
+      return
+    }
+
+    const img = new Image()
+    img.onload = () => {
+      imageCache.set(url, true)
+      resolve(url)
+    }
+    img.onerror = () => {
+      reject(url)
+    }
+    img.src = url
+  })
 }
 
-const fetchService = () => {
+const handleImageLoad = () => {
+  imageLoaded.value = true
+  imageError.value = false
+}
+
+const handleImageError = (event) => {
+  imageError.value = true
+  imageLoaded.value = true
+  if (event.target.src !== "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image") {
+    event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image"
+  }
+}
+
+const fetchService = async () => {
   loading.value = true
   error.value = null
   service.value = null
+  imageLoaded.value = false
+  imageError.value = false
 
   try {
-
     services.value = serviceCatalogue.map((service, index) => ({
       id: index + 1,
       service_name: service.service_name,
@@ -48,11 +82,17 @@ const fetchService = () => {
       notes: service.notes
     }))
 
-
     service.value = services.value.find(s => s.id === serviceId.value)
 
     if (!service.value) {
       throw new Error('Service not found')
+    }
+
+
+    if (service.value.img_url) {
+      await preloadImage(service.value.img_url).catch(() => {
+
+      })
     }
 
   } catch (err) {
@@ -63,11 +103,9 @@ const fetchService = () => {
   }
 }
 
-
 watch(() => route.params.id, () => {
   fetchService()
 })
-
 
 onMounted(() => {
   fetchService()
@@ -83,15 +121,12 @@ onMounted(() => {
   </div>
   <hr />
   <div class="service-detail container py-5">
-
-
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
       <p class="mt-3 text-muted">Loading service details...</p>
     </div>
-
 
     <div v-else-if="error" class="text-center py-5">
       <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
@@ -102,17 +137,40 @@ onMounted(() => {
       </button>
     </div>
 
-
     <div v-else>
       <div class="mb-3">
         <router-link to="/services" class="back-link">← BACK</router-link>
       </div>
 
       <div v-if="service" class="detail-content">
-
         <div class="row align-items-center mb-5">
           <div class="col-md-6 text-center">
-            <img :src="service.img_url" :alt="service.service_name" class="service-image" @error="handleImageError" />
+
+            <div class="image-container">
+              <img
+                :src="service.img_url"
+                :alt="service.service_name"
+                class="service-image"
+                :class="{
+                  'image-loaded': imageLoaded && !imageError,
+                  'image-error': imageError
+                }"
+                @load="handleImageLoad"
+                @error="handleImageError"
+              />
+
+              <div v-if="!imageLoaded && !imageError" class="image-loading">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading image...</span>
+                </div>
+              </div>
+
+              <div v-if="imageError" class="image-error-overlay">
+                <i class="fas fa-image text-muted"></i>
+                <small class="text-muted">Image not available</small>
+              </div>
+            </div>
+
             <p class="dimensions mt-3">
               Width: {{ service.max_width }}cm |
               Length: {{ service.max_length }}cm |
@@ -127,12 +185,6 @@ onMounted(() => {
               </span>
             </div>
             <p class="description">{{ service.service_description }}</p>
-
-            <!-- <div class="action-buttons mt-3">
-              <button class="btn-outline">LOCATE US</button>
-              <button class="btn-outline">CHECK DELIVERY RATES</button>
-              <button class="btn-outline">CALCULATE RATES</button>
-            </div> -->
 
             <p class="delivery-note mt-4">
               {{ service.delivery_note }}
@@ -247,11 +299,68 @@ onMounted(() => {
   color: #333;
 }
 
-.service-image {
+
+.image-container {
+  position: relative;
+  display: inline-block;
   width: 100%;
   max-width: 320px;
   height: 200px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.service-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.service-image.image-loaded {
+  opacity: 1;
+}
+
+.service-image.image-error {
+  opacity: 1;
+}
+
+.image-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+.image-error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #e9ecef;
+  color: #6c757d;
+}
+
+.image-error-overlay i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.dimensions {
+  font-size: 14px;
+  color: #666;
 }
 
 .btn-outline {
@@ -340,7 +449,6 @@ ul {
   border: 0;
 }
 
-
 @media (max-width: 768px) {
   .title-with-badge {
     flex-direction: column;
@@ -350,6 +458,10 @@ ul {
 
   .title {
     font-size: 24px;
+  }
+
+  .image-container {
+    max-width: 100%;
   }
 }
 </style>

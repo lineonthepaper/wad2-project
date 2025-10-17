@@ -5,7 +5,6 @@ import serviceCatalogue from '/json/serviceCatalogue.json'
 
 const router = useRouter()
 
-
 const searchQuery = ref("")
 const selectedServiceType = ref("")
 const selectedTracking = ref("")
@@ -13,7 +12,7 @@ const selectedWeight = ref("")
 const services = ref([])
 const loading = ref(false)
 const error = ref(null)
-
+const loadedImages = ref(new Set())
 
 const hasActiveFilters = computed(() => {
   return selectedServiceType.value || selectedTracking.value || selectedWeight.value
@@ -26,21 +25,17 @@ const availableWeights = computed(() => {
 
 const filteredServices = computed(() => {
   return services.value.filter(service => {
-
     const matchesSearch = !searchQuery.value ||
       service.service_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       service.service_type.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       service.service_description.toLowerCase().includes(searchQuery.value.toLowerCase())
 
-
     const matchesServiceType = !selectedServiceType.value ||
       service.service_type === selectedServiceType.value
-
 
     const matchesTracking = !selectedTracking.value ||
       (selectedTracking.value === 'Yes' && service.is_tracked) ||
       (selectedTracking.value === 'No' && !service.is_tracked)
-
 
     const matchesWeight = !selectedWeight.value ||
       service.max_weight == selectedWeight.value
@@ -50,12 +45,20 @@ const filteredServices = computed(() => {
 })
 
 
-const fetchServices = () => {
+const preloadImage = (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(url)
+    img.onerror = () => reject(url)
+    img.src = url
+  })
+}
+
+const fetchServices = async () => {
   loading.value = true
   error.value = null
 
   try {
-
     services.value = serviceCatalogue.map((service, index) => ({
       id: index + 1,
       service_name: service.service_name,
@@ -69,6 +72,12 @@ const fetchServices = () => {
       service_description: service.service_description
     }))
 
+    // Preload all images
+    const imageUrls = services.value.map(service => service.img_url)
+    const preloadPromises = imageUrls.map(url => preloadImage(url).catch(() => null))
+
+    await Promise.all(preloadPromises)
+
   } catch (err) {
     console.error('Error loading services:', err)
     error.value = err.message
@@ -77,9 +86,18 @@ const fetchServices = () => {
   }
 }
 
-const handleImageError = (event) => {
+const handleImageError = (event, serviceId) => {
 
-  event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image"
+  if (!event.target.classList.contains('image-failed')) {
+    event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image"
+    event.target.classList.add('image-failed')
+    loadedImages.value.add(serviceId)
+  }
+}
+
+const handleImageLoad = (event, serviceId) => {
+  event.target.classList.add('image-loaded')
+  loadedImages.value.add(serviceId)
 }
 
 const getServiceTypeBadgeClass = (serviceType) => {
@@ -97,14 +115,13 @@ const clearFilters = () => {
   searchQuery.value = ""
 }
 
-
 onMounted(() => {
   fetchServices()
 })
 </script>
 
 <template>
-  <div class="atalogue-page">
+  <div class="catalogue-page">
     <hr />
     <div class="row bg-light-pink justify-content-center airplane-header">
       <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
@@ -114,14 +131,12 @@ onMounted(() => {
     <hr />
 
     <div class="container mt-4">
-
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
         <p class="mt-3 text-muted">Loading services...</p>
       </div>
-
 
       <div v-else-if="error" class="text-center py-5">
         <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
@@ -132,8 +147,8 @@ onMounted(() => {
         </button>
       </div>
 
-
       <div v-else>
+
         <div class="row mb-4">
           <div class="col-md-6">
             <div class="input-group">
@@ -188,6 +203,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
         <div class="row mb-3" v-if="hasActiveFilters">
           <div class="col-12">
             <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -219,6 +235,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
         <div class="row">
           <div
             class="col-lg-4 col-md-6 mb-4"
@@ -230,13 +247,24 @@ onMounted(() => {
               @click="goToDetail(service.id)"
               style="cursor: pointer; transition: transform 0.2s;"
             >
-              <img
-                :src="service.img_url"
-                class="card-img-top"
-                :alt="service.service_name"
-                style="height: 200px; object-fit: cover;"
-                @error="handleImageError"
-              >
+            
+              <div class="card-img-container" style="height: 200px; overflow: hidden; position: relative;">
+                <img
+                  :src="service.img_url"
+                  class="card-img-top service-image"
+                  :alt="service.service_name"
+                  style="height: 100%; width: 100%; object-fit: cover; transition: opacity 0.3s ease;"
+                  @error="(event) => handleImageError(event, service.id)"
+                  @load="(event) => handleImageLoad(event, service.id)"
+                  :class="{ 'image-loaded': loadedImages.has(service.id) }"
+                >
+                <div class="image-placeholder" v-if="!loadedImages.has(service.id)">
+                  <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+
               <div class="card-body d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h5 class="card-title mb-0">{{ service.service_name }}</h5>
@@ -321,6 +349,38 @@ onMounted(() => {
   min-width: 120px;
 }
 
+/* Improved image styles */
+.card-img-container {
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-image {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.service-image.image-loaded {
+  opacity: 1;
+}
+
+.image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+.image-failed {
+  opacity: 1 !important;
+}
 
 @media (max-width: 768px) {
   .dropdown-toggle {
