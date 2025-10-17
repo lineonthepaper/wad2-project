@@ -56,7 +56,6 @@
         @keypress="blockNonNumericInput($event)"
         max="2"
         min="0"
-        @keyup="enforceMinMax($event.target)"
       />
     </td>
 
@@ -96,7 +95,7 @@ import '/node_modules/choices.js/public/assets/styles/choices.css'
 
 import { onMounted, ref } from 'vue'
 
-import { blockNonNumericInput, enforceMinMax } from './utils'
+import { blockNonNumericInput } from './utils'
 
 import axios from 'axios'
 
