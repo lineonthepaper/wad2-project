@@ -361,6 +361,7 @@ export default {
         total += this.shipment.items[itemId].costSGD
       }
       // console.log('total: ' + total)
+      this.shipment.totalCostSGD = total
       return total
     },
   },

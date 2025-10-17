@@ -34,7 +34,7 @@ export const useShipmentStore = defineStore('shipment', {
     dimensions: {},
     complete: false,
     selected: false,
-    costSGD: null,
+    totalCostSGD: null,
   }),
   getters: {},
   actions: {},
