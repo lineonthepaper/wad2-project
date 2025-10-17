@@ -305,6 +305,7 @@ export default {
     },
     addToCart() {
       if (this.shipment.complete == true) {
+        this.shipment.totalCostSGD = this.totalSGD
         this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
         this.shipment.$reset()
         console.log('added to cart')
@@ -361,7 +362,6 @@ export default {
         total += this.shipment.items[itemId].costSGD
       }
       // console.log('total: ' + total)
-      this.shipment.totalCostSGD = total
       return total
     },
   },

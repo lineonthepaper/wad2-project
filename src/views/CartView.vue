@@ -8,10 +8,10 @@
     </div>
     <hr />
 
-    <div class="row">
+    <!-- <div class="row">
       <button @click="console.log(cart.$state)">Cart state</button>
       <button @click="console.log(shipment.$state)">Shipment state</button>
-    </div>
+    </div> -->
 
     <div
       class="row justify-content-center text-dark-slate-blue py-2"
@@ -91,13 +91,14 @@
         <div class="row">
           <div class="col">
             <h3>Weight: {{ s.dimensions.weight }} kg</h3>
-            <h3>Declared Value:</h3>
+            <h3>Declared Value: {{ s.totalCostSGD }} SGD</h3>
           </div>
         </div>
         <!-- {{ s.sender }}
         {{ s.recipient }}
         {{ s.service }} -->
         <!-- {{ s.dimensions }} -->
+        <!-- {{ s }} -->
       </div>
     </div>
 

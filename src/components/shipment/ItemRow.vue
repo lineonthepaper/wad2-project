@@ -146,36 +146,40 @@ export default {
           this.inputs[2].input !== null &&
           this.inputs[2].input !== ''
         ) {
-          this.getSGD(rowId, this.inputs[1].input, Number(this.inputs[2].input))
+          this.emitSGD(rowId, this.inputs[1].input, Number(this.inputs[2].input))
         }
       }
       this.$emit('update-item-row', rowId, inputName, value)
     },
-    getSGD(rowId, currency, price) {
-      axios
-        .get('https://api.fxratesapi.com/latest', {
-          params: {
-            api_key: import.meta.env.VITE_FXRATESAPI_KEY,
-            base: currency,
-            places: 2,
-            currencies: 'SGD',
-            resolution: '1d',
-            amount: price,
-          },
-        })
-        .then((response) => {
-          // console.log(response.data.rates.SGD)
-          // console.log('price: ' + price)
-          // console.log('converted: ' + price / response.data.rates[currency])
-          // return Math.round((price / response.data.rates[currency]) * 100) / 100
+    emitSGD(rowId, currency, price) {
+      if (currency == 'SGD') {
+        this.$emit('update-item-row', rowId, 'costSGD', price)
+      } else {
+        axios
+          .get('https://api.fxratesapi.com/latest', {
+            params: {
+              api_key: import.meta.env.VITE_FXRATESAPI_KEY,
+              base: currency,
+              places: 2,
+              currencies: 'SGD',
+              resolution: '1d',
+              amount: price,
+            },
+          })
+          .then((response) => {
+            // console.log(response.data.rates.SGD)
+            // console.log('price: ' + price)
+            // console.log('converted: ' + price / response.data.rates[currency])
+            // return Math.round((price / response.data.rates[currency]) * 100) / 100
 
-          this.$emit('update-item-row', rowId, 'costSGD', response.data.rates.SGD)
-          console.log('emitted ' + response.data.rates.SGD)
-        })
-        .catch((error) => {
-          console.error(error)
-          return null
-        })
+            this.$emit('update-item-row', rowId, 'costSGD', response.data.rates.SGD)
+            console.log('emitted ' + response.data.rates.SGD)
+          })
+          .catch((error) => {
+            console.error(error)
+            return null
+          })
+      }
     },
   },
 }
