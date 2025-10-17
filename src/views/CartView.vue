@@ -107,18 +107,30 @@
       </div>
     </div>
 
-    <div class="row justify-content-center py-2">
+    <div class="row justify-content-center py-2" v-if="cart.shipments.length != 0">
       <div class="col text-center">
         <button type="button" class="btn btn-pink next-btn">Check Out</button>
       </div>
     </div>
+
+    <div class="row justify-content-center py-2 text-dark-slate-blue" v-else>
+      <h3 class="text-center my-2">
+        You have no shipments! Start shipping with Fluffy Shipping today!
+      </h3>
+      <RouterLink :to="{ name: 'shipment' }" class="text-center my-2">
+        <button type="button" class="btn btn-pink next-btn">Create Shipment</button>
+      </RouterLink>
+    </div>
   </div>
+  <RouterView />
 </template>
 
 <script setup>
 import { useShipmentStore } from '@/stores/shipment'
 import { useCartStore } from '@/stores/cart'
 import { ref } from 'vue'
+
+import { RouterLink, RouterView } from 'vue-router'
 
 import countryData from '/json/countryData.json'
 </script>
