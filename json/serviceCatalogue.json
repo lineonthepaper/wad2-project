@@ -1,0 +1,184 @@
+[
+  {
+    "service_name": "Basic Mail",
+    "service_type": "Documents",
+    "is_tracked": false,
+    "max_weight": 2,
+    "max_height": 2,
+    "max_width": 30.5,
+    "max_length": 38.1,
+    "img_url": "../src/assets/airplane.png",
+    "service_description": "Economical document mailing service for standard letters and documents",
+    "delivery_note": "Standard delivery within 2-3 working days. No tracking included.",
+    "delivery_type": "Letterbox",
+    "delivery_standard": "2-3 working days",
+    "compensation": "Not applicable",
+    "conditions": [
+      "Maximum weight: 2kg",
+      "Suitable for documents and standard letters",
+      "No tracking available",
+      "Standard delivery timeframe applies"
+    ],
+    "notes": [
+      "This service does not include tracking",
+      "For important documents, consider Registered Mail",
+      "Delivery times may vary during peak periods"
+    ]
+  },
+  {
+    "service_name": "Basic Package",
+    "service_type": "Packets",
+    "is_tracked": false,
+    "max_weight": 2,
+    "max_height": 60,
+    "max_width": 60,
+    "max_length": 60,
+    "img_url": "../src/assets/airplane.png",
+    "service_description": "Basic parcel service for small packages without tracking",
+    "delivery_note": "Parcel delivery within 3-5 working days. No tracking included.",
+    "delivery_type": "Doorstep",
+    "delivery_standard": "3-5 working days",
+    "compensation": "Limited coverage",
+    "conditions": [
+      "Maximum weight: 2kg",
+      "Suitable for small packages",
+      "No tracking available",
+      "Signature not required"
+    ],
+    "notes": [
+      "Ideal for non-valuable items",
+      "Consider tracked services for important packages",
+      "Packaging must be secure and appropriate"
+    ]
+  },
+  {
+    "service_name": "Registered Mail",
+    "service_type": "Documents",
+    "is_tracked": true,
+    "max_weight": 2,
+    "max_height": 2,
+    "max_width": 30.5,
+    "max_length": 38.1,
+    "img_url": "../src/assets/airplane.png",
+    "service_description": "Secure document service with tracking and proof of delivery",
+    "delivery_note": "Tracked delivery with signature confirmation. Next working day delivery available.",
+    "delivery_type": "Registered",
+    "delivery_standard": "1-2 working days",
+    "compensation": "Up to $100 coverage",
+    "conditions": [
+      "Maximum weight: 2kg",
+      "Tracking included",
+      "Signature required upon delivery",
+      "Proof of delivery available"
+    ],
+    "notes": [
+      "Recommended for important documents",
+      "Tracking number provided",
+      "Delivery confirmation available"
+    ]
+  },
+  {
+    "service_name": "Registered Package",
+    "service_type": "Packets",
+    "is_tracked": true,
+    "max_weight": 2,
+    "max_height": 60,
+    "max_width": 60,
+    "max_length": 60,
+    "img_url": "../src/assets/airplane.png",
+    "service_description": "Tracked parcel service with delivery confirmation",
+    "delivery_note": "Fully tracked parcel service with delivery confirmation and insurance coverage.",
+    "delivery_type": "Doorstep with Signature",
+    "delivery_standard": "2-3 working days",
+    "compensation": "Up to $200 coverage",
+    "conditions": [
+      "Maximum weight: 2kg",
+      "Full tracking included",
+      "Signature required",
+      "Insurance coverage included"
+    ],
+    "notes": [
+      "Ideal for valuable items",
+      "Real-time tracking available",
+      "Insurance coverage for peace of mind"
+    ]
+  },
+  {
+    "service_name": "Standard Large",
+    "service_type": "Documents",
+    "is_tracked": false,
+    "max_weight": 0.5,
+    "max_height": 1.4,
+    "max_width": 22.9,
+    "max_length": 32.4,
+    "img_url": "../src/assets/airplane.png",
+    "service_description": "Service for larger documents with standard delivery",
+    "delivery_note": "Economical service for larger documents and flat items.",
+    "delivery_type": "Letterbox",
+    "delivery_standard": "1-2 working days",
+    "compensation": "Not applicable",
+    "conditions": [
+      "Maximum weight: 0.5kg",
+      "Suitable for large envelopes and flat documents",
+      "No tracking included",
+      "Specific size requirements apply"
+    ],
+    "notes": [
+      "Perfect for large format documents",
+      "Cost-effective for bulk mailing",
+      "Standard delivery timeframe"
+    ]
+  },
+  {
+    "service_name": "Standard Regular",
+    "service_type": "Documents",
+    "is_tracked": false,
+    "max_weight": 0.5,
+    "max_height": 0.6,
+    "max_width": 16.2,
+    "max_length": 24,
+    "img_url": "../assets/airplane.png",
+    "service_description": "Regular document service for standard sized mail",
+    "delivery_note": "Standard mail service for regular sized documents and letters.",
+    "delivery_type": "Letterbox",
+    "delivery_standard": "1-2 working days",
+    "compensation": "Not applicable",
+    "conditions": [
+      "Maximum weight: 0.5kg",
+      "Standard envelope sizes",
+      "No tracking included",
+      "Regular delivery schedule"
+    ],
+    "notes": [
+      "Most economical option",
+      "Ideal for routine correspondence",
+      "Standard delivery reliability"
+    ]
+  },
+  {
+    "service_name": "Tracked Letterbox",
+    "service_type": "Packets",
+    "is_tracked": true,
+    "max_weight": 2,
+    "max_height": 6.5,
+    "max_width": 22.9,
+    "max_length": 32.4,
+    "img_url": "../src/assets/airplane.png",
+    "service_description": "Tracked service for packets with letterbox delivery",
+    "delivery_note": "Tracked packet service that fits through standard letterboxes.",
+    "delivery_type": "Letterbox",
+    "delivery_standard": "1-2 working days",
+    "compensation": "Up to $50 coverage",
+    "conditions": [
+      "Maximum weight: 2kg",
+      "Must fit through standard letterbox",
+      "Tracking included",
+      "Specific dimension requirements"
+    ],
+    "notes": [
+      "Convenient letterbox delivery",
+      "Tracking for peace of mind",
+      "Ideal for small tracked items"
+    ]
+  }
+]
