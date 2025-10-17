@@ -161,12 +161,16 @@ export default {
     registerCompleteItems() {
       this.sections[2].data['completeItems'] = {}
       for (let rowId in this.sections[2].data['items']) {
-        if (Object.keys(this.sections[2].data['items'][rowId]).length === 5) {
+        if (Object.keys(this.sections[2].data['items'][rowId]).length === 6) {
           this.sections[2].data['completeItems'][rowId] = this.sections[2].data['items'][rowId]
         }
       }
       // console.log(this.sections[2].data['completeItems'])
       this.shipment.items = this.sections[2].data['completeItems']
+
+      console.log(this.shipment.items)
+
+      this.sections[2].props['totalSGD'] = this.totalSGD
     },
     receiveUpdateDeliveryDetails(details) {
       this.sections[3].data = details
@@ -345,6 +349,15 @@ export default {
           4) *
         100
       )
+    },
+    totalSGD() {
+      let total = 0
+      for (let itemId in this.shipment.items) {
+        // console.log('adding ' + this.shipment.items[itemId].costSGD)
+        total += this.shipment.items[itemId].costSGD
+      }
+      // console.log('total: ' + total)
+      return total
     },
   },
   watch: {

@@ -162,6 +162,10 @@ input::placeholder {
   color: var(--slate-blue) !important;
 }
 
+.table {
+  --bs-table-color: var(--dark-slate-blue) !important;
+}
+
 a {
   color: var(--hot-pink) !important;
   text-decoration: none !important;

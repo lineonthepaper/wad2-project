@@ -42,6 +42,10 @@
       </table>
     </div>
 
+    <div class="row py-2 text-center text-dark-slate-blue">
+      <h4>Total: {{ props.totalSGD ?? 0 }} SGD</h4>
+    </div>
+
     <div class="row py-2 justify-content-center">
       <div class="col-6 text-end">
         <button type="button" class="btn btn-pink" @click="numRows++">Add Item</button>
@@ -122,6 +126,7 @@ export default {
       this.$emit('update-ref-numbers', this.refInputs)
     },
   },
+  props: ['props'],
 }
 </script>
 

@@ -135,39 +135,47 @@ export default {
     ])
     return {
       inputs,
-      itemValue,
-      itemCurrency,
     }
   },
   methods: {
     updateItemRow(rowId, inputName, value) {
       console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
       if (inputName == 'itemCurrency' || inputName == 'itemValue') {
-        if (this.itemCurrency !== null && this.itemValue !== null && this.itemValue !== '') {
-          let sgdValue = this.getSGD(this.itemCurrency, this.itemValue)
-          console.log(sgdValue)
+        if (
+          this.inputs[1].input !== null &&
+          this.inputs[2].input !== null &&
+          this.inputs[2].input !== ''
+        ) {
+          this.getSGD(rowId, this.inputs[1].input, Number(this.inputs[2].input))
         }
       }
       this.$emit('update-item-row', rowId, inputName, value)
     },
-    getSGD(currency, price) {
+    getSGD(rowId, currency, price) {
       axios
         .get('https://api.fxratesapi.com/latest', {
           params: {
             api_key: import.meta.env.VITE_FXRATESAPI_KEY,
-            base: 'SGD',
+            base: currency,
             places: 2,
-            currencies: currency,
+            currencies: 'SGD',
+            resolution: '1d',
+            amount: price,
           },
         })
         .then((response) => {
-          console.log(response.data)
-          return response.data
+          // console.log(response.data.rates.SGD)
+          // console.log('price: ' + price)
+          // console.log('converted: ' + price / response.data.rates[currency])
+          // return Math.round((price / response.data.rates[currency]) * 100) / 100
+
+          this.$emit('update-item-row', rowId, 'costSGD', response.data.rates.SGD)
+          console.log('emitted ' + response.data.rates.SGD)
         })
         .catch((error) => {
           console.error(error)
+          return null
         })
-      return 0
     },
   },
 }
