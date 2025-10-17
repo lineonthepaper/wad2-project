@@ -137,7 +137,7 @@
     "max_height": 0.6,
     "max_width": 16.2,
     "max_length": 24,
-    "img_url": "../assets/airplane.png",
+    "img_url": "../src/assets/airplane.png",
     "service_description": "Regular document service for standard sized mail",
     "delivery_note": "Standard mail service for regular sized documents and letters.",
     "delivery_type": "Letterbox",
