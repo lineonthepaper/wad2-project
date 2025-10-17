@@ -9,7 +9,7 @@
     <hr />
 
     <div class="container mt-4">
-      <!-- Loading State -->
+
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -17,7 +17,7 @@
         <p class="mt-3 text-muted">Loading services...</p>
       </div>
 
-      <!-- Error State -->
+
       <div v-else-if="error" class="text-center py-5">
         <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
         <h4 class="text-danger">Failed to load services</h4>
@@ -27,7 +27,7 @@
         </button>
       </div>
 
-      <!-- Content -->
+
       <div v-else>
         <div class="row mb-4">
           <div class="col-md-6">
@@ -206,22 +206,22 @@ export default {
     },
     filteredServices() {
       return this.services.filter(service => {
-        // Text search
+
         const matchesSearch = !this.searchQuery ||
           service.service_name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
           service.service_type.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
           service.service_description.toLowerCase().includes(this.searchQuery.toLowerCase());
 
-        // Service type filter
+
         const matchesServiceType = !this.selectedServiceType ||
           service.service_type === this.selectedServiceType;
 
-        // Tracking filter
+
         const matchesTracking = !this.selectedTracking ||
           (this.selectedTracking === 'Yes' && service.is_tracked) ||
           (this.selectedTracking === 'No' && !service.is_tracked);
 
-        // Weight filter
+
         const matchesWeight = !this.selectedWeight ||
           service.max_weight == this.selectedWeight;
 
@@ -235,7 +235,7 @@ export default {
       this.error = null;
 
       try {
-        // Adjust the path based on where your JSON file is located
+
         const response = await fetch('/json/serviceCatalogue.json');
 
         if (!response.ok) {
@@ -244,9 +244,9 @@ export default {
 
         const servicesData = await response.json();
 
-        // Transform the JSON data to match our component structure
+
         this.services = servicesData.map((service, index) => ({
-          id: index + 1, // Generate IDs since they're not in the JSON
+          id: index + 1,
           service_name: service.service_name,
           service_type: service.service_type,
           is_tracked: service.is_tracked,
@@ -326,7 +326,7 @@ export default {
   min-width: 120px;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
   .dropdown-toggle {
     min-width: 100px;

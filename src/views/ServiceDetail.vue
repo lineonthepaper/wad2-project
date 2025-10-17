@@ -8,7 +8,7 @@
   <hr />
   <div class="service-detail container py-5">
 
-    <!-- Loading State -->
+
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -16,7 +16,7 @@
       <p class="mt-3 text-muted">Loading service details...</p>
     </div>
 
-    <!-- Error State -->
+
     <div v-else-if="error" class="text-center py-5">
       <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
       <h4 class="text-danger">Failed to load service details</h4>
@@ -26,7 +26,7 @@
       </button>
     </div>
 
-    <!-- Content -->
+
     <div v-else>
       <div class="mb-3">
         <router-link to="/services" class="back-link">← BACK</router-link>
@@ -164,7 +164,7 @@ export default {
       this.service = null;
 
       try {
-        // Fetch the JSON data
+        
         const response = await fetch('/json/serviceCatalogue.json');
 
         if (!response.ok) {
@@ -173,7 +173,7 @@ export default {
 
         const servicesData = await response.json();
 
-        // Transform the data to include IDs
+
         this.services = servicesData.map((service, index) => ({
           id: index + 1,
           service_name: service.service_name,
@@ -193,7 +193,7 @@ export default {
           notes: service.notes
         }));
 
-        // Find the specific service
+
         this.service = this.services.find(s => s.id === this.serviceId);
 
         if (!this.service) {
@@ -209,7 +209,7 @@ export default {
     },
 
     handleImageError(event) {
-      // Simple fallback to a generic placeholder
+
       event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image";
     },
 
@@ -359,7 +359,6 @@ ul {
 }
 
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .title-with-badge {
     flex-direction: column;
