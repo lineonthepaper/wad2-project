@@ -132,19 +132,23 @@ export default {
     },
     receiveUpdateSelect(foundService) {
       this.sections[1].data['selectedService'] = foundService
-      for (let service of this.sections[1].props.services) {
-        if (
-          this.objectsEqual(
-            Object.fromEntries(Object.entries(service).filter((e) => e[0] != 'selected')),
-            Object.fromEntries(Object.entries(foundService).filter((e) => e[0] != 'selected')),
-          )
-        ) {
-          // console.log('same')
-          service.selected = true
+      if (foundService != undefined) {
+        for (let service of this.sections[1].props.services) {
+          if (
+            this.objectsEqual(
+              Object.fromEntries(Object.entries(service).filter((e) => e[0] != 'selected')),
+              Object.fromEntries(Object.entries(foundService).filter((e) => e[0] != 'selected')),
+            )
+          ) {
+            // console.log('same')
+            service.selected = true
+          }
         }
+        this.sections[3].props['isTracked'] = foundService.isTracked
+      } else {
+        delete this.sections[3].props['isTracked']
       }
       // console.log(this.sections[1].data)
-      this.sections[3].props['isTracked'] = foundService.isTracked
 
       this.shipment.service = foundService
     },
