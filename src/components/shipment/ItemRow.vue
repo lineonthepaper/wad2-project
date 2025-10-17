@@ -5,8 +5,8 @@
       <input
         type="text"
         class="form-control form-control-lg"
-        v-model="inputs.itemDescription"
-        @change="updateItemRow(rowId, 'itemDescription', inputs.itemDescription)"
+        v-model="inputs[0].input"
+        @change="updateItemRow(rowId, inputs[0].name, inputs[0].input)"
         required
         style="max-width: 20em"
       />
@@ -19,8 +19,8 @@
           :id="'declaredCurrency' + rowId"
           class="form-control p-2 rounded"
           tabindex="0"
-          v-model="inputs.itemCurrency"
-          @change="updateItemRow(rowId, 'itemCurrency', inputs.itemCurrency)"
+          v-model="inputs[1].input"
+          @change="updateItemRow(rowId, inputs[1].name, inputs[1].input)"
           required
         >
           <option v-for="currency of currencyData" :key="currency.code" :value="currency.code">
@@ -36,8 +36,8 @@
         type="number"
         class="form-control form-control-lg"
         style="max-width: 6em"
-        v-model="inputs.itemValue"
-        @change="updateItemRow(rowId, 'itemValue', inputs.itemValue)"
+        v-model="inputs[2].input"
+        @change="updateItemRow(rowId, inputs[2].name, inputs[2].input)"
         required
         @keypress="blockNonNumericInput($event)"
       />
@@ -50,13 +50,12 @@
         class="form-control form-control-lg"
         style="max-width: 5em"
         placeholder="in kg"
-        v-model="inputs.itemWeight"
-        @change="updateItemRow(rowId, 'itemWeight', inputs.itemWeight)"
+        v-model="inputs[3].input"
+        @change="updateItemRow(rowId, inputs[3].name, inputs[3].input)"
         required
         @keypress="blockNonNumericInput($event)"
         max="2"
         min="0"
-        @keyup="enforceMinMax($event.target)"
       />
     </td>
 
@@ -66,8 +65,8 @@
         type="number"
         class="form-control form-control-lg"
         style="max-width: 5em"
-        v-model="inputs.itemQuantity"
-        @change="updateItemRow(rowId, 'itemQuantity', inputs.itemQuantity)"
+        v-model="inputs[4].input"
+        @change="updateItemRow(rowId, inputs[4].name, inputs[4].input)"
         required
         @keypress="blockNonNumericInput($event)"
       />
@@ -96,7 +95,9 @@ import '/node_modules/choices.js/public/assets/styles/choices.css'
 
 import { onMounted, ref } from 'vue'
 
-import { blockNonNumericInput, enforceMinMax } from './utils'
+import { blockNonNumericInput } from './utils'
+
+import axios from 'axios'
 
 const props = defineProps({
   rowId: Number,
@@ -138,7 +139,45 @@ export default {
   methods: {
     updateItemRow(rowId, inputName, value) {
       console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
+      if (inputName == 'itemCurrency' || inputName == 'itemValue') {
+        if (
+          this.inputs[1].input !== null &&
+          this.inputs[2].input !== null &&
+          this.inputs[2].input !== ''
+        ) {
+          this.emitSGD(rowId, this.inputs[1].input, Number(this.inputs[2].input))
+        }
+      }
       this.$emit('update-item-row', rowId, inputName, value)
+    },
+    emitSGD(rowId, currency, price) {
+      if (currency == 'SGD') {
+        this.$emit('update-item-row', rowId, 'costSGD', price)
+      } else {
+        axios
+          .get('https://api.fxratesapi.com/latest', {
+            params: {
+              api_key: import.meta.env.VITE_FXRATESAPI_KEY,
+              base: currency,
+              places: 2,
+              currencies: 'SGD',
+              resolution: '1d',
+              amount: price,
+            },
+          })
+          .then((response) => {
+            // console.log(response.data.rates.SGD)
+            // console.log('converted: ' + price / response.data.rates[currency])
+            // return Math.round((price / response.data.rates[currency]) * 100) / 100
+
+            this.$emit('update-item-row', rowId, 'costSGD', response.data.rates.SGD)
+            console.log('emitted ' + response.data.rates.SGD)
+          })
+          .catch((error) => {
+            console.error(error)
+            return null
+          })
+      }
     },
   },
 }
