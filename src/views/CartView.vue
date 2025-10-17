@@ -89,9 +89,14 @@
         </div>
 
         <div class="row">
-          <div class="col">
+          <div class="col-md-8">
             <h3>Weight: {{ s.dimensions.weight }} kg</h3>
             <h3>Declared Value: {{ s.totalCostSGD }} SGD</h3>
+          </div>
+          <div class="col-md-4 text-center">
+            <button type="button" class="btn btn-pink next-btn" @click="deleteShipment(index)">
+              Delete
+            </button>
           </div>
         </div>
         <!-- {{ s.sender }}
@@ -142,6 +147,9 @@ export default {
         }
       }
       return countryName
+    },
+    deleteShipment(index) {
+      this.cart.shipments.splice(index, 1)
     },
   },
 }
