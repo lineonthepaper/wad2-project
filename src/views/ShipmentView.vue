@@ -105,9 +105,6 @@ export default {
         if (i == 0) {
           this.processBriefInfo()
         }
-        // if (i == 2) {
-        //   this.registerCompleteItems()
-        // }
       }
     },
     receiveUpdateCountry(sendFormId, country) {
@@ -172,8 +169,6 @@ export default {
       // console.log(this.sections[2].data['completeItems'])
       this.shipment.items = this.sections[2].data['completeItems']
 
-      console.log(this.shipment.items)
-
       this.sections[2].props['totalSGD'] = this.totalSGD
     },
     receiveUpdateDeliveryDetails(details) {
@@ -219,7 +214,6 @@ export default {
         'height' in this.sections[0].data
       ) {
         // continue
-        // this.sections[1].props = {}
 
         let zone = null
 

@@ -99,10 +99,6 @@
             </button>
           </div>
         </div>
-        <!-- {{ s.sender }}
-        {{ s.recipient }}
-        {{ s.service }} -->
-        <!-- {{ s.dimensions }} -->
         <!-- {{ s }} -->
       </div>
     </div>

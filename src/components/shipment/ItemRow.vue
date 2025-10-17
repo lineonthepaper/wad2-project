@@ -167,7 +167,6 @@ export default {
           })
           .then((response) => {
             // console.log(response.data.rates.SGD)
-            // console.log('price: ' + price)
             // console.log('converted: ' + price / response.data.rates[currency])
             // return Math.round((price / response.data.rates[currency]) * 100) / 100
 
