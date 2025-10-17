@@ -314,7 +314,15 @@ export default {
   },
   computed: {
     briefInfoCompletion() {
-      return Object.keys(this.sections[0].data).length / 7
+      let count = 0
+      for (let property in this.sections[0].data) {
+        if (this.sections[0].data[property] !== '' && this.sections[0].data[property] !== null) {
+          count++
+          console.log(this.sections[0].data[property])
+        }
+      }
+      return count / 7
+      // return Object.keys(this.sections[0].data).length / 7
     },
     servicesCompletion() {
       return Object.keys(this.sections[1].data).length / 1
