@@ -9,11 +9,17 @@ import { RouterLink, RouterView } from 'vue-router'
 
 import zoneData from '/json/zoneData.json'
 import serviceData from '/json/serviceData.json'
+
+import { useShipmentStore } from '@/stores/shipment'
+import { useCartStore } from '@/stores/cart'
 </script>
 
 <script>
 export default {
   data() {
+    const shipment = useShipmentStore()
+    const cart = useCartStore()
+
     const briefInfo = shallowRef(BriefInfo)
     const servicesSelection = shallowRef(ServicesSelection)
     const shipmentDetails = shallowRef(ShipmentDetails)
@@ -47,6 +53,7 @@ export default {
         id: 'shipment',
         info: shipmentDetails,
         eventEmit: {
+          'update-ref-numbers': this.receiveUpdateRefNumbers,
           'update-all-items': this.receiveUpdateAllItems,
         },
         data: {},
@@ -76,6 +83,8 @@ export default {
       componentKey: 0,
       objectsEqual,
       arraysEqual,
+      shipment,
+      cart,
     }
   },
   methods: {
@@ -96,15 +105,17 @@ export default {
         if (i == 0) {
           this.processBriefInfo()
         }
-        // if (i == 2) {
-        //   this.registerCompleteItems()
-        // }
       }
     },
     receiveUpdateCountry(sendFormId, country) {
       // console.log('received ' + sendFormId + ' ' + country)
       this.sections[0].data[sendFormId] = country
       this.sections[3].props[sendFormId] = country
+      if (sendFormId == 'sendFrom') {
+        this.shipment.sender.country = country
+      } else if (sendFormId == 'sendTo') {
+        this.shipment.recipient.country = country
+      }
     },
     receiveUpdateShipmentType(shipmentType) {
       // console.log('received ' + shipmentType)
@@ -114,22 +125,34 @@ export default {
       // console.log('received ' + dimension + ' ' + value)
       this.sections[0].data[dimension] = value
       // console.log(this.sections[0])
+      this.shipment.dimensions[dimension] = value
     },
     receiveUpdateSelect(foundService) {
       this.sections[1].data['selectedService'] = foundService
-      for (let service of this.sections[1].props.services) {
-        if (
-          this.objectsEqual(
-            Object.fromEntries(Object.entries(service).filter((e) => e[0] != 'selected')),
-            Object.fromEntries(Object.entries(foundService).filter((e) => e[0] != 'selected')),
-          )
-        ) {
-          console.log('same')
-          service.selected = true
+      if (foundService != undefined) {
+        for (let service of this.sections[1].props.services) {
+          if (
+            this.objectsEqual(
+              Object.fromEntries(Object.entries(service).filter((e) => e[0] != 'selected')),
+              Object.fromEntries(Object.entries(foundService).filter((e) => e[0] != 'selected')),
+            )
+          ) {
+            // console.log('same')
+            service.selected = true
+          }
         }
+        this.sections[3].props['isTracked'] = foundService.isTracked
+      } else {
+        delete this.sections[3].props['isTracked']
       }
       // console.log(this.sections[1].data)
-      this.sections[3].props['isTracked'] = foundService.isTracked
+
+      this.shipment.service = foundService
+    },
+    receiveUpdateRefNumbers(refInputs) {
+      this.sections[2].data['refNumbers'] = refInputs
+      // console.log(this.sections[2].data['refNumbers'])
+      this.shipment.refNumbers = refInputs
     },
     receiveUpdateAllItems(items) {
       this.sections[2].data['items'] = items
@@ -139,15 +162,43 @@ export default {
     registerCompleteItems() {
       this.sections[2].data['completeItems'] = {}
       for (let rowId in this.sections[2].data['items']) {
-        if (Object.keys(this.sections[2].data['items'][rowId]).length === 5) {
+        if (Object.keys(this.sections[2].data['items'][rowId]).length === 6) {
           this.sections[2].data['completeItems'][rowId] = this.sections[2].data['items'][rowId]
         }
       }
       // console.log(this.sections[2].data['completeItems'])
+      this.shipment.items = this.sections[2].data['completeItems']
+
+      this.sections[2].props['totalSGD'] = this.totalSGD
     },
     receiveUpdateDeliveryDetails(details) {
       this.sections[3].data = details
       console.log(this.sections[3].data)
+
+      let properties = [
+        'name',
+        'phoneCode',
+        'phoneNumber',
+        'email',
+        'line1',
+        'line2',
+        'line3',
+        'city',
+        'state',
+        'postalCode',
+      ]
+
+      for (let property of properties) {
+        if (details.sender[property] !== null && details.sender[property] !== '') {
+          this.shipment.sender[property] = details.sender[property]
+        }
+      }
+
+      for (let property of properties) {
+        if (details.recipient[property] !== null && details.recipient[property] !== '') {
+          this.shipment.recipient[property] = details.recipient[property]
+        }
+      }
     },
     processBriefInfo() {
       console.log('processing brief info')
@@ -163,7 +214,6 @@ export default {
         'height' in this.sections[0].data
       ) {
         // continue
-        // this.sections[1].props = {}
 
         let zone = null
 
@@ -247,10 +297,26 @@ export default {
         this.sections[1].props.services = []
       }
     },
+    addToCart() {
+      if (this.shipment.complete == true) {
+        this.shipment.totalCostSGD = this.totalSGD
+        this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
+        this.shipment.$reset()
+        console.log('added to cart')
+      }
+    },
   },
   computed: {
     briefInfoCompletion() {
-      return Object.keys(this.sections[0].data).length / 7
+      let count = 0
+      for (let property in this.sections[0].data) {
+        if (this.sections[0].data[property] !== '' && this.sections[0].data[property] !== null) {
+          count++
+          console.log(this.sections[0].data[property])
+        }
+      }
+      return count / 7
+      // return Object.keys(this.sections[0].data).length / 7
     },
     servicesCompletion() {
       return Object.keys(this.sections[1].data).length / 1
@@ -290,6 +356,24 @@ export default {
           4) *
         100
       )
+    },
+    totalSGD() {
+      let total = 0
+      for (let itemId in this.shipment.items) {
+        // console.log('adding ' + this.shipment.items[itemId].costSGD)
+        total += this.shipment.items[itemId].costSGD
+      }
+      // console.log('total: ' + total)
+      return total
+    },
+  },
+  watch: {
+    overallCompletion(value) {
+      if (value === 100) {
+        this.shipment.complete = true
+      } else {
+        this.shipment.complete = false
+      }
     },
   },
 }
@@ -350,14 +434,20 @@ export default {
 
     <div class="row">
       <div class="col text-center">
-        <RouterLink :to="{ name: 'cart' }">
-          <button type="button" class="btn btn-pink next-btn" :disabled="overallCompletion != 100">
+        <component :to="{ name: 'cart' }" :is="overallCompletion == 100 ? 'RouterLink' : 'span'">
+          <button
+            type="button"
+            class="btn btn-pink next-btn"
+            :disabled="overallCompletion != 100"
+            @click="overallCompletion == 100 ? addToCart() : null"
+          >
             Add to Cart
           </button>
-        </RouterLink>
+        </component>
       </div>
     </div>
   </div>
+  <!-- <button @click="console.log(shipment.$state)">View state</button> -->
   <RouterView />
 </template>
 
