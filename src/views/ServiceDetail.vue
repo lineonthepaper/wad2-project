@@ -1,8 +1,84 @@
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import serviceCatalogue from '/json/serviceCatalogue.json'
+
+const route = useRoute()
+
+
+const activeTab = ref('info')
+const service = ref(null)
+const services = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+const serviceId = computed(() => parseInt(route.params.id))
+
+const getServiceTypeBadgeClass = (serviceType) => {
+  return serviceType === 'Documents' ? 'bg-info' : 'bg-success'
+}
+
+const handleImageError = (event) => {
+  event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image"
+}
+
+const fetchService = () => {
+  loading.value = true
+  error.value = null
+  service.value = null
+
+  try {
+
+    services.value = serviceCatalogue.map((service, index) => ({
+      id: index + 1,
+      service_name: service.service_name,
+      service_type: service.service_type,
+      is_tracked: service.is_tracked,
+      max_weight: service.max_weight,
+      max_height: service.max_height,
+      max_width: service.max_width,
+      max_length: service.max_length,
+      img_url: service.img_url,
+      service_description: service.service_description,
+      delivery_note: service.delivery_note,
+      delivery_type: service.delivery_type,
+      delivery_standard: service.delivery_standard,
+      compensation: service.compensation,
+      conditions: service.conditions,
+      notes: service.notes
+    }))
+
+
+    service.value = services.value.find(s => s.id === serviceId.value)
+
+    if (!service.value) {
+      throw new Error('Service not found')
+    }
+
+  } catch (err) {
+    console.error('Error loading service:', err)
+    error.value = err.message
+  } finally {
+    loading.value = false
+  }
+}
+
+
+watch(() => route.params.id, () => {
+  fetchService()
+})
+
+
+onMounted(() => {
+  fetchService()
+})
+</script>
+
 <template>
   <hr />
   <div class="row bg-light-pink justify-content-center airplane-header">
     <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-      <h1 class="jua text-hot-pink">Details - {{ service.service_name }}</h1>
+      <h1 class="jua text-hot-pink">Details - {{ service?.service_name }}</h1>
     </div>
   </div>
   <hr />
@@ -64,7 +140,6 @@
           </div>
         </div>
 
-
         <div class="tabs mb-3">
           <button
             class="tab-btn"
@@ -81,7 +156,6 @@
             Notes
           </button>
         </div>
-
 
         <div v-if="activeTab === 'info'" class="info-section">
           <table class="info-table">
@@ -138,98 +212,6 @@
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  name: "ServiceDetail",
-  props: ["id"],
-  data() {
-    return {
-      activeTab: "info",
-      service: null,
-      services: [],
-      loading: false,
-      error: null
-    };
-  },
-  computed: {
-    serviceId() {
-      return parseInt(this.id);
-    }
-  },
-  methods: {
-    async fetchService() {
-      this.loading = true;
-      this.error = null;
-      this.service = null;
-
-      try {
-        
-        const response = await fetch('/json/serviceCatalogue.json');
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch services: ${response.status} ${response.statusText}`);
-        }
-
-        const servicesData = await response.json();
-
-
-        this.services = servicesData.map((service, index) => ({
-          id: index + 1,
-          service_name: service.service_name,
-          service_type: service.service_type,
-          is_tracked: service.is_tracked,
-          max_weight: service.max_weight,
-          max_height: service.max_height,
-          max_width: service.max_width,
-          max_length: service.max_length,
-          img_url: service.img_url,
-          service_description: service.service_description,
-          delivery_note: service.delivery_note,
-          delivery_type: service.delivery_type,
-          delivery_standard: service.delivery_standard,
-          compensation: service.compensation,
-          conditions: service.conditions,
-          notes: service.notes
-        }));
-
-
-        this.service = this.services.find(s => s.id === this.serviceId);
-
-        if (!this.service) {
-          throw new Error('Service not found');
-        }
-
-      } catch (err) {
-        console.error('Error loading service:', err);
-        this.error = err.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    handleImageError(event) {
-
-      event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image";
-    },
-
-    getServiceTypeBadgeClass(serviceType) {
-      return serviceType === 'Documents' ? 'bg-info' : 'bg-success';
-    }
-  },
-  watch: {
-    id: {
-      immediate: true,
-      handler() {
-        this.fetchService();
-      }
-    }
-  },
-  mounted() {
-    this.fetchService();
-  }
-};
-</script>
 
 <style scoped>
 .service-detail {

@@ -1,3 +1,108 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import serviceCatalogue from '/json/serviceCatalogue.json'
+
+const router = useRouter()
+
+
+const searchQuery = ref("")
+const selectedServiceType = ref("")
+const selectedTracking = ref("")
+const selectedWeight = ref("")
+const services = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+
+const hasActiveFilters = computed(() => {
+  return selectedServiceType.value || selectedTracking.value || selectedWeight.value
+})
+
+const availableWeights = computed(() => {
+  const weights = [...new Set(services.value.map(service => service.max_weight))]
+  return weights.sort((a, b) => a - b)
+})
+
+const filteredServices = computed(() => {
+  return services.value.filter(service => {
+
+    const matchesSearch = !searchQuery.value ||
+      service.service_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      service.service_type.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      service.service_description.toLowerCase().includes(searchQuery.value.toLowerCase())
+
+
+    const matchesServiceType = !selectedServiceType.value ||
+      service.service_type === selectedServiceType.value
+
+
+    const matchesTracking = !selectedTracking.value ||
+      (selectedTracking.value === 'Yes' && service.is_tracked) ||
+      (selectedTracking.value === 'No' && !service.is_tracked)
+
+
+    const matchesWeight = !selectedWeight.value ||
+      service.max_weight == selectedWeight.value
+
+    return matchesSearch && matchesServiceType && matchesTracking && matchesWeight
+  })
+})
+
+
+const fetchServices = () => {
+  loading.value = true
+  error.value = null
+
+  try {
+
+    services.value = serviceCatalogue.map((service, index) => ({
+      id: index + 1,
+      service_name: service.service_name,
+      service_type: service.service_type,
+      is_tracked: service.is_tracked,
+      max_weight: service.max_weight,
+      max_height: service.max_height,
+      max_width: service.max_width,
+      max_length: service.max_length,
+      img_url: service.img_url,
+      service_description: service.service_description
+    }))
+
+  } catch (err) {
+    console.error('Error loading services:', err)
+    error.value = err.message
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleImageError = (event) => {
+
+  event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image"
+}
+
+const getServiceTypeBadgeClass = (serviceType) => {
+  return serviceType === 'Documents' ? 'bg-info' : 'bg-success'
+}
+
+const goToDetail = (serviceId) => {
+  router.push(`/service/${serviceId}`)
+}
+
+const clearFilters = () => {
+  selectedServiceType.value = ""
+  selectedTracking.value = ""
+  selectedWeight.value = ""
+  searchQuery.value = ""
+}
+
+
+onMounted(() => {
+  fetchServices()
+})
+</script>
+
 <template>
   <div class="atalogue-page">
     <hr />
@@ -181,116 +286,6 @@
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  name: "ServicesCatalogue",
-  data() {
-    return {
-      searchQuery: "",
-      selectedServiceType: "",
-      selectedTracking: "",
-      selectedWeight: "",
-      services: [],
-      loading: false,
-      error: null
-    };
-  },
-  computed: {
-    hasActiveFilters() {
-      return this.selectedServiceType || this.selectedTracking || this.selectedWeight;
-    },
-    availableWeights() {
-      const weights = [...new Set(this.services.map(service => service.max_weight))];
-      return weights.sort((a, b) => a - b);
-    },
-    filteredServices() {
-      return this.services.filter(service => {
-
-        const matchesSearch = !this.searchQuery ||
-          service.service_name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          service.service_type.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          service.service_description.toLowerCase().includes(this.searchQuery.toLowerCase());
-
-
-        const matchesServiceType = !this.selectedServiceType ||
-          service.service_type === this.selectedServiceType;
-
-
-        const matchesTracking = !this.selectedTracking ||
-          (this.selectedTracking === 'Yes' && service.is_tracked) ||
-          (this.selectedTracking === 'No' && !service.is_tracked);
-
-
-        const matchesWeight = !this.selectedWeight ||
-          service.max_weight == this.selectedWeight;
-
-        return matchesSearch && matchesServiceType && matchesTracking && matchesWeight;
-      });
-    }
-  },
-  methods: {
-    async fetchServices() {
-      this.loading = true;
-      this.error = null;
-
-      try {
-
-        const response = await fetch('/json/serviceCatalogue.json');
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch services: ${response.status} ${response.statusText}`);
-        }
-
-        const servicesData = await response.json();
-
-
-        this.services = servicesData.map((service, index) => ({
-          id: index + 1,
-          service_name: service.service_name,
-          service_type: service.service_type,
-          is_tracked: service.is_tracked,
-          max_weight: service.max_weight,
-          max_height: service.max_height,
-          max_width: service.max_width,
-          max_length: service.max_length,
-          img_url: service.img_url,
-          service_description: service.service_description
-        }));
-
-      } catch (err) {
-        console.error('Error loading services:', err);
-        this.error = err.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    handleImageError(event) {
-      // Fallback image if the img_url is broken or missing
-      event.target.src = "https://via.placeholder.com/300x200/CCCCCC/FFFFFF?text=Service+Image";
-    },
-
-    getServiceTypeBadgeClass(serviceType) {
-      return serviceType === 'Documents' ? 'bg-info' : 'bg-success';
-    },
-
-    goToDetail(serviceId) {
-      this.$router.push(`/service/${serviceId}`);
-    },
-
-    clearFilters() {
-      this.selectedServiceType = "";
-      this.selectedTracking = "";
-      this.selectedWeight = "";
-      this.searchQuery = "";
-    }
-  },
-  mounted() {
-    this.fetchServices();
-  }
-};
-</script>
 
 <style scoped>
 .service-card:hover {
