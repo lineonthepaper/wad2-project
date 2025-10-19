@@ -9,7 +9,7 @@ import { RouterLink, RouterView } from 'vue-router'
         <div class="row align-items-center text-center w-100">
           <div class="col-md-2 col-6 justify-content-center justify-content-sm-start p-2">
             <RouterLink :to="{ name: 'home' }">
-              <img src="../assets/Singapore_Post_Logo.png" />
+              <img src="../assets/Singapore_Post_Logo.png" alt="Singapore Post Logo" />
             </RouterLink>
           </div>
           <div class="col py-2 text-end">
