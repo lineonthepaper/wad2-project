@@ -1,0 +1,41 @@
+import { defineStore } from 'pinia'
+
+export const useShipmentStore = defineStore('shipment', {
+  state: () => ({
+    sender: {
+      name: null,
+      phoneCode: null,
+      phoneNumber: null,
+      email: null,
+      line1: null,
+      line2: null,
+      line3: null,
+      city: null,
+      state: null,
+      postalCode: null,
+      country: null,
+    },
+    recipient: {
+      name: null,
+      phoneCode: null,
+      phoneNumber: null,
+      email: null,
+      line1: null,
+      line2: null,
+      line3: null,
+      city: null,
+      state: null,
+      postalCode: null,
+      country: null,
+    },
+    service: {},
+    items: {},
+    refNumbers: {},
+    dimensions: {},
+    complete: false,
+    selected: false,
+    totalCostSGD: null,
+  }),
+  getters: {},
+  actions: {},
+})

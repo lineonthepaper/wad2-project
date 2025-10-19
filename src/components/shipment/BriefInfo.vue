@@ -7,7 +7,7 @@ import Choices from 'choices.js'
 
 import '/node_modules/choices.js/public/assets/styles/choices.css'
 
-import { blockNonNumericInput, enforceMinMax } from './utils'
+import { blockNonNumericInput } from './utils'
 
 onMounted(() => {
   const sendFrom = document.querySelector('#sendFrom')
@@ -110,7 +110,6 @@ export default {
       this.$emit('update-shipment-type', this.shipmentType)
     },
     updateCountry(sendFormId, event) {
-      // console.log(event.target.value)
       this.$emit('update-country', sendFormId, event.target.value)
     },
     updateDimensions(dimension, value) {
@@ -192,7 +191,6 @@ export default {
               required
               :min="dimension.min"
               :max="dimension.max"
-              @keyup="enforceMinMax($event.target)"
               :step="dimension.step"
               @keypress="blockNonNumericInput($event)"
             />

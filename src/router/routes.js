@@ -10,7 +10,8 @@ import SignupForm from '@/views/SignUpView.vue'
 import LoginForm from '@/views/LoginView.vue'
 import ServicesView from '../views/ServicesView.vue'
 import ServiceDetail from '../views/ServiceDetail.vue'
-import customerDB from '@/views/customerDB.vue'
+import customerDB from '../views/customerDB.vue'
+
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -23,7 +24,8 @@ export const routes = [
   { path: '/signup', component: SignupForm },
   { path: '/login', component: LoginForm },
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
-  {path: '/CDB', component: customerDB }
+  { path: '/CDB', component: customerDB }
+
 ]
 
 
