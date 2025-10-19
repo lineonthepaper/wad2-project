@@ -4,24 +4,24 @@
 
         <form @submit.prevent="handleSignup">
             Name: <br>
-            <input v-model="displayName" placeholder="Display Name" required />
+            <input v-model="displayName" placeholder="Display Name" required aria-label="Display Name"/>
 
             <br>
             <br>
 
             Email: <br>
-            <input v-model="email" type="email" placeholder="Email" required />
+            <input v-model="email" type="email" placeholder="Email" required aria-label="Email"/>
 
             <br>
             <br>
 
             Password: <br>
-            <input v-model="password" type="password" placeholder="Password" required />
+            <input v-model="password" type="password" placeholder="Password" required aria-label="Password"/>
 
 
 
             <label class="staff-label">
-                <input type="checkbox" v-model="isStaff"/> Staff Account
+                <input type="checkbox" v-model="isStaff" aria-label="Staff Checkbox"/> Staff Account
             </label>
 
 

@@ -380,7 +380,7 @@ export default {
 </script>
 
 <template>
-  <div class="progress fixed-bottom bg-light border-danger-subtle border" role="progressbar">
+  <div class="progress fixed-bottom bg-light border-danger-subtle border" role="progressbar" aria-label="Completion Percentage">
     <div class="progress-bar bg-pink" :style="'width:' + overallCompletion + '%'"></div>
   </div>
   <div class="container-fluid">

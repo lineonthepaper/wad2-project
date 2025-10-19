@@ -3,8 +3,8 @@
     <h2>Login</h2>
 
     <form @submit.prevent="handleLogin">
-      <input v-model="email" type="email" placeholder="Email" required />
-      <input v-model="password" type="password" placeholder="Password" required />
+      <input v-model="email" type="email" placeholder="Email" required aria-label="email"/>
+      <input v-model="password" type="password" placeholder="Password" required aria-label="password"/>
       <button type="submit">Login</button>
     </form>
 
