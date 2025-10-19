@@ -8,7 +8,10 @@
   <hr />
 
   <div v-if="mail">
-    <p>Mail ID: {{ mail.getMailItems }}</p>
+    <p>Mail ID: {{ mail.mailId }}
+{{ mail.customerEmail }}
+{{ mail.parcelHeight }}
+</p>
   </div>
   <div v-else>
     <p>Loading mail data...</p>
