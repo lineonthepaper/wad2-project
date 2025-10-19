@@ -8,7 +8,7 @@
   <hr />
 
   <div v-if="mail">
-    <p>Mail ID: {{ mail.mailId }}</p>
+    <p>Mail ID: {{ mail.getMailItems }}</p>
   </div>
   <div v-else>
     <p>Loading mail data...</p>
