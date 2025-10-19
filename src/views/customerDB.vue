@@ -6,4 +6,34 @@
     </div>
   </div>
   <hr />
+
+  <div v-if="mail">
+    <p>Mail ID: {{ mail.mailId }}</p>
+  </div>
+  <div v-else>
+    <p>Loading mail data...</p>
+  </div>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      mail: null
+    };
+  },
+  mounted() {
+
+    fetch('../api/mail.php')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        this.mail = data;
+        console.log("Mail data:", data);
+      })
+      .catch(error => console.error("Error fetching mail data:", error));
+  }
+};
+</script>
