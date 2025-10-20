@@ -13,99 +13,105 @@
       <button @click="console.log(shipment.$state)">Shipment state</button>
     </div> -->
 
-    <div
-      class="row justify-content-center text-dark-slate-blue py-2"
-      v-for="(s, index) in cart.shipments"
-      :key="index"
-    >
-      <div class="col-lg-10 border rounded p-4">
-        <div class="row">
-          <h2>{{ s.service.name }}</h2>
-        </div>
-        <hr class="hr-slate-blue" />
-        <div class="row">
-          <div class="col-md-4 py-2" v-for="send in sendFromOrTo" :key="send.id">
-            <h3>{{ send.title }}</h3>
-            <p>
-              <input
-                type="text"
-                v-model="s[send.id].name"
-                class="form-control"
-                placeholder="Name"
-              />
-            </p>
-            <p>
-              <!-- {{ s[send.id].line1 }} -->
-              <template v-for="i in 3" :key="i">
+    <div v-if="cart.shipments.length != 0">
+      <div
+        class="row justify-content-center text-dark-slate-blue py-2"
+        v-for="(s, index) in cart.shipments"
+        :key="index"
+      >
+        <div class="col-lg-10 border rounded p-4">
+          <div class="row">
+            <h2>{{ s.service.name }}</h2>
+          </div>
+          <hr class="hr-slate-blue" />
+          <div class="row">
+            <div class="col-md-4 py-2" v-for="send in sendFromOrTo" :key="send.id">
+              <h3>{{ send.title }}</h3>
+              <p>
                 <input
                   type="text"
-                  v-model="s[send.id]['line' + i]"
-                  class="form-control d-inline-block my-1"
-                  :placeholder="'Address Line ' + i"
+                  v-model="s[send.id].name"
+                  class="form-control"
+                  placeholder="Name"
                 />
-              </template>
-            </p>
-            <p class="my-2">
-              <input
-                type="text"
-                v-model="s[send.id].city"
-                class="form-control d-inline-block w-50"
-                placeholder="City"
-              />
-              <input
-                type="text"
-                v-model="s[send.id].state"
-                class="form-control d-inline-block w-50"
-                placeholder="State"
-              />
-            </p>
-            <p class="my-2">
-              <input
-                type="text"
-                disabled
-                :value="getCountryName(s[send.id].country)"
-                class="form-control w-50 d-inline"
-              />
-              <input
-                type="text"
-                v-model="s[send.id].postalCode"
-                class="form-control w-50 d-inline"
-                placeholder="Postal Code"
-              />
-            </p>
-          </div>
+              </p>
+              <p>
+                <!-- {{ s[send.id].line1 }} -->
+                <template v-for="i in 3" :key="i">
+                  <input
+                    type="text"
+                    v-model="s[send.id]['line' + i]"
+                    class="form-control d-inline-block my-1"
+                    :placeholder="'Address Line ' + i"
+                  />
+                </template>
+              </p>
+              <p class="my-2">
+                <input
+                  type="text"
+                  v-model="s[send.id].city"
+                  class="form-control d-inline-block w-50"
+                  placeholder="City"
+                />
+                <input
+                  type="text"
+                  v-model="s[send.id].state"
+                  class="form-control d-inline-block w-50"
+                  placeholder="State"
+                />
+              </p>
+              <p class="my-2">
+                <input
+                  type="text"
+                  disabled
+                  :value="getCountryName(s[send.id].country)"
+                  class="form-control w-50 d-inline"
+                />
+                <input
+                  type="text"
+                  v-model="s[send.id].postalCode"
+                  class="form-control w-50 d-inline"
+                  placeholder="Postal Code"
+                />
+              </p>
+            </div>
 
-          <div class="col order-first order-md-last py-sm-5 justify-content-center text-center">
-            <!-- stamp -->
-            <div
-              class="checkbox mx-auto"
-              role="checkbox"
-              :aria-checked="s.selected"
-              @click="s.selected = !s.selected"
-            >
-              <img src="/shipment/stamp.png" alt="Stamp" :class="{ 'img-selected': s.selected }" />
+            <div class="col order-first order-md-last py-sm-5 justify-content-center text-center">
+              <!-- stamp -->
+              <div
+                class="checkbox mx-auto"
+                role="checkbox"
+                :aria-checked="s.selected"
+                @click="s.selected = !s.selected"
+              >
+                <img
+                  src="/shipment/stamp.png"
+                  alt="Stamp"
+                  :class="{ 'img-selected': s.selected }"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="col-md-8">
-            <h3>Weight: {{ s.dimensions.weight }} kg</h3>
-            <h3>Declared Value: {{ s.totalCostSGD }} SGD</h3>
+          <div class="row">
+            <div class="col-md-8">
+              <h3>Weight: {{ s.dimensions.weight }} kg</h3>
+              <h3>Declared Value: {{ s.totalCostSGD }} SGD</h3>
+            </div>
+            <div class="col-md-4 text-center">
+              <button type="button" class="btn btn-pink next-btn" @click="deleteShipment(index)">
+                Delete
+              </button>
+            </div>
           </div>
-          <div class="col-md-4 text-center">
-            <button type="button" class="btn btn-pink next-btn" @click="deleteShipment(index)">
-              Delete
-            </button>
-          </div>
+          <!-- {{ s }} -->
         </div>
-        <!-- {{ s }} -->
       </div>
-    </div>
 
-    <div class="row justify-content-center py-2" v-if="cart.shipments.length != 0">
-      <div class="col text-center">
-        <button type="button" class="btn btn-pink next-btn">Check Out</button>
+      <div class="row justify-content-center py-2">
+        <div class="col text-center">
+          <button type="button" class="btn btn-pink next-btn">Check Out</button>
+        </div>
       </div>
     </div>
 
