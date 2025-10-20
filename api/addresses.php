@@ -39,7 +39,7 @@ if ($method === "POST") {
             exit;
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Caught exception " . $e->getMessage()]);
+            echo json_encode(["message" => "Caught exception " . $e->getMessage(), "success" => false]);
             exit;
         }
     } elseif ($method == "getAddressById") {

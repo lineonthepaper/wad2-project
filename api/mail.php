@@ -18,16 +18,16 @@ if ($method === "POST") {
         try {
             $mailDAO = new MailDAO($useServer);
             $mailItems = [];
-            foreach ($payload["mailItems"] as $mailItem) {
+            foreach ($payload["mailItems"] as $row => $mailItem) {
                 $mailItems[] = new MailItem(
                     null,
                     null,
                     $mailItem["itemDescription"],
-                    $mailItem["declaredCurrency"],
-                    $mailItem["declaredValue"],
+                    $mailItem["itemCurrency"],
+                    $mailItem["itemValue"],
                     $mailItem["itemWeight"],
                     $mailItem["itemQuantity"],
-                    $mailItem["hsCode"]
+                    $mailItem["hsCode"] ?? null
                 );
             }
 
@@ -45,17 +45,17 @@ if ($method === "POST") {
                 )
             );
             if ($success) {
-                echo json_encode(
-                    ["message" => "Mail created successfully."]
-                );
-                exit;
+                $message = "Mail created successfully.";
             } else {
-                echo json_encode(["message" => "Error in mail creation."]);
-                exit;
+                $message = "Error in mail creation.";
             }
+            echo json_encode(
+                ["message" => $message, "success" => $success]
+            );
+            exit;
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Caught exception " . $e->getMessage()]);
+            echo json_encode(["message" => "Caught exception " . $e->getMessage(), $success => false]);
             exit;
         }
     } elseif ($method == "addMailStatus") {
