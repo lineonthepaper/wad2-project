@@ -13,6 +13,13 @@
       <button @click="console.log(shipment.$state)">Shipment state</button>
     </div> -->
 
+    <div class="row justify-content-center text-dark-slate-blue py-2" v-if="!noErrors">
+      <div class="col-auto text-center bg-warning-subtle rounded border p-2">
+        There were one or more errors with your shipment. <br />
+        Please check your information and try again.
+      </div>
+    </div>
+
     <div v-if="cart.shipments.length != 0">
       <div
         class="row justify-content-center text-dark-slate-blue py-2"
@@ -110,18 +117,13 @@
 
       <div class="row justify-content-center py-2">
         <div class="col text-center">
-          <component
-            :is="cart.numSelectedShipments > 0 ? 'RouterLink' : 'span'"
-            :to="{ name: 'confirmation' }"
+          <button
+            type="button"
+            class="btn btn-pink next-btn"
+            @click="cart.numSelectedShipments > 0 ? checkOut() : null"
           >
-            <button
-              type="button"
-              class="btn btn-pink next-btn"
-              @click="cart.numSelectedShipments > 0 ? checkOut() : null"
-            >
-              Check Out
-            </button>
-          </component>
+            {{ loading ? 'Loading...' : 'Check Out' }}
+          </button>
         </div>
       </div>
     </div>
@@ -164,7 +166,8 @@ export default {
       shipment,
       cart,
       sendFromOrTo,
-      noErrors: true,
+      statuses: ref([]),
+      loading: false,
     }
   },
   methods: {
@@ -187,7 +190,16 @@ export default {
     deleteShipment(index) {
       this.cart.shipments.splice(index, 1)
     },
+    until(conditionFunction) {
+      const poll = (resolve) => {
+        if (conditionFunction()) resolve()
+        else setTimeout(() => poll(resolve), 400)
+      }
+
+      return new Promise(poll)
+    },
     checkOut() {
+      this.loading = true
       for (let shipment of this.cart.selectedShipments) {
         let people = ['sender', 'recipient']
         let addressIds = {}
@@ -226,48 +238,81 @@ export default {
 
         let zone = this.getZone(shipment.recipient.country)
 
-        function waitForAddressIds() {
-          if (Object.keys(addressIds).length == 2) {
-            axios
-              .post('/api/mail.php', {
-                method: 'addMail',
-                customerEmail: shipment.sender.email,
-                senderAddressId: addressIds.sender,
-                recipientAddressId: addressIds.recipient,
-                mailItems: shipment.items,
-                parcelLength: shipment.dimensions.length,
-                parcelWidth: shipment.dimensions.width,
-                parcelHeight: shipment.dimensions.height,
-                service: {
-                  name: shipment.service.name,
-                  type: shipment.type,
-                  zone: zone,
-                },
-              })
-              .then((response) => {
-                console.log(response.data)
-                if (!response.data.success) {
-                  this.noErrors = false
-                }
-              })
-              .catch((error) => {
-                console.error(error)
-              })
-          } else {
-            setTimeout(waitForAddressIds, 250)
-          }
+        async function waitForAddressIds(statuses, until) {
+          await until(() => Object.keys(addressIds).length == 2)
+          axios
+            .post('/api/mail.php', {
+              method: 'addMail',
+              customerEmail: shipment.sender.email,
+              senderAddressId: addressIds.sender,
+              recipientAddressId: addressIds.recipient,
+              mailItems: shipment.items,
+              parcelLength: shipment.dimensions.length,
+              parcelWidth: shipment.dimensions.width,
+              parcelHeight: shipment.dimensions.height,
+              service: {
+                name: shipment.service.name,
+                type: shipment.type,
+                zone: zone,
+              },
+            })
+            .then((response) => {
+              console.log(response.data)
+              if (!response.data.success) {
+                statuses.push(false)
+              } else {
+                statuses.push(true)
+              }
+            })
+            .catch((error) => {
+              console.error(error)
+            })
         }
 
-        waitForAddressIds()
+        waitForAddressIds(this.statuses, this.until)
 
         // then send email
       }
 
-      if (this.noErrors) {
-        this.$router.push({ name: 'confirmation' })
+      async function waitForAddMail(
+        statuses,
+        numSelectedShipments,
+        noErrors,
+        router,
+        until,
+        loading,
+      ) {
+        console.log(statuses)
+
+        await until(() => statuses.length == numSelectedShipments)
+
+        loading = false
+
+        if (noErrors) {
+          router.push({ name: 'confirmation' })
+        }
       }
 
+      waitForAddMail(
+        this.statuses,
+        this.cart.numSelectedShipments,
+        this.noErrors,
+        this.$router,
+        this.until,
+        this.loading,
+      )
+
       // this.cart.removeSelected()
+    },
+  },
+  computed: {
+    noErrors() {
+      for (let status of this.statuses) {
+        if (status == false) {
+          return false
+        }
+      }
+      return true
     },
   },
 }
