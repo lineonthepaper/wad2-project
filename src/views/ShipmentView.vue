@@ -392,7 +392,12 @@ export default {
     </div>
     <hr />
 
-    <div class="row justify-content-center" v-for="(section, index) in sections" :key="section.id">
+    <div
+      class="row justify-content-center"
+      v-for="(section, index) in sections"
+      :key="section.id"
+      :id="section.id"
+    >
       <div class="col-1 d-flex justify-content-center">
         <div
           :class="[
@@ -497,5 +502,27 @@ export default {
 .number-selected {
   background-color: var(--dark-pink);
   color: white;
+}
+
+#briefInfo ::v-deep(.choices__list) {
+  padding: 4px;
+  word-break: normal;
+}
+
+#delivery ::v-deep(.choices__input) {
+  padding: 0px;
+  word-break: normal;
+}
+
+#delivery ::v-deep(.choices__list) {
+  padding: 6px 6px 6px 4px;
+}
+
+#delivery ::v-deep(.choices__item) {
+  padding: 0px;
+}
+
+#delivery ::v-deep(.choices__item--choice) {
+  padding: 4px;
 }
 </style>

@@ -275,12 +275,3 @@ export default {
   },
 }
 </script>
-
-<style>
-.choices__input {
-  padding: 0px !important;
-}
-.choices__list {
-  padding: 6px 16px 6px 10px;
-}
-</style>
