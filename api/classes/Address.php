@@ -12,8 +12,8 @@ class Address implements JsonSerializable
     private ?string $phoneCountryCode;
 
     private string $addressLine1;
-    private string $addressLine2;
-    private string $addressLine3;
+    private ?string $addressLine2;
+    private ?string $addressLine3;
     private string $postalCode;
     private string $countryCode;
 
