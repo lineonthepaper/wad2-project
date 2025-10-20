@@ -120,6 +120,7 @@ export default {
     receiveUpdateShipmentType(shipmentType) {
       // console.log('received ' + shipmentType)
       this.sections[0].data['shipmentType'] = shipmentType
+      this.shipment.type = shipmentType
     },
     receiveUpdateDimensions(dimension, value) {
       // console.log('received ' + dimension + ' ' + value)
