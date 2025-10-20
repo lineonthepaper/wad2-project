@@ -281,12 +281,23 @@ export default {
         router,
         until,
         loading,
+        cart,
       ) {
         console.log(statuses)
 
         await until(() => statuses.length == numSelectedShipments)
 
         loading = false
+
+        let remainingShipments = []
+
+        for (let i = 0; i < statuses.length; i++) {
+          if (!statuses[i]) {
+            remainingShipments.push(cart.shipments[i])
+          }
+        }
+
+        cart.shipments = remainingShipments
 
         if (noErrors) {
           router.push({ name: 'confirmation' })
@@ -300,9 +311,8 @@ export default {
         this.$router,
         this.until,
         this.loading,
+        this.cart,
       )
-
-      // this.cart.removeSelected()
     },
   },
   computed: {
