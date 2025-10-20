@@ -43,7 +43,7 @@ Constructor: bool $useServer = true
 
 ## Address
 
-Constructor: ?int $addressId, string $name, string $email, int $phone, string $phoneCountryCode, array $address
+Constructor: ?int $addressId, string $name, string $email, ?int $phone, ?string $phoneCountryCode, array $address
 
 Format of array $address:
 [
@@ -58,9 +58,9 @@ Methods:
 - getName(): int
 - getEmail(): string
 - getAddress(): array as above
-- getPhoneNumberString(): string
-- getPhone(): int
-- getPhoneCountryCode(): string
+- getPhoneNumberString(): ?string
+- getPhone(): ?int
+- getPhoneCountryCode(): ?string
 - setAddressId(int $addressId): void
 - jsonSerialize(): mixed
 

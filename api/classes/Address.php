@@ -8,8 +8,8 @@ class Address implements JsonSerializable
 
     private string $email;
 
-    private int $phone;
-    private string $phoneCountryCode;
+    private ?int $phone;
+    private ?string $phoneCountryCode;
 
     private string $addressLine1;
     private string $addressLine2;
@@ -21,8 +21,8 @@ class Address implements JsonSerializable
         ?int $addressId,
         string $name,
         string $email,
-        int $phone,
-        string $phoneCountryCode,
+        ?int $phone,
+        ?string $phoneCountryCode,
         array $address
     ) {
         /*
@@ -69,17 +69,20 @@ class Address implements JsonSerializable
         ];
     }
 
-    public function getPhoneNumberString(): string
+    public function getPhoneNumberString(): ?string
     {
+        if (is_null($this->phone)) {
+            return null;
+        }
         return "+" . $this->phoneCountryCode . " " . $this->phone;
     }
 
-    public function getPhone(): int
+    public function getPhone(): ?int
     {
         return $this->phone;
     }
 
-    public function getPhoneCountryCode(): string
+    public function getPhoneCountryCode(): ?string
     {
         return $this->phoneCountryCode;
     }
