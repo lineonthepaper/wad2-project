@@ -15,6 +15,16 @@
             @change="updateDeliveryDetails"
           />
 
+          <label :for="address.id + 'Email'" class="text-dark-slate-blue">Email</label>
+          <input
+            :id="address.id + 'Email'"
+            type="text"
+            class="form-control mb-1"
+            v-model="inputs[address.id].email"
+            @change="updateDeliveryDetails"
+            required
+          />
+
           <label :for="address.id + 'PhoneNumber'" class="text-dark-slate-blue">Phone Number</label>
           <div class="input-group mb-1">
             <div class="d-inline" style="width: 40%">
@@ -46,16 +56,6 @@
               />
             </div>
           </div>
-
-          <label :for="address.id + 'Email'" class="text-dark-slate-blue">Email</label>
-          <input
-            :id="address.id + 'Email'"
-            type="text"
-            class="form-control mb-1"
-            placeholder="optional"
-            v-model="inputs[address.id].email"
-            @change="updateDeliveryDetails"
-          />
         </div>
         <div class="col-md-8">
           <h4 class="text-dark-slate-blue">{{ address.title }} Address</h4>
