@@ -525,4 +525,20 @@ export default {
 #delivery ::v-deep(.choices__item--choice) {
   padding: 4px;
 }
+
+#delivery ::v-deep(.choices__placeholder) {
+  padding-left: 4px;
+}
+
+#shipment ::v-deep(.choices__list) {
+  padding: 4px;
+}
+
+#shipment ::v-deep(.choices__input) {
+  padding: 6px !important;
+}
+
+#shipment ::v-deep(.choices__placeholder) {
+  padding: 1px;
+}
 </style>
