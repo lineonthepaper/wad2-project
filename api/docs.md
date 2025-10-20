@@ -30,10 +30,10 @@
 
 ## addresses.php
 
-| Request Method | Parameters                                                                                                                                                                                                                                 | response.data returns                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| POST           | method: addAddress <br> name: <br> email: <br> phone: <br> phoneCountryCode: <br> address: {array with keys ["addressLines", "postalCode", "countryCode"] where "addressLines" is an array with 3 values, one value for each address line} | message                                    |
-| POST           | method: getAddressById <br> addressId:                                                                                                                                                                                                     | message <br> if successful: address object |
+| Request Method | Parameters                                                                                                                                                                                                                                 | response.data returns                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| POST           | method: addAddress <br> name: <br> email: <br> phone: <br> phoneCountryCode: <br> address: {array with keys ["addressLines", "postalCode", "countryCode"] where "addressLines" is an array with 3 values, one value for each address line} | message, success <br> if successful: addressId |
+| POST           | method: getAddressById <br> addressId:                                                                                                                                                                                                     | message <br> if successful: address object     |
 
 # Classes
 
@@ -130,7 +130,7 @@ Constructor: bool $userServer = true
 
 Methods:
 
-- addAddress(Address $newAddress): bool
+- addAddress(Address $newAddress): mixed (int or bool)
 - addMail(Mail $newMail): bool
 - addMailStatus(MailStatus $newMailStatus): bool
 - getMailById(int $mailId): ?Mail

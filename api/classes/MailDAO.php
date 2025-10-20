@@ -12,11 +12,12 @@ class MailDAO
 
     public function addAddress(
         Address $newAddress
-    ): bool {
+    ): mixed {
         $query = "insert into 
         address(name, email, phone, phone_country_code, 
         address_line_1, address_line_2, address_line_3, postal_code, country_code)
-        values($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+        values($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        returning address_id";
 
         $params = [
             $newAddress->getName(),
@@ -30,9 +31,13 @@ class MailDAO
             $newAddress->getAddress()["countryCode"]
         ];
 
-        $success = pg_query_params($this->conn, $query, $params);
+        $result = pg_query_params($this->conn, $query, $params);
 
-        return $success !== false;
+        if ($result === false) {
+            return false;
+        } else {
+            return pg_fetch_result($result, "address_id");
+        }
     }
 
     public function addMail(
