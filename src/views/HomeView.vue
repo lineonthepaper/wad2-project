@@ -82,13 +82,6 @@ import { RouterLink, RouterView } from 'vue-router'
         </div>
       </div>
     </div>
-
-    <div class="row justify-content-center text-center py-2">
-      <h2 class="text-dark-slate-blue fw-bold">Unsure on how to create a shipment?</h2>
-      <div class="col-md-2 col-sm-4 col-8">
-        <button type="button" class="btn btn-pink quicksand-semibold">Get a demo →</button>
-      </div>
-    </div>
   </div>
   <RouterView />
 </template>
