@@ -110,7 +110,18 @@
 
       <div class="row justify-content-center py-2">
         <div class="col text-center">
-          <button type="button" class="btn btn-pink next-btn">Check Out</button>
+          <component
+            :is="cart.numSelectedShipments > 0 ? 'RouterLink' : 'span'"
+            :to="{ name: 'confirmation' }"
+          >
+            <button
+              type="button"
+              class="btn btn-pink next-btn"
+              @click="cart.numSelectedShipments > 0 ? checkOut() : null"
+            >
+              Check Out
+            </button>
+          </component>
         </div>
       </div>
     </div>
@@ -135,6 +146,9 @@ import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 
 import countryData from '/json/countryData.json'
+import zoneData from '/json/zoneData.json'
+
+import axios from 'axios'
 </script>
 
 <script>
@@ -150,20 +164,110 @@ export default {
       shipment,
       cart,
       sendFromOrTo,
+      noErrors: true,
     }
   },
   methods: {
-    getCountryName(countryCode) {
-      let countryName = null
-      for (let obj of countryData) {
-        if (obj.code2 == countryCode) {
-          countryName = obj.name
+    getZone(countryCode) {
+      for (let obj of zoneData) {
+        if (obj.country_code == countryCode) {
+          return obj.zone_id
         }
       }
-      return countryName
+      return null
+    },
+    getCountryName(countryCode) {
+      for (let obj of countryData) {
+        if (obj.code2 == countryCode) {
+          return obj.name
+        }
+      }
+      return null
     },
     deleteShipment(index) {
       this.cart.shipments.splice(index, 1)
+    },
+    checkOut() {
+      for (let shipment of this.cart.selectedShipments) {
+        let people = ['sender', 'recipient']
+        let addressIds = {}
+
+        // add to db
+        for (let person of people) {
+          axios
+            .post('/api/addresses.php', {
+              method: 'addAddress',
+              name: shipment[person].name,
+              email: shipment[person].email,
+              phone: shipment[person].phoneNumber,
+              phoneCountryCode: shipment[person].phoneCode,
+              address: {
+                addressLines: [
+                  shipment[person].line1,
+                  shipment[person].line2,
+                  shipment[person].line3,
+                ],
+                postalCode: shipment[person].postalCode,
+                countryCode: shipment[person].country,
+              },
+            })
+            .then((response) => {
+              console.log(response.data)
+              if (response.data.success) {
+                addressIds[person] = response.data.addressId
+              }
+
+              console.log(addressIds)
+            })
+            .catch((error) => {
+              console.error(error)
+            })
+        }
+
+        let zone = this.getZone(shipment.recipient.country)
+
+        function waitForAddressIds() {
+          if (Object.keys(addressIds).length == 2) {
+            axios
+              .post('/api/mail.php', {
+                method: 'addMail',
+                customerEmail: shipment.sender.email,
+                senderAddressId: addressIds.sender,
+                recipientAddressId: addressIds.recipient,
+                mailItems: shipment.items,
+                parcelLength: shipment.dimensions.length,
+                parcelWidth: shipment.dimensions.width,
+                parcelHeight: shipment.dimensions.height,
+                service: {
+                  name: shipment.service.name,
+                  type: shipment.type,
+                  zone: zone,
+                },
+              })
+              .then((response) => {
+                console.log(response.data)
+                if (!response.data.success) {
+                  this.noErrors = false
+                }
+              })
+              .catch((error) => {
+                console.error(error)
+              })
+          } else {
+            setTimeout(waitForAddressIds, 250)
+          }
+        }
+
+        waitForAddressIds()
+
+        // then send email
+      }
+
+      if (this.noErrors) {
+        this.$router.push({ name: 'confirmation' })
+      }
+
+      // this.cart.removeSelected()
     },
   },
 }

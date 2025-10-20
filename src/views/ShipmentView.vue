@@ -308,6 +308,7 @@ export default {
       if (this.shipment.complete == true) {
         this.shipment.totalCostSGD = this.totalSGD
         this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
+        // console.log(this.cart.shipments)
         this.shipment.$reset()
         console.log('added to cart')
       }
