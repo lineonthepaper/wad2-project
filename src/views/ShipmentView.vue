@@ -333,7 +333,7 @@ export default {
       }
       let senderCount = 0
       let recipientCount = 0
-      let requiredProperties = ['name', 'line1', 'city', 'state', 'postalCode']
+      let requiredProperties = ['name', 'email', 'line1', 'city', 'state', 'postalCode']
       for (let r of requiredProperties) {
         if (this.sections[3].data.sender[r] !== null && this.sections[3].data.sender[r] !== '') {
           senderCount++
@@ -345,7 +345,7 @@ export default {
           recipientCount++
         }
       }
-      return (senderCount + recipientCount) / 10
+      return (senderCount + recipientCount) / 12
     },
     overallCompletion() {
       return (
