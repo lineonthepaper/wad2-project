@@ -395,9 +395,18 @@ export default {
 </script>
 
 <style scoped>
-/* Custom styles remain the same */
+:root {
+  --hot-pink: #ff4275;
+  --dark-pink: #ff759e;
+  --pink: #ff9096;
+  --light-pink: #fff9fb;
+  --lighter-pink: #ffeef2;
+}
+
 .faq-container {
   font-family: Arial, sans-serif;
+  background-color: var(--light-pink);
+  min-height: 100vh;
 }
 
 li {
@@ -408,38 +417,148 @@ li {
   margin: 20px auto;
 }
 
-.accordion-button::after {
-  display: none;
+.faq-search .form-control {
+  border-color: var(--pink);
+  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
+}
+
+.faq-search .form-control:focus {
+  border-color: var(--hot-pink);
+  box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
+}
+
+/* Tab Styling */
+.nav-tabs {
+  border-bottom: 2px solid var(--pink);
+}
+
+.nav-tabs .nav-link {
+  color: #495057;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 1rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--hot-pink);
+  background-color: var(--lighter-pink);
+  border-bottom-color: var(--dark-pink);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--hot-pink);
+  background-color: white;
+  border-bottom-color: var(--hot-pink);
+  font-weight: 600;
+}
+
+/* Mobile Select Styling */
+.form-select {
+  border-color: var(--pink);
+  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
+}
+
+.form-select:focus {
+  border-color: var(--hot-pink);
+  box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
+}
+
+/* Accordion Styling */
+.accordion-item {
+  border: 1px solid var(--pink);
+  border-radius: 8px !important;
+  margin-bottom: 0.75rem;
+  background: white;
+  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
 }
 
 .accordion-button {
-  position: relative;
-  padding-right: 3rem;
-  text-align: left;
-  width: 100%;
+  background-color: white;
+  color: #2c3e50;
+  font-weight: 500;
+  border: none;
+  padding: 1.25rem 3rem 1.25rem 1.5rem;
+  border-radius: 8px !important;
+  transition: all 0.3s ease;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--lighter-pink);
+  color: var(--hot-pink);
+  box-shadow: none;
+}
+
+.accordion-button:hover {
+  background-color: var(--lighter-pink);
+}
+
+.accordion-button::after {
+  display: none;
 }
 
 .accordion-button::before {
   content: '+';
   position: absolute;
-  right: 1rem;
-  font-size: 1.2rem;
-  color: #333;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  color: var(--hot-pink);
+  font-weight: 300;
   transition: all 0.2s ease;
 }
 
 .accordion-button:not(.collapsed)::before {
   content: '–';
+  color: var(--hot-pink);
 }
 
-/* Responsive text sizing */
 .accordion-body {
-  font-size: 0.95rem;
+  background-color: white;
+  border-top: 1px solid var(--pink);
+  padding: 1.5rem;
+  border-radius: 0 0 8px 8px;
 }
 
 .accordion-body ol,
 .accordion-body ul {
   padding-left: 1.5rem;
+}
+
+.accordion-body a {
+  color: var(--hot-pink);
+  text-decoration: none;
+}
+
+.accordion-body a:hover {
+  text-decoration: underline;
+}
+
+/* Download Button */
+.btn-primary {
+  background-color: var(--hot-pink);
+  border-color: var(--hot-pink);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--dark-pink);
+  border-color: var(--dark-pink);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 66, 117, 0.3);
+}
+
+/* Page Title */
+h2.text-center {
+  color: var(--hot-pink);
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+/* Responsive text sizing */
+.accordion-body {
+  font-size: 0.95rem;
 }
 
 /* Mobile optimizations */
@@ -456,6 +575,11 @@ li {
   
   .btn-lg {
     padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .nav-tabs .nav-link {
+    padding: 0.75rem 1rem;
     font-size: 0.9rem;
   }
 }
@@ -479,6 +603,28 @@ li {
   .accordion-body {
     padding: 0.875rem;
     font-size: 0.85rem;
+  }
+
+  .fixed-bottom .btn {
+    width: 100%;
+    margin: 0.5rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .faq-container {
+    background: white;
+  }
+  
+  .accordion-item {
+    box-shadow: none;
+    border: 1px solid #dee2e6;
+    page-break-inside: avoid;
+  }
+  
+  .fixed-bottom {
+    display: none;
   }
 }
 </style>

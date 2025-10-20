@@ -374,8 +374,14 @@ export default {
 </script>
 
 <style scoped>
+:root {
+  --hot-pink: #ff4275;
+  --dark-pink: #ff759e;
+  --pink: #ff9096;
+}
+
 .terms-container {
-  background-color: #f8f9fa;
+  background-color: #fff9fb;
   min-height: 100vh;
 }
 
@@ -383,11 +389,12 @@ export default {
   background: white;
   padding: 1.5rem;
   border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(255, 66, 117, 0.1);
+  border-left: 4px solid var(--pink);
 }
 
 .section-title {
-  color: #2c3e50;
+  color: var(--hot-pink);
   font-weight: 600;
   font-size: 1.4rem;
 }
@@ -399,37 +406,60 @@ export default {
 }
 
 .agreement-item {
-  background: #f8f9fa;
+  background: #fff9fb;
   border-radius: 8px;
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid var(--dark-pink);
   transition: all 0.3s ease;
 }
 
 .agreement-item:hover {
-  background: #e9ecef;
+  background: #ffeef2;
   transform: translateX(5px);
 }
 
 .prohibited-item {
-  background: #fff5f5;
+  background: #fff5f7;
   padding: 1rem;
   border-radius: 8px;
-  border: 1px solid #ffe3e3;
+  border: 1px solid #ffe3e9;
   display: flex;
   align-items: flex-start;
 }
 
 .link-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-color: var(--pink);
 }
 
 .link-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.2);
 }
 
 .section-number {
+  background-color: var(--hot-pink) !important;
   font-size: 1.1rem;
+}
+
+.text-primary {
+  color: var(--hot-pink) !important;
+}
+
+.border-primary {
+  border-color: var(--hot-pink) !important;
+}
+
+.bg-primary {
+  background-color: var(--hot-pink) !important;
+}
+
+.card-header.bg-light {
+  background-color: #ffeef2 !important;
+}
+
+.alert-light {
+  background-color: #fff5f7;
+  border-color: var(--pink);
 }
 
 /* Mobile First Styles */
