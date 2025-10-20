@@ -143,7 +143,7 @@ export default {
   }
 }
 
-@media screen and (max-width: 320px) {
+@media screen and (max-width: 350px) {
   .table {
     transform: scale(0.55);
   }
