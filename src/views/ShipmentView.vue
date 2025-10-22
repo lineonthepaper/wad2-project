@@ -103,7 +103,7 @@ export default {
 
       // compute all previous sections
       for (let i = 0; i < index; i++) {
-        console.log(this.sections[i])
+        // console.log(this.sections[i])
         if (i == 0) {
           this.processBriefInfo()
         }
@@ -182,7 +182,7 @@ export default {
     },
     receiveUpdateDeliveryDetails(details) {
       this.sections[3].data = details
-      console.log(this.sections[3].data)
+      // console.log(this.sections[3].data)
 
       let properties = [
         'name',
@@ -310,7 +310,7 @@ export default {
       if (this.shipment.complete == true) {
         this.shipment.totalCostSGD = this.totalSGD
         this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
-        // console.log(this.cart.shipments)
+        console.log(this.cart.shipments)
         this.shipment.$reset()
         console.log('added to cart')
       }
@@ -322,7 +322,7 @@ export default {
       for (let property in this.sections[0].data) {
         if (this.sections[0].data[property] !== '' && this.sections[0].data[property] !== null) {
           count++
-          console.log(this.sections[0].data[property])
+          // console.log(this.sections[0].data[property])
         }
       }
       return count / 7
