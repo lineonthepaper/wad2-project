@@ -10,8 +10,8 @@
             <br>
 
             Email: <br>
-            <input v-model="email" type="email" placeholder="Email" required aria-label="Email"/>
-
+            <input v-model="email" type="email" placeholder="Email" required aria-label="Email" @input="validateEmail"/>
+            <p v-if="emailError" class="error-message">Please enter a valide email address</p>
             <br>
             <br>
 
@@ -25,7 +25,7 @@
             </label>
 
 
-            <button type="submit">Create Account</button>
+            <button type="submit" :disabled="emailError">Create Account</button>
 
             <p class="switch-link">
               Already Have an account?
@@ -44,6 +44,13 @@
   const password = ref('')
   const isStaff = ref(false)
   const message = ref('')
+  const emailError = ref(false)
+
+  //Validate email format
+  function validateEmail() {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    emailError.value = !emailRegex.test(email.value);
+  }
 
   async function handleSignup() {
     const response = await fetch('/api/accounts.php', {
@@ -100,5 +107,10 @@
     align-items: center;
     gap: 8px;
     margin-top: 10px;
+  }
+  .error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
   }
 </style>

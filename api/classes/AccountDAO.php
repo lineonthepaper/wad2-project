@@ -103,4 +103,5 @@ class AccountDAO
 
         return $success !== false;
     }
+
 }

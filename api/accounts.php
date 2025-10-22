@@ -16,26 +16,39 @@ if ($method === "POST") {
 
     if ($method == "addAccount") {
         try {
-            $accountDAO = new AccountDAO($useServer);
+            //check if all required fields are provided
+            if(empty($payload['displayName']) || empty($payload['email']) || empty($payload['password'])) {
+                echo json_encode(["message" => "All fields (Display Name, Email, Password) are required."]);
+                exit;
+            }
+
+            $accountDAO =new AccountDAO($useServer);
+            $existingAccount = $accountDAO->getAccountByEmail($payload['email']);
+            if($existingAccount) {
+                echo json_encode(["message" => "Email is already registered."]);
+                exit;
+            }
+
+            $hashedPassword = Account::hashPassword($payload['password']);
+
             $success = $accountDAO->addAccount(
                 new Account(
-                    null,
+                    null, 
                     $payload['displayName'],
                     $payload['email'],
-                    Account::hashPassword($payload['password']),
-                    $payload['isStaff'] == true
+                    $hashedPassword,
+                    $payload['isStaff'] == true 
                 )
             );
             if ($success) {
-                echo json_encode(["message" => "Account created successfully."]);
-                exit;
+                echo json_encode(["message" => "Account created Successfully."]);
             } else {
-                echo json_encode(["message" => "Error in account creation."]);
-                exit;
+                echo json_encode(["message" => "Error in Account creation."]);
             }
+            exit;
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Caught exception " . $e->getMessage()]);
+            echo json_encode(["message" => "Caught exception: " . $e->getMessage()]);
             exit;
         }
     }
@@ -81,4 +94,5 @@ if ($method === "POST") {
             exit;
         }
     }
+
 }
