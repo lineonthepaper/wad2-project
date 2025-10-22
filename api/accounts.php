@@ -40,6 +40,7 @@ if ($method === "POST") {
                     $payload['isStaff'] == true 
                 )
             );
+            
             if ($success) {
                 echo json_encode(["message" => "Account created Successfully."]);
             } else {

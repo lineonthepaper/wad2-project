@@ -53,15 +53,24 @@
   }
 
   async function handleSignup() {
+    if(emailError.value) {
+      return;
+    }
+
+    const userData = {
+      displayName: displayName.value,
+      email: email.value,
+      password: password.value,
+      isStaff: isStaff.value
+    };
+
+
     const response = await fetch('/api/accounts.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         method: 'addAccount',
-        displayName: displayName.value,
-        email: email.value,
-        password: password.value,
-        isStaff: isStaff.value
+        ...userData
       })
 
     })

@@ -2,6 +2,7 @@
 // Database connection settings (replace these with your actual credentials from Neon)
 $host = "db.gentle-tooth-00501494.neon.tech";        // Host provided by Neon
 $dbname = "wad2_database";    // Your database name
+$user ="br-curly-breeze-a1bvpexm";  
 
 
 // Create the PostgreSQL connection string
