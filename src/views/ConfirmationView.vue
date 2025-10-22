@@ -23,33 +23,18 @@
       :id="section.id"
     >
       <div class="col-1 d-flex justify-content-center">
-        <div
-          :class="[
-            'section-toggler',
-            'number',
-            { 'number-selected': currentElement == section.id },
-          ]"
-          @keydown.enter="toggle(section.id)"
-          @click="toggle(section.id)"
-        >
+        <div class="section-no-toggle number">
           {{ index + 1 }}
         </div>
       </div>
       <div class="col-lg-10 col-md-11">
         <div class="section">
-          <div
-            @click="toggle(section.id)"
-            class="section-toggler"
-            tabindex="0"
-            @keydown.enter="toggle(section.id)"
-          >
+          <div class="section-no-toggle" tabindex="0" @keydown.enter="toggle(section.id)">
             <div class="text-dark-slate-blue justify-content-between d-flex">
               <h2 class="d-inline-block">{{ section.title }}</h2>
-              <h2 class="d-inline-block downarrow" v-if="currentElement != section.id">+</h2>
-              <h2 class="d-inline-block uparrow" v-else>–</h2>
             </div>
           </div>
-          <div class="section-info" :class="{ 'section-info-show': currentElement == section.id }">
+          <div class="section-info section-info-show">
             <component :is="section.info" />
           </div>
         </div>

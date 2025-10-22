@@ -11,6 +11,10 @@
   user-select: none;
 }
 
+.section-no-toggle {
+  font-weight: bold;
+}
+
 .section-info {
   max-height: 0px;
   overflow: hidden;
