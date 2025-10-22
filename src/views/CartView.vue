@@ -143,6 +143,7 @@
 <script setup>
 import { useShipmentStore } from '@/stores/shipment'
 import { useCartStore } from '@/stores/cart'
+import { useLabelsStore } from '@/stores/labels'
 import { ref } from 'vue'
 
 import { RouterLink, RouterView } from 'vue-router'
@@ -158,6 +159,7 @@ export default {
   data() {
     const shipment = useShipmentStore()
     const cart = useCartStore()
+    const labels = useLabelsStore()
     const sendFromOrTo = ref([
       { title: 'Send From', id: 'sender' },
       { title: 'Send To', id: 'recipient' },
@@ -165,6 +167,7 @@ export default {
     return {
       shipment,
       cart,
+      labels,
       sendFromOrTo,
       statuses: ref([]),
       loading: false,
@@ -282,6 +285,7 @@ export default {
         until,
         loading,
         cart,
+        labels,
       ) {
         console.log(statuses)
 
@@ -291,9 +295,13 @@ export default {
 
         let remainingShipments = []
 
+        labels.$reset()
+
         for (let i = 0; i < statuses.length; i++) {
           if (!statuses[i]) {
             remainingShipments.push(cart.shipments[i])
+          } else {
+            labels.shipments.push(JSON.parse(JSON.stringify(cart.shipments[i])))
           }
         }
 
@@ -312,6 +320,7 @@ export default {
         this.until,
         this.loading,
         this.cart,
+        this.labels,
       )
     },
   },
