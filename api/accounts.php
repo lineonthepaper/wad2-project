@@ -16,7 +16,34 @@ if ($method === "POST") {
 
     if ($method == "addAccount") {
         try {
+            // Server-side password validation
+            if (!isset($payload['password']) || !isset($payload['confirmPassword'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "Password and confirmation are required."]);
+                exit;
+            }
+
+            if ($payload['password'] !== $payload['confirmPassword']) {
+                http_response_code(400);
+                echo json_encode(["message" => "Passwords do not match."]);
+                exit;
+            }
+
+            if (strlen($payload['password']) < 6) {
+                http_response_code(400);
+                echo json_encode(["message" => "Password must be at least 6 characters long."]);
+                exit;
+            }
+
+            // Check if email already exists
             $accountDAO = new AccountDAO($useServer);
+            $existingAccount = $accountDAO->getAccountByEmail($payload['email']);
+            if ($existingAccount) {
+                http_response_code(400);
+                echo json_encode(["message" => "Email already exists."]);
+                exit;
+            }
+
             $success = $accountDAO->addAccount(
                 new Account(
                     null,
@@ -30,12 +57,13 @@ if ($method === "POST") {
                 echo json_encode(["message" => "Account created successfully."]);
                 exit;
             } else {
+                http_response_code(500);
                 echo json_encode(["message" => "Error in account creation."]);
                 exit;
             }
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Caught exception " . $e->getMessage()]);
+            echo json_encode(["message" => "Caught exception: " . $e->getMessage()]);
             exit;
         }
     }
