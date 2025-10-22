@@ -378,10 +378,12 @@ export default {
   --hot-pink: #ff4275;
   --dark-pink: #ff759e;
   --pink: #ff9096;
+  --light-pink: #fff9fb;
+  --lighter-pink: #ffeef2;
 }
 
 .terms-container {
-  background-color: #fff9fb;
+  background-color: var(--light-pink);
   min-height: 100vh;
 }
 
@@ -406,14 +408,14 @@ export default {
 }
 
 .agreement-item {
-  background: #fff9fb;
+  background: var(--light-pink);
   border-radius: 8px;
   border-left: 4px solid var(--dark-pink);
   transition: all 0.3s ease;
 }
 
 .agreement-item:hover {
-  background: #ffeef2;
+  background: var(--lighter-pink);
   transform: translateX(5px);
 }
 
@@ -454,12 +456,71 @@ export default {
 }
 
 .card-header.bg-light {
-  background-color: #ffeef2 !important;
+  background-color: var(--lighter-pink) !important;
 }
 
 .alert-light {
   background-color: #fff5f7;
   border-color: var(--pink);
+}
+
+/* Card and Alert Styling */
+.card.border-0.bg-light {
+  background-color: var(--lighter-pink) !important;
+  border-left: 4px solid var(--dark-pink) !important;
+}
+
+.alert-warning {
+  background-color: #fff9e6;
+  border-color: #ffd966;
+}
+
+.alert-warning .bi-exclamation-triangle-fill {
+  color: #ffc107;
+}
+
+/* Quick Navigation Card */
+.card .card-header.bg-light {
+  background-color: var(--lighter-pink) !important;
+  border-bottom: 1px solid var(--pink);
+}
+
+.form-select {
+  border-color: var(--pink);
+  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
+}
+
+.form-select:focus {
+  border-color: var(--hot-pink);
+  box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
+}
+
+/* Danger/Warning Sections */
+.bg-danger.bg-opacity-10 {
+  background-color: rgba(255, 66, 117, 0.1) !important;
+  border-color: rgba(255, 66, 117, 0.3) !important;
+}
+
+.text-danger {
+  color: var(--hot-pink) !important;
+}
+
+.bi-dash-circle-fill.text-danger {
+  color: var(--hot-pink) !important;
+}
+
+/* Success Icons */
+.bi-check-circle-fill.text-success {
+  color: #28a745 !important;
+}
+
+/* Warning Icons */
+.bi-exclamation-triangle.text-warning {
+  color: #ffc107 !important;
+}
+
+.bi-x-circle-fill.text-danger {
+  color: var(--hot-pink) !important;
 }
 
 /* Mobile First Styles */
@@ -542,5 +603,15 @@ export default {
   .btn, .form-select {
     min-height: 44px;
   }
+}
+
+/* Border bottom for header */
+.border-bottom {
+  border-bottom-color: var(--pink) !important;
+}
+
+/* Footer border top */
+.border-top {
+  border-top-color: var(--pink) !important;
 }
 </style>

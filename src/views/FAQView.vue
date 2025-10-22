@@ -39,6 +39,8 @@
                 class="nav-link text-nowrap" 
                 :class="{ active: activeTab === tab.id }"
                 @click="setActiveTab(tab.id)"
+                type="button"
+                role="tab"
               >
                 {{ tab.name }}
               </button>
@@ -50,191 +52,21 @@
       <div class="row mt-3">
         <div class="col-12">
           <div class="tab-content">
-            <!-- Getting Started Tab -->
-            <div v-if="activeTab === 'gettingStarted'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionGettingStarted">
-                <div v-for="item in filteredItems('gettingStarted')" :key="item.id" class="accordion-item">
+            <!-- Dynamic Tab Content -->
+            <div 
+              v-for="tab in tabs" 
+              :key="tab.id"
+              v-show="activeTab === tab.id" 
+              class="tab-pane fade show active"
+            >
+              <div class="accordion" :id="`accordion${tab.id}`">
+                <div v-for="item in filteredItems(tab.id)" :key="item.id" class="accordion-item">
                   <h2 class="accordion-header">
                     <button 
-                      class="accordion-button collapsed" 
+                      class="accordion-button" 
+                      :class="{ collapsed: !isOpen(item.id) }"
                       type="button" 
                       @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
-                    >
-                      <span class="me-auto">{{ item.question }}</span>
-                    </button>
-                  </h2>
-                  <div 
-                    v-show="isOpen(item.id)" 
-                    class="accordion-collapse"
-                    :class="{ show: isOpen(item.id) }"
-                  >
-                    <div class="accordion-body" v-html="item.answer"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Payment Tab -->
-            <div v-if="activeTab === 'payment'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionPayment">
-                <div v-for="item in filteredItems('payment')" :key="item.id" class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button 
-                      class="accordion-button collapsed" 
-                      type="button" 
-                      @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
-                    >
-                      <span class="me-auto">{{ item.question }}</span>
-                    </button>
-                  </h2>
-                  <div 
-                    v-show="isOpen(item.id)" 
-                    class="accordion-collapse"
-                    :class="{ show: isOpen(item.id) }"
-                  >
-                    <div class="accordion-body" v-html="item.answer"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Services Tab -->
-            <div v-if="activeTab === 'services'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionServices">
-                <div v-for="item in filteredItems('services')" :key="item.id" class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button 
-                      class="accordion-button collapsed" 
-                      type="button" 
-                      @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
-                    >
-                      <span class="me-auto">{{ item.question }}</span>
-                    </button>
-                  </h2>
-                  <div 
-                    v-show="isOpen(item.id)" 
-                    class="accordion-collapse"
-                    :class="{ show: isOpen(item.id) }"
-                  >
-                    <div class="accordion-body" v-html="item.answer"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Labels Tab -->
-            <div v-if="activeTab === 'labels'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionLabels">
-                <div v-for="item in filteredItems('labels')" :key="item.id" class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button 
-                      class="accordion-button collapsed" 
-                      type="button" 
-                      @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
-                    >
-                      <span class="me-auto">{{ item.question }}</span>
-                    </button>
-                  </h2>
-                  <div 
-                    v-show="isOpen(item.id)" 
-                    class="accordion-collapse"
-                    :class="{ show: isOpen(item.id) }"
-                  >
-                    <div class="accordion-body" v-html="item.answer"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tracking Tab -->
-            <div v-if="activeTab === 'tracking'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionTracking">
-                <div v-for="item in filteredItems('tracking')" :key="item.id" class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button 
-                      class="accordion-button collapsed" 
-                      type="button" 
-                      @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
-                    >
-                      <span class="me-auto">{{ item.question }}</span>
-                    </button>
-                  </h2>
-                  <div 
-                    v-show="isOpen(item.id)" 
-                    class="accordion-collapse"
-                    :class="{ show: isOpen(item.id) }"
-                  >
-                    <div class="accordion-body" v-html="item.answer"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Registration Tab -->
-            <div v-if="activeTab === 'registration'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionRegistration">
-                <div v-for="item in filteredItems('registration')" :key="item.id" class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button 
-                      class="accordion-button collapsed" 
-                      type="button" 
-                      @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
-                    >
-                      <span class="me-auto">{{ item.question }}</span>
-                    </button>
-                  </h2>
-                  <div 
-                    v-show="isOpen(item.id)" 
-                    class="accordion-collapse"
-                    :class="{ show: isOpen(item.id) }"
-                  >
-                    <div class="accordion-body" v-html="item.answer"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Shipment Tab -->
-            <div v-if="activeTab === 'shipment'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionShipment">
-                <div v-for="item in filteredItems('shipment')" :key="item.id" class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button 
-                      class="accordion-button collapsed" 
-                      type="button" 
-                      @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
-                    >
-                      <span class="me-auto">{{ item.question }}</span>
-                    </button>
-                  </h2>
-                  <div 
-                    v-show="isOpen(item.id)" 
-                    class="accordion-collapse"
-                    :class="{ show: isOpen(item.id) }"
-                  >
-                    <div class="accordion-body" v-html="item.answer"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Packaging Tab -->
-            <div v-if="activeTab === 'packaging'" class="tab-pane fade show active">
-              <div class="accordion" id="accordionPackaging">
-                <div v-for="item in filteredItems('packaging')" :key="item.id" class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button 
-                      class="accordion-button collapsed" 
-                      type="button" 
-                      @click="toggleAccordion(item.id)"
-                      :class="{ collapsed: !isOpen(item.id) }"
                     >
                       <span class="me-auto">{{ item.question }}</span>
                     </button>
@@ -257,7 +89,8 @@
     <div class="fixed-bottom text-end p-3">
       <a href="quickguide.pdf" download class="text-decoration-none">
         <button class="btn btn-primary btn-lg shadow">
-          <i class="fas fa-download me-2"></i>Download Quick Guide
+          <!-- Replaced Font Awesome with Bootstrap Icons -->
+          <i class="bi bi-download me-2"></i>Download Quick Guide
         </button>
       </a>
     </div>
@@ -283,7 +116,6 @@ export default {
         { id: 'packaging', name: 'Ordering Packaging Materials' }
       ],
       faqItems: [
-        // Your existing FAQ items remain exactly the same
         // Getting Started
         { id: 'gs1', category: 'gettingStarted', question: 'What are the requirements to use fluffy shipping?', answer: 'You need a working PC with internet connection and a printer.' },
         { id: 'gs2', category: 'gettingStarted', question: 'Which operating systems and browsers do fluffy shipping support?', answer: 'fluffy shipping is designed to work on the following operating systems and browsers:<ol><li><u>Windows XP (32 bit)</u><br> Internet explorer 8, Firefox FF10/FF11, Google chrome v17/v18</li><li><u>Windows 7 (32 bit)</u><br>Internet explorer 8 and above, Firefox FF10/FF11, Google chrome v17/v18</li><li><u>Windows 7 (64 bit)</u><br>Internet explorer 8, Firefox FF10/FF11, Google chrome v17/v18</li><li><u>MAC OS X 10.6 and 10.7</u><br>Safari 5 and 5.1</li><li><u>Adobe Acrobat 6 or later versions</u></li><li><u>Active scripting needs to be enabled</u></li><li><u>Pop-up blocker needs to be disabled</u></li></ol>' },
