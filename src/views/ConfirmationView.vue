@@ -46,17 +46,17 @@
 <script>
 export default {
   data() {
-    const labelSection = shallowRef(LabelSection)
+    const labelsSection = shallowRef(LabelsSection)
     const dropOffSection = shallowRef(DropOffSection)
     const finalSection = shallowRef(FinalSection)
     const sections = ref([
-      { title: 'Print your shipping label(s)', id: 'labelSection', info: labelSection },
+      { title: 'Print your shipping label(s)', id: 'labelsSection', info: labelsSection },
       { title: 'Drop off your mail', id: 'dropOffSection', info: dropOffSection },
       { title: 'Sit back and relax!', id: 'finalSection', info: finalSection },
     ])
     return {
       sections,
-      currentElement: 'labelSection',
+      currentElement: 'labelsSection',
     }
   },
   methods: {
@@ -73,7 +73,7 @@ export default {
 
 <script setup>
 import { ref, shallowRef } from 'vue'
-import LabelSection from '@/components/confirmation/LabelSection.vue'
+import LabelsSection from '@/components/confirmation/LabelsSection.vue'
 import DropOffSection from '@/components/confirmation/DropOffSection.vue'
 import FinalSection from '@/components/confirmation/FinalSection.vue'
 
