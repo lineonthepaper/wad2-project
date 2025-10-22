@@ -1,6 +1,5 @@
 <template>
   <div class="terms-container">
-    <!-- Header Section -->
     <section class="container py-4 py-lg-5 border-bottom">
       <div class="row justify-content-center">
         <div class="col-12 col-lg-10 col-xl-8">
@@ -22,12 +21,10 @@
       </div>
     </section>
 
-    <!-- Main Content -->
     <div class="container py-4">
       <div class="row justify-content-center">
         <div class="col-12 col-lg-10 col-xl-8">
           
-          <!-- Quick Navigation - Mobile Only -->
           <div class="d-lg-none mb-4">
             <div class="card">
               <div class="card-header bg-light">
@@ -48,7 +45,6 @@
             </div>
           </div>
 
-          <!-- Acceptance Section -->
           <section id="acceptance" class="terms-section mb-4 mb-lg-5">
             <div class="row align-items-center mb-3">
               <div class="col-2 col-sm-1">
@@ -66,7 +62,6 @@
             </p>
           </section>
 
-          <!-- Information Security -->
           <section id="security" class="terms-section mb-4 mb-lg-5">
             <div class="row align-items-center mb-3">
               <div class="col-2 col-sm-1">
@@ -127,7 +122,6 @@
             </div>
           </section>
 
-          <!-- Website Use -->
           <section id="usage" class="terms-section mb-4 mb-lg-5">
             <div class="row align-items-center mb-3">
               <div class="col-2 col-sm-1">
@@ -174,7 +168,6 @@
             </div>
           </section>
 
-          <!-- Links -->
           <section id="links" class="terms-section mb-4 mb-lg-5">
             <div class="row align-items-center mb-3">
               <div class="col-2 col-sm-1">
@@ -219,7 +212,6 @@
             </div>
           </section>
 
-          <!-- Disclaimer -->
           <section id="disclaimer" class="terms-section mb-4 mb-lg-5">
             <div class="row align-items-center mb-3">
               <div class="col-2 col-sm-1">
@@ -266,7 +258,6 @@
             </div>
           </section>
 
-          <!-- Intellectual Property -->
           <section id="ip" class="terms-section mb-4 mb-lg-5">
             <div class="row align-items-center mb-3">
               <div class="col-2 col-sm-1">
@@ -298,7 +289,6 @@
             </div>
           </section>
 
-          <!-- Governing Law -->
           <section id="law" class="terms-section mb-4 mb-lg-5">
             <div class="row align-items-center mb-3">
               <div class="col-2 col-sm-1">
@@ -321,7 +311,6 @@
             </div>
           </section>
 
-          <!-- Footer -->
           <section class="text-center py-4 mt-4 border-top">
             <p class="text-muted mb-2">
               &copy; 2025 Singapore Post Limited. All Rights Reserved.
@@ -355,7 +344,6 @@ export default {
     }
   },
   mounted() {
-    // Add smooth scrolling behavior
     const links = document.querySelectorAll('a[href^="#"]');
     links.forEach(link => {
       link.addEventListener('click', function (e) {
