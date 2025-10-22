@@ -93,6 +93,7 @@ class AccountDAO
         return $success !== false;
     }
 
+    
     public function updateEmail(int $accountId, string $newEmail): bool
     {
 
@@ -104,4 +105,13 @@ class AccountDAO
         return $success !== false;
     }
 
+}
+public function verifyPassword(string $email, string $password): bool
+{
+    $account = $this->getAccountByEmail($email);
+    if (!$account) {
+        return false;
+    }
+    
+    return password_verify($password, $account->getPasswordHashed());
 }
