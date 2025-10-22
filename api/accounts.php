@@ -15,30 +15,36 @@ if ($method === "POST") {
     $method = $payload['method'] ?? '';
 
     if ($method == "addAccount") {
-        try {
-            $accountDAO = new AccountDAO($useServer);
-            $success = $accountDAO->addAccount(
-                new Account(
-                    null,
-                    $payload['displayName'],
-                    $payload['email'],
-                    Account::hashPassword($payload['password']),
-                    $payload['isStaff'] == true
-                )
-            );
-            if ($success) {
-                echo json_encode(["message" => "Account created successfully."]);
-                exit;
-            } else {
-                echo json_encode(["message" => "Error in account creation."]);
-                exit;
-            }
-        } catch (Exception $e) {
+    try {
+        if (strlen($payload['password']) < 8) {
             http_response_code(400);
-            echo json_encode(["message" => "Caught exception " . $e->getMessage()]);
+            echo json_encode(["message" => "Password must be at least 8 characters long."]);
             exit;
         }
+        
+        $accountDAO = new AccountDAO($useServer);
+        $success = $accountDAO->addAccount(
+            new Account(
+                null,
+                $payload['displayName'],
+                $payload['email'],
+                Account::hashPassword($payload['password']),
+                $payload['isStaff'] == true
+            )
+        );
+        if ($success) {
+            echo json_encode(["message" => "Account created successfully."]);
+            exit;
+        } else {
+            echo json_encode(["message" => "Error in account creation."]);
+            exit;
+        }
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(["message" => "Caught exception " . $e->getMessage()]);
+        exit;
     }
+}
 
     if ($method == "getAccountById") {
         try {
