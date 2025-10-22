@@ -12,6 +12,8 @@ import serviceData from '/json/serviceData.json'
 
 import { useShipmentStore } from '@/stores/shipment'
 import { useCartStore } from '@/stores/cart'
+
+import '/src/assets/sectionViews.css'
 </script>
 
 <script>
@@ -465,53 +467,6 @@ export default {
 </template>
 
 <style scoped>
-.section {
-  border: 2px var(--dark-pink) solid;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 10px;
-}
-
-.section-toggler {
-  cursor: pointer;
-  font-weight: bold;
-  user-select: none;
-}
-
-.section-info {
-  max-height: 0px;
-  overflow: hidden;
-  transition: max-height 0.15s;
-}
-
-.section-info-show {
-  max-height: calc(1px * infinity);
-  overflow: visible;
-  transition: max-height 0.35s;
-}
-
-.number {
-  border: 2px var(--dark-pink) solid;
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-  height: 1.5em;
-  text-align: center;
-  line-height: 1.5em;
-  padding: 10px;
-  box-sizing: content-box;
-  font-weight: bold;
-  display: inline-block;
-  background-color: white;
-  margin: 10px;
-  font-size: 2em;
-  color: var(--dark-slate-blue);
-}
-
-.number-selected {
-  background-color: var(--dark-pink);
-  color: white;
-}
-
 #briefInfo ::v-deep(.choices__list) {
   padding: 4px;
   word-break: normal;
