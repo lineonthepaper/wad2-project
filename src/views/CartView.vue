@@ -305,10 +305,14 @@ export default {
           }
         }
 
-        cart.shipments = remainingShipments
-
         if (noErrors) {
+          // only update cart if no errors in any of the shipments
+          cart.shipments = remainingShipments
+
           router.push({ name: 'confirmation' })
+        } else {
+          // reset labels to default if there are any errors at all in any of the selected shipments
+          labels.$reset()
         }
       }
 
