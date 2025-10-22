@@ -104,9 +104,7 @@ class AccountDAO
 
         return $success !== false;
     }
-
-}
-public function verifyPassword(string $email, string $password): bool
+    public function verifyPassword(string $email, string $password): bool
 {
     $account = $this->getAccountByEmail($email);
     if (!$account) {
@@ -115,3 +113,5 @@ public function verifyPassword(string $email, string $password): bool
     
     return password_verify($password, $account->getPasswordHashed());
 }
+}
+
