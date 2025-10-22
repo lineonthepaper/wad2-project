@@ -30,7 +30,14 @@ export const useCartStore = defineStore('cart', {
           postalCode: 'two',
           country: 'SG',
         },
-        service: { name: 'Basic Mail' },
+        service: {
+          name: 'Basic Mail',
+          isTracked: false,
+          min: 5,
+          max: 24,
+          price: '35.85',
+          selected: true,
+        },
         items: {
           1: {
             costSGD: 1,
