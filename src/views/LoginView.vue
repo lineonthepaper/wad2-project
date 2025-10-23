@@ -16,7 +16,7 @@
     </p>
   </div>
 </template>
-
+ 
 <script setup>
 import { ref } from 'vue'
 const email = ref('')

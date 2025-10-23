@@ -20,7 +20,7 @@
 
             <br>
             <br>
-
+ 
             Confirm Password: <br>
             <input v-model="confirmPassword" type="password" placeholder="Confirm Password" required aria-label="Confirm Password"/>
 
@@ -79,7 +79,7 @@
     })
     const data = await response.json()
     message.value = data.message
-    
+
     // Clear form on success
     if (response.ok && data.message.includes('successfully')) {
       displayName.value = ''
