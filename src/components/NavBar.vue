@@ -1,5 +1,26 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import { ref, onMounted } from 'vue'
+
+const isLoggedIn = ref(false)
+
+onMounted(() => {
+  checkLoginStatus()
+  // Listen for login status changes
+  window.addEventListener('loginStatusChanged', checkLoginStatus)
+})
+
+function checkLoginStatus() {
+  const userData = sessionStorage.getItem('currentUser')
+  isLoggedIn.value = !!userData
+}
+
+function handleLogout() {
+  sessionStorage.removeItem('currentUser')
+  isLoggedIn.value = false
+  // Dispatch event to notify other components about logout
+  window.dispatchEvent(new Event('loginStatusChanged'))
+}
 </script>
 
 <template>
@@ -38,10 +59,17 @@ import { RouterLink, RouterView } from 'vue-router'
                 <li class="nav-item text-end">
                   <RouterLink :to="{ name: 'help' }">Help</RouterLink>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" v-if="!isLoggedIn">
                   <button type="button" class="btn btn-pink quicksand-semibold">
                     <RouterLink :to="{ name: 'login' }">
                       <span class="fw-bold">Sign up/Login</span>
+                    </RouterLink>
+                  </button>
+                </li>
+                <li class="nav-item" v-else>
+                  <button type="button" class="btn btn-pink quicksand-semibold">
+                    <RouterLink :to="{ name: 'home' }" @click="handleLogout">
+                      <span class="fw-bold">Logout</span>
                     </RouterLink>
                   </button>
                 </li>
@@ -56,6 +84,7 @@ import { RouterLink, RouterView } from 'vue-router'
 </template>
 
 <style scoped>
+/* All your existing CSS remains exactly the same */
 nav {
   width: 100vw;
   background-color: white;
