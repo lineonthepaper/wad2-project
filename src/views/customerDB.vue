@@ -1,158 +1,230 @@
 <template>
-  <hr />
-  <div class="row bg-light-pink justify-content-center airplane-header">
-    <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-      <h1 class="jua text-hot-pink">Parcel Tracking Dashboard</h1>
+  <div class="dashboard-wrapper">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="header-background">
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="dashboard-title">
+              <span class="title-main">Parcel Tracking</span>
+              <span class="title-sub">Dashboard</span>
+            </h1>
+            <p class="welcome-message">Welcome back, <strong>Alex Johnson</strong>! Track your shipments in real-time.</p>
+          </div>
+          <div class="header-stats">
+            <div class="header-stat">
+              <span class="stat-value">{{ totalShipments }}</span>
+              <span class="stat-label">Total Shipments</span>
+            </div>
+            <div class="header-stat">
+              <span class="stat-value">{{ stats.inProgress }}</span>
+              <span class="stat-label">In Transit</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <hr />
-  <div class="dashboard-container">
+
+    <!-- Main Content -->
     <div class="main-content">
-      <header class="dashboard-header">
-        <div class="header-left">
-          <h1>Customer(name) Dashboard</h1>
-          <div class="live-badge">
-            <span class="live-dot"></span> LIVE
-          </div>
-        </div>
-        <!-- <div class="header-right">
-          <select v-model="selectedPeriod" class="form-select">
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-          </select> -->
-         <!-- <button class="btn btn-secondary mt-3 w-100" @click="toggleTheme">
-        Toggle {{ theme === 'light' ? 'Dark' : 'Light' }} Mode // not working
-      </button> -->
-        <!-- </div> -->
-      </header>
-
-      <!-- Debug info -->
-      <!-- <div class="debug-info" v-if="showDebug">
-        <p>Globe Status: {{ globeInitialized ? 'Initialized' : globeError ? 'Error' : 'Loading...' }}</p>
-        <p>Selected Parcel: {{ selectedParcel ? selectedParcel.trackingId : 'None' }}</p>
-        <button @click="forceReinit" class="btn btn-sm btn-warning">Reinitialize Globe</button>
-        <button @click="showDebug = false" class="btn btn-sm btn-secondary">Hide Debug</button>
-      </div> -->
-
-      <!-- Stats cards -->
-      <section class="stats-cards">
-        <div class="stat-card">
-          <h3>In Progress</h3>
-          <p>{{ stats.inProgress }}</p>
-        </div>
-        <div class="stat-card">
-          <h3>Delivered</h3>
-          <p>{{ stats.delivered }}</p>
-        </div>
-        <div class="stat-card">
-          <h3>Pending</h3>
-          <p>{{ stats.pending }}</p>
-        </div>
-      </section>
-
-      <!-- Globe Section -->
-      <section class="globe-section">
-        <div class="globe-header">
-          <h3>Live Parcel Tracking</h3>
-          <div class="globe-controls">
-            <button v-if="selectedParcel" @click="clearRoute" class="btn btn-sm btn-outline-secondary">
-              Clear Route
-            </button>
-            <!-- <button @click="showDebug = !showDebug" class="btn btn-sm btn-outline-info">
-              {{ showDebug ? 'Hide' : 'Show' }} Debug
-            </button> -->
-          </div>
-        </div>
-        <div ref="globeContainer" class="globe-container">
-          <div v-if="globeError" class="globe-error">
-            <p>⚠️ Globe failed to load. Please refresh the page.</p>
-            <p class="error-details">{{ errorMessage }}</p>
-          </div>
-          <div v-else-if="!globeInitialized" class="globe-loading">
-            <p>Loading globe visualization...</p>
-          </div>
-        </div>
-        <div v-if="selectedParcel" class="globe-info">
-          <div class="route-info">
-            <div class="route-point">
-              <span class="point-label start">Start</span>
-              <strong>{{ getLocationName(selectedParcel.location) }}</strong>
-              ({{ formatCoordinates(selectedParcel.location) }})
+      <!-- Stats Overview -->
+      <section class="stats-overview">
+        <div class="stats-grid">
+          <div class="stat-card" :class="`stat-${stat.key}`" v-for="stat in enhancedStats" :key="stat.key">
+            <div class="stat-content">
+              <div class="stat-icon">
+                <i :class="stat.icon"></i>
+              </div>
+              <div class="stat-data">
+                <h3 class="stat-title">{{ stat.title }}</h3>
+                <p class="stat-number">{{ stat.value }}</p>
+                <div class="stat-trend" :class="stat.trend">
+                  <i :class="stat.trendIcon"></i>
+                  <span>{{ stat.trendValue }}</span>
+                </div>
+              </div>
             </div>
-            <div class="route-point">
-              <span class="point-label current">Current</span>
-              <strong>{{ getLocationName(selectedParcel.currentLocation || selectedParcel.location) }}</strong>
-              ({{ formatCoordinates(selectedParcel.currentLocation || selectedParcel.location) }})
+            <div class="stat-chart">
+              <div class="mini-chart">
+                <div class="chart-bar" v-for="(point, index) in stat.chartData" :key="index" 
+                     :style="{ height: point + '%' }"></div>
+              </div>
             </div>
-            <div class="route-point">
-              <span class="point-label end">End</span>
-              <strong>{{ getLocationName(selectedParcel.destination) }}</strong>
-              ({{ formatCoordinates(selectedParcel.destination) }})
-            </div>
-          </div>
-          <div class="progress-info" v-if="selectedParcel.status === 'In Progress'">
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
-            </div>
-            <span class="progress-text">{{ Math.round(calculateProgress(selectedParcel)) }}% Complete</span>
           </div>
         </div>
       </section>
 
-      <!-- Parcel list -->
-      <section class="parcel-list">
-        <h2 class="mb-3">Recent Shipments</h2>
-        <div class="table-responsive">
-          <table class="table table-striped table-hover align-middle">
-            <thead>
-              <tr>
-                <th scope="col">Tracking ID</th>
-                <th scope="col">Customer</th>
-                <th scope="col">Status</th>
-                <th scope="col">Expected Delivery</th>
-                <th scope="col">Current Location</th>
-                <th scope="col">Progress</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="parcel in parcels"
-                :key="parcel.id"
-                :class="{ 'table-active': selectedParcel && selectedParcel.id === parcel.id }"
-              >
-                <td>
-                  <a href="#" @click.prevent="showParcelRoute(parcel)" class="tracking-link">
-                    {{ parcel.trackingId }}
-                  </a>
-                </td>
-                <td>{{ parcel.customer }}</td>
-                <td>
-                  <span
-                    class="badge"
-                    :class="{
-                      'bg-warning text-dark': parcel.status === 'In Progress',
-                      'bg-success': parcel.status === 'Delivered',
-                      'bg-danger': parcel.status === 'Pending'
-                    }"
-                  >
-                    {{ parcel.status }}
-                  </span>
-                </td>
-                <td>{{ formatDate(parcel.expectedDelivery) }}</td>
-                <td>{{ getLocationName(parcel.currentLocation || parcel.location) }}</td>
-                <td>
-                  <div v-if="parcel.status === 'In Progress'" class="progress-cell">
-                    <div class="progress-bar-sm">
-                      <div class="progress-fill-sm" :style="{ width: calculateProgress(parcel) + '%' }"></div>
-                    </div>
-                    <small>{{ Math.round(calculateProgress(parcel)) }}%</small>
+      <!-- Globe and Tracking -->
+      <section class="tracking-section">
+        <div class="section-column globe-column">
+          <div class="section-card">
+            <div class="card-header">
+              <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
+              <div class="card-actions">
+                <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div ref="globeContainer" class="globe-container">
+                <div v-if="globeError" class="globe-error">
+                  <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
                   </div>
-                  <span v-else class="text-muted">-</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  <p>Failed to load globe visualization</p>
+                  <button class="btn-retry" @click="forceReinit">Retry</button>
+                </div>
+                <div v-else-if="!globeInitialized" class="globe-loading">
+                  <div class="loading-spinner"></div>
+                  <p>Initializing 3D Globe...</p>
+                </div>
+              </div>
+              
+              <div v-if="selectedParcel" class="selected-parcel-info">
+                <div class="parcel-header">
+                  <h4>Active Tracking: {{ selectedParcel.trackingId }}</h4>
+                  <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
+                    {{ selectedParcel.status }}
+                  </span>
+                </div>
+                <div class="route-progress">
+                  <div class="progress-labels">
+                    <span class="progress-label">{{ getLocationName(selectedParcel.location) }}</span>
+                    <span class="progress-percent">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
+                    <span class="progress-label">{{ getLocationName(selectedParcel.destination) }}</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-bar">
+                      <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
+                      <div class="progress-marker" :style="{ left: calculateProgress(selectedParcel) + '%' }">
+                        <i class="fas fa-shipping-fast"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="no-selection">
+                <i class="fas fa-mouse-pointer"></i>
+                <p>Select a shipment from the list to view its route</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-column parcels-column">
+          <div class="section-card">
+            <div class="card-header">
+              <h3><i class="fas fa-boxes"></i> Recent Shipments</h3>
+              <div class="card-actions">
+                <div class="search-box">
+                  <i class="fas fa-search"></i>
+                  <input type="text" placeholder="Search shipments..." v-model="searchQuery">
+                </div>
+                <button class="btn-icon" title="Filter">
+                  <i class="fas fa-filter"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="parcels-list">
+                <div 
+                  v-for="parcel in filteredParcels" 
+                  :key="parcel.id"
+                  class="parcel-item" 
+                  :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
+                  @click="showParcelRoute(parcel)"
+                >
+                  <div class="parcel-icon">
+                    <i class="fas fa-box"></i>
+                  </div>
+                  <div class="parcel-details">
+                    <div class="parcel-header">
+                      <h4 class="tracking-id">{{ parcel.trackingId }}</h4>
+                      <span class="status-badge" :class="`status-${parcel.status.toLowerCase().replace(' ', '-')}`">
+                        {{ parcel.status }}
+                      </span>
+                    </div>
+                    <div class="parcel-info">
+                      <div class="info-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ parcel.customer }}</span>
+                      </div>
+                      <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ getLocationName(parcel.currentLocation || parcel.location) }}</span>
+                      </div>
+                      <div class="info-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{{ formatDate(parcel.expectedDelivery) }}</span>
+                      </div>
+                    </div>
+                    <div v-if="parcel.status === 'In Progress'" class="parcel-progress">
+                      <div class="progress-mini">
+                        <div class="progress-fill-mini" :style="{ width: calculateProgress(parcel) + '%' }"></div>
+                      </div>
+                      <span class="progress-text">{{ Math.round(calculateProgress(parcel)) }}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions & Notifications -->
+      <section class="bottom-section">
+        <div class="section-column actions-column">
+          <div class="section-card">
+            <div class="card-header">
+              <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+            </div>
+            <div class="card-body">
+              <div class="actions-grid">
+                <button class="action-btn">
+                  <i class="fas fa-plus"></i>
+                  <span>New Shipment</span>
+                </button>
+                <button class="action-btn">
+                  <i class="fas fa-download"></i>
+                  <span>Export Data</span>
+                </button>
+                <button class="action-btn">
+                  <i class="fas fa-bell"></i>
+                  <span>Notifications</span>
+                </button>
+                <button class="action-btn">
+                  <i class="fas fa-cog"></i>
+                  <span>Settings</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-column notifications-column">
+          <div class="section-card">
+            <div class="card-header">
+              <h3><i class="fas fa-bell"></i> Recent Activity</h3>
+            </div>
+            <div class="card-body">
+              <div class="notifications-list">
+                <div class="notification-item" v-for="notification in notifications" :key="notification.id">
+                  <div class="notification-icon" :class="notification.type">
+                    <i :class="notification.icon"></i>
+                  </div>
+                  <div class="notification-content">
+                    <p class="notification-text">{{ notification.message }}</p>
+                    <span class="notification-time">{{ notification.time }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -163,14 +235,13 @@
 import Globe from 'globe.gl';
 
 export default {
-  name: "ParcelDashboardGlobe",
+  name: "EnhancedParcelDashboard",
   data() {
     return {
-      selectedPeriod: "today",
+      searchQuery: '',
       selectedParcel: null,
       globeInitialized: false,
       globeError: false,
-      showDebug: true,
       errorMessage: "",
       stats: {
         inProgress: 12,
@@ -180,49 +251,137 @@ export default {
       parcels: [
         {
           id: 1,
-          trackingId: "P12345",
-          customer: "Alice",
+          trackingId: "TRK-784231",
+          customer: "Alice Johnson",
           status: "In Progress",
           expectedDelivery: "2025-10-18",
-          location: [37.7749, -122.4194], // San Francisco (Start)
-          currentLocation: [39.8283, -98.5795], // Kansas (Current - midway)
-          destination: [40.7128, -74.0060] // New York (End)
+          location: [37.7749, -122.4194],
+          currentLocation: [39.8283, -98.5795],
+          destination: [40.7128, -74.0060]
         },
         {
           id: 2,
-          trackingId: "P12346",
-          customer: "Bob",
+          trackingId: "TRK-784232",
+          customer: "Robert Smith",
           status: "Delivered",
           expectedDelivery: "2025-10-15",
-          location: [51.5074, -0.1278], // London (Start)
-          currentLocation: [48.8566, 2.3522], // Paris (Current/Final)
-          destination: [48.8566, 2.3522] // Paris (End)
+          location: [51.5074, -0.1278],
+          currentLocation: [48.8566, 2.3522],
+          destination: [48.8566, 2.3522]
         },
         {
           id: 3,
-          trackingId: "P12347",
-          customer: "Charlie",
+          trackingId: "TRK-784233",
+          customer: "Maria Garcia",
           status: "Pending",
           expectedDelivery: "2025-10-20",
-          location: [35.6895, 139.6917], // Tokyo (Start)
-          currentLocation: [35.6895, 139.6917], // Tokyo (Current - not moved)
-          destination: [34.0522, -118.2437] // Los Angeles (End)
+          location: [35.6895, 139.6917],
+          currentLocation: [35.6895, 139.6917],
+          destination: [34.0522, -118.2437]
         },
         {
           id: 4,
-          trackingId: "P12348",
-          customer: "David",
+          trackingId: "TRK-784234",
+          customer: "David Wilson",
           status: "In Progress",
           expectedDelivery: "2025-10-19",
-          location: [48.8566, 2.3522], // Paris (Start)
-          currentLocation: [45.4642, 9.1900], // Milan (Current)
-          destination: [41.9028, 12.4964] // Rome (End)
+          location: [48.8566, 2.3522],
+          currentLocation: [45.4642, 9.1900],
+          destination: [41.9028, 12.4964]
         },
+      ],
+      notifications: [
+        {
+          id: 1,
+          type: 'success',
+          icon: 'fas fa-check-circle',
+          message: 'Package TRK-784232 delivered successfully',
+          time: '2 hours ago'
+        },
+        {
+          id: 2,
+          type: 'info',
+          icon: 'fas fa-info-circle',
+          message: 'Package TRK-784231 is in transit to New York',
+          time: '5 hours ago'
+        },
+        {
+          id: 3,
+          type: 'warning',
+          icon: 'fas fa-exclamation-triangle',
+          message: 'Package TRK-784233 is awaiting pickup',
+          time: '1 day ago'
+        },
+        {
+          id: 4,
+          type: 'info',
+          icon: 'fas fa-info-circle',
+          message: 'New shipment created: TRK-784235',
+          time: '2 days ago'
+        }
       ],
       globe: null,
       arcsData: [],
       pointsData: []
     };
+  },
+  computed: {
+    totalShipments() {
+      return this.stats.inProgress + this.stats.delivered + this.stats.pending;
+    },
+    filteredParcels() {
+      if (!this.searchQuery) return this.parcels;
+      const query = this.searchQuery.toLowerCase();
+      return this.parcels.filter(parcel => 
+        parcel.trackingId.toLowerCase().includes(query) ||
+        parcel.customer.toLowerCase().includes(query) ||
+        this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query)
+      );
+    },
+    enhancedStats() {
+      return [
+        {
+          key: 'in-progress',
+          title: 'In Transit',
+          value: this.stats.inProgress,
+          icon: 'fas fa-shipping-fast',
+          trend: 'up',
+          trendIcon: 'fas fa-arrow-up',
+          trendValue: '+2 today',
+          chartData: [65, 70, 75, 80, 75, 70, 68]
+        },
+        {
+          key: 'delivered',
+          title: 'Delivered',
+          value: this.stats.delivered,
+          icon: 'fas fa-check-circle',
+          trend: 'up',
+          trendIcon: 'fas fa-arrow-up',
+          trendValue: '+12%',
+          chartData: [40, 45, 50, 55, 60, 65, 70]
+        },
+        {
+          key: 'pending',
+          title: 'Pending',
+          value: this.stats.pending,
+          icon: 'fas fa-clock',
+          trend: 'down',
+          trendIcon: 'fas fa-arrow-down',
+          trendValue: '-1 today',
+          chartData: [80, 75, 70, 65, 60, 55, 50]
+        },
+        {
+          key: 'total',
+          title: 'Total Shipments',
+          value: this.totalShipments,
+          icon: 'fas fa-boxes',
+          trend: 'up',
+          trendIcon: 'fas fa-arrow-up',
+          trendValue: '+8%',
+          chartData: [50, 55, 60, 65, 70, 75, 80]
+        }
+      ];
+    }
   },
   mounted() {
     console.log('Component mounted, initializing globe...');
@@ -438,11 +597,6 @@ export default {
       return colors[status] || '#cccccc';
     },
 
-    formatCoordinates(coords) {
-      if (!coords) return 'N/A';
-      return `${coords[0].toFixed(2)}°, ${coords[1].toFixed(2)}°`;
-    },
-
     formatDate(dateString) {
       return new Date(dateString).toLocaleDateString();
     },
@@ -465,89 +619,334 @@ export default {
 </script>
 
 <style scoped>
+/* Import Font Awesome */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
-/* Light/Dark mode background for main content */
-/* Main content theme colors */
-
-
-.dashboard-container {
-  display: flex;
+/* Base Styles */
+.dashboard-wrapper {
   min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.main-content {
-  flex: 1;
-  width: 100%;
-  padding: 1.5rem;
-  background-color: #f5f6fa;
-}
-
-.debug-info {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 4px;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.debug-info p {
-  margin: 0.2rem 0;
 }
 
 /* Header */
 .dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 2rem;
 }
 
-/* Stats cards */
-.stats-cards {
+.header-background {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.header-content {
   display: flex;
-  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.dashboard-title {
+  margin-bottom: 0.5rem;
+}
+
+.title-main {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.title-sub {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+.welcome-message {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.header-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.header-stat {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Main Content */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+/* Stats Overview */
+.stats-overview {
   margin-bottom: 2rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
 }
 
 .stat-card {
-  flex: 1;
-  background-color: #fff;
+  background: white;
+  border-radius: 16px;
   padding: 1.5rem;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-/* Globe section */
-.globe-section {
-  margin-bottom: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.globe-header {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.stat-card.stat-in-progress {
+  border-left-color: #ffa500;
+}
+
+.stat-card.stat-delivered {
+  border-left-color: #28a745;
+}
+
+.stat-card.stat-pending {
+  border-left-color: #dc3545;
+}
+
+.stat-card.stat-total {
+  border-left-color: #667eea;
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.stat-in-progress .stat-icon {
+  background: linear-gradient(135deg, #ffa500, #ff8c00);
+}
+
+.stat-delivered .stat-icon {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.stat-pending .stat-icon {
+  background: linear-gradient(135deg, #dc3545, #e83e8c);
+}
+
+.stat-total .stat-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.stat-data {
+  flex: 1;
+}
+
+.stat-title {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.3rem;
+  color: #2c3e50;
+}
+
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.stat-trend.up {
+  color: #28a745;
+}
+
+.stat-trend.down {
+  color: #dc3545;
+}
+
+.stat-chart {
+  width: 80px;
+}
+
+.mini-chart {
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  height: 40px;
+}
+
+.chart-bar {
+  flex: 1;
+  background: linear-gradient(to top, #667eea, #764ba2);
+  border-radius: 2px;
+  min-height: 2px;
+}
+
+/* Tracking Section */
+.tracking-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 0;
   margin-bottom: 1rem;
 }
 
-.globe-controls {
+.card-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
   display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: #f8f9fa;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.05);
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box i {
+  position: absolute;
+  left: 10px;
+  color: #999;
+}
+
+.search-box input {
+  padding: 0.5rem 0.5rem 0.5rem 2rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 180px;
+  transition: border-color 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.card-body {
+  padding: 0 1.5rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Globe Container */
 .globe-container {
   width: 100%;
-  height: 500px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  height: 400px;
+  border-radius: 12px;
   background: #000011;
   position: relative;
+  overflow: hidden;
+  margin-bottom: 1rem;
 }
 
 .globe-loading, .globe-error {
@@ -560,176 +959,417 @@ export default {
   font-size: 1.1rem;
 }
 
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
 .globe-error {
   color: #e74c3c;
   background: #ffeaea;
+  padding: 2rem;
+  text-align: center;
 }
 
-.error-details {
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 0.5rem;
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #e74c3c;
 }
 
-.globe-info {
+.btn-retry {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   margin-top: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
-.route-info {
+.btn-retry:hover {
+  background: #5a6fd8;
+}
+
+/* Selected Parcel Info */
+.selected-parcel-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.parcel-header {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.route-point {
-  flex: 1;
-  text-align: center;
-  padding: 0.5rem;
-  border-radius: 4px;
-  background: white;
-}
-
-.point-label {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-bottom: 0.2rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 3px;
-  color: white;
-}
-
-.point-label.start {
-  background: #28a745;
-}
-
-.point-label.current {
-  background: #17a2b8;
-}
-
-.point-label.end {
-  background: #dc3545;
-}
-
-.progress-info {
-  display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.parcel-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.route-progress {
+  margin-top: 1rem;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.progress-percent {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.progress-track {
+  position: relative;
 }
 
 .progress-bar {
-  flex: 1;
   height: 8px;
   background: #e9ecef;
   border-radius: 4px;
   overflow: hidden;
+  position: relative;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #28a745, #17a2b8);
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #28a745, #17a2b8, #667eea);
+  transition: width 0.5s ease;
 }
 
-.progress-text {
-  font-weight: bold;
-  color: #495057;
-  min-width: 80px;
+.progress-marker {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #667eea;
 }
 
-/* Parcel list */
-.parcel-list {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+.no-selection {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #999;
 }
 
-.tracking-link {
-  color: #3498db;
-  text-decoration: none;
-  font-weight: 500;
+.no-selection i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
 }
 
-.tracking-link:hover {
-  color: #2980b9;
-  text-decoration: underline;
+.no-selection p {
+  margin: 0;
+  font-size: 1rem;
 }
 
-.table-active {
-  background-color: #e8f4fd !important;
+/* Parcels List */
+.parcels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
-.progress-cell {
+.parcel-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.parcel-item:hover {
+  border-color: #667eea;
+  transform: translateX(5px);
+}
+
+.parcel-item.active {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.parcel-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.parcel-details {
+  flex: 1;
+}
+
+.parcel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.tracking-id {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.parcel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.info-item i {
+  width: 12px;
+  color: #667eea;
+}
+
+.parcel-progress {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.progress-bar-sm {
+.progress-mini {
   flex: 1;
   height: 4px;
   background: #e9ecef;
   border-radius: 2px;
   overflow: hidden;
-  min-width: 50px;
 }
 
-.progress-fill-sm {
+.progress-fill-mini {
   height: 100%;
-  background: #17a2b8;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #17a2b8, #667eea);
+  transition: width 0.5s ease;
 }
 
-/* Live badge */
-.live-badge {
-  display: inline-flex;
+.progress-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #667eea;
+  min-width: 35px;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-in-progress {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-delivered {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-pending {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Bottom Section */
+.bottom-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  background-color: #e74c3c;
-  color: #fff;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  margin-left: 1rem;
-  font-weight: bold;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  background: white;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.action-btn i {
+  font-size: 1.5rem;
+}
+
+.action-btn span {
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.live-dot {
-  width: 8px;
-  height: 8px;
-  background-color: #fff;
-  border-radius: 50%;
-  margin-right: 0.4rem;
-  animation: pulse 1.5s infinite;
+/* Notifications */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
+.notification-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+  border-color: #667eea;
+  transform: translateX(5px);
+}
+
+.notification-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.notification-icon.success {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.notification-icon.info {
+  background: #d1e7ff;
+  color: #0d6efd;
+}
+
+.notification-icon.warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-text {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+.notification-time {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .tracking-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .bottom-section {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .route-info {
+  .header-content {
     flex-direction: column;
-    gap: 0.5rem;
+    text-align: center;
+    gap: 1.5rem;
   }
-
-  .stats-cards {
-    flex-direction: column;
+  
+  .header-stats {
+    justify-content: center;
   }
-
-  .globe-header {
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
-
-  .globe-controls {
+  
+  .search-box input {
     width: 100%;
-    justify-content: flex-start;
   }
 }
 </style>
