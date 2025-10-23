@@ -5,8 +5,7 @@
     <form @submit.prevent="handleLogin">
       <input v-model="email" type="email" placeholder="Email" required aria-label="email"/>
       <input v-model="password" type="password" placeholder="Password" required aria-label="password"/>
-      <button type="submit">Login</button>
-    </form>
+      <button type="submit" :disabled="loading">Login</button>    </form>
 
     <p v-if="message">{{ message }}</p>
 
@@ -16,12 +15,13 @@
     </p>
   </div>
 </template>
- 
+
+// ...existing code...
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-
 const router = useRouter()
+
 const email = ref('')
 const password = ref('')
 const message = ref('')
