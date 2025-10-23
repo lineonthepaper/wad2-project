@@ -3,13 +3,16 @@ import { RouterLink, RouterView } from 'vue-router'
 import { ref, onMounted } from 'vue'
 
 const welcomeMessage = ref('')
+const isLoggedIn = ref(false) // added to track login state
 
 onMounted(() => {
   // Get user data from sessionStorage
   const userData = sessionStorage.getItem('currentUser')
   if (userData) {
     const user = JSON.parse(userData)
-    welcomeMessage.value = `Welcome, ${user.display_name || user.email}!`
+    // prefer username, then display_name, then fall back to email
+    const name = user.displayname
+    welcomeMessage.value = `Welcome, ${name}!`
     isLoggedIn.value = true
   }
 })
