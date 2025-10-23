@@ -5,8 +5,7 @@
     <form @submit.prevent="handleLogin">
       <input v-model="email" type="email" placeholder="Email" required aria-label="email"/>
       <input v-model="password" type="password" placeholder="Password" required aria-label="password"/>
-      <button type="submit">Login</button>
-    </form>
+      <button type="submit" :disabled="loading">Login</button>    </form>
 
     <p v-if="message">{{ message }}</p>
 
@@ -17,8 +16,12 @@
   </div>
 </template>
 
+// ...existing code...
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
 const email = ref('')
 const password = ref('')
 const message = ref('')
@@ -35,6 +38,14 @@ async function handleLogin() {
   })
   const data = await response.json()
   message.value = data.message
+  
+  // Redirect to home page on successful login
+  if (response.ok && data.account) {
+    // Store user data in sessionStorage
+    sessionStorage.setItem('currentUser', JSON.stringify(data.account))
+    // Redirect to home page
+    router.push('/')
+  }
 }
 </script>
 

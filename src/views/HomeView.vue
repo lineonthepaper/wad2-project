@@ -1,11 +1,31 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import { ref, onMounted } from 'vue'
+
+const welcomeMessage = ref('')
+
+onMounted(() => {
+  // Get user data from sessionStorage
+  const userData = sessionStorage.getItem('currentUser')
+  if (userData) {
+    const user = JSON.parse(userData)
+    welcomeMessage.value = `Welcome, ${user.display_name || user.email}!`
+    isLoggedIn.value = true
+  }
+})
 </script>
 
 <template>
   <div class="container-fluid">
     <header>
       <hr />
+
+      <!-- Welcome Message - only added this line -->
+      <div v-if="welcomeMessage" class="row justify-content-center">
+        <div class="col-12 text-center py-2">
+          <h3 class="text-hot-pink">{{ welcomeMessage }}</h3>
+        </div>
+      </div>
 
       <div class="row bg-light-pink justify-content-center airplane-header">
         <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">

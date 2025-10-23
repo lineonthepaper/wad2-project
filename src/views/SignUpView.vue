@@ -18,12 +18,15 @@
             Password: <br>
             <input v-model="password" type="password" placeholder="Password" required aria-label="Password"/>
 
-
+            <br>
+            <br>
+ 
+            Confirm Password: <br>
+            <input v-model="confirmPassword" type="password" placeholder="Confirm Password" required aria-label="Confirm Password"/>
 
             <label class="staff-label">
                 <input type="checkbox" v-model="isStaff" aria-label="Staff Checkbox"/> Staff Account
             </label>
-
 
             <button type="submit">Create Account</button>
 
@@ -32,20 +35,36 @@
               <router-link to="/login">Log in here</router-link>
             </p>
         </form>
-        <p v-if="message">{{ message }}</p>
+        <p v-if="message" :class="messageClass">{{ message }}</p>
     </div>
 </template>
 
 <script setup>
-  import {ref} from 'vue'
+  import {ref, computed} from 'vue'
 
   const displayName = ref('')
   const email = ref('')
   const password = ref('')
+  const confirmPassword = ref('')
   const isStaff = ref(false)
   const message = ref('')
 
+  const messageClass = computed(() => {
+    return message.value.includes('successfully') ? 'success-message' : 'error-message';
+  })
+
   async function handleSignup() {
+    // Client-side validation
+    if (password.value !== confirmPassword.value) {
+      message.value = "Passwords do not match!"
+      return
+    }
+
+    if (password.value.length < 6) {
+      message.value = "Password must be at least 6 characters long!"
+      return
+    }
+
     const response = await fetch('/api/accounts.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -54,12 +73,21 @@
         displayName: displayName.value,
         email: email.value,
         password: password.value,
+        confirmPassword: confirmPassword.value,
         isStaff: isStaff.value
       })
-
     })
     const data = await response.json()
     message.value = data.message
+
+    // Clear form on success
+    if (response.ok && data.message.includes('successfully')) {
+      displayName.value = ''
+      email.value = ''
+      password.value = ''
+      confirmPassword.value = ''
+      isStaff.value = false
+    }
   }
 </script>
 
@@ -99,6 +127,16 @@
     display:inline-flex;
     align-items: center;
     gap: 8px;
+    margin-top: 10px;
+  }
+  .success-message {
+    color: green;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  .error-message {
+    color: red;
+    font-weight: bold;
     margin-top: 10px;
   }
 </style>
