@@ -18,7 +18,7 @@
           <label :for="address.id + 'Email'" class="text-dark-slate-blue">Email</label>
           <input
             :id="address.id + 'Email'"
-            type="text"
+            type="email"
             class="form-control mb-1"
             v-model="inputs[address.id].email"
             @change="updateDeliveryDetails"
