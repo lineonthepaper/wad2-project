@@ -1,9 +1,18 @@
 <template>
+  <header>
+      <hr />
+      <div class="row bg-light-pink justify-content-center airplane-header">
+        <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+          <h1 class="jua text-hot-pink">Frequently Asked Questions</h1>
+        </div>
+      </div>
+      <hr />
+  </header>
   <div class="faq-container">
     <div class="container py-4">
       <div class="row">
         <div class="col-12">
-          <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+          <h2 class="text-center mb-4">Enter Your Questions</h2>
         </div>
       </div>
 
