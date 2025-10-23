@@ -10,11 +10,25 @@ onMounted(() => {
   const userData = sessionStorage.getItem('currentUser')
   if (userData) {
     const user = JSON.parse(userData)
-    // prefer username, then display_name, then fall back to email
-    const name = user.displayname
+    // Use display_name (from database) or fall back to email
+    const name = user.display_name || user.email
     welcomeMessage.value = `Welcome, ${name}!`
     isLoggedIn.value = true
   }
+  
+  // Listen for login status changes to update welcome message
+  window.addEventListener('loginStatusChanged', () => {
+    const userData = sessionStorage.getItem('currentUser')
+    if (userData) {
+      const user = JSON.parse(userData)
+      const name = user.display_name || user.email
+      welcomeMessage.value = `Welcome, ${name}!`
+      isLoggedIn.value = true
+    } else {
+      welcomeMessage.value = ''
+      isLoggedIn.value = false
+    }
+  })
 })
 </script>
 
