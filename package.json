@@ -21,7 +21,7 @@
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
     "choices.js": "^11.1.0",
-    "globe.gl": "^2.44.0",
+    "globe.gl": "^2.44.1",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"

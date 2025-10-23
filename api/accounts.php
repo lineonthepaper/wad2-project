@@ -88,7 +88,41 @@ if ($method === "POST") {
             exit;
         }
     }
+    if ($method == "loginAccount") {
+    try {
+        if (!isset($payload['email']) || !isset($payload['password'])) {
+            http_response_code(400);
+            echo json_encode(["message" => "Email and password are required."]);
+            exit;
+        }
 
+        $accountDAO = new AccountDAO($useServer);
+        
+        // Verify password using the existing method in AccountDAO
+        if ($accountDAO->verifyPassword($payload['email'], $payload['password'])) {
+            $account = $accountDAO->getAccountByEmail($payload['email']);
+            if ($account) {
+                echo json_encode([
+                    "message" => "Login successful.",
+                    "account" => $account->jsonSerialize()
+                ]);
+                exit;
+            } else {
+                http_response_code(500);
+                echo json_encode(["message" => "Error retrieving account information."]);
+                exit;
+            }
+        } else {
+            http_response_code(401);
+            echo json_encode(["message" => "Invalid email or password."]);
+            exit;
+        }
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(["message" => "Caught exception: " . $e->getMessage()]);
+        exit;
+    }
+}
     if ($method == "getAccountByEmail") {
         try {
             $accountDAO = new AccountDAO($useServer);
