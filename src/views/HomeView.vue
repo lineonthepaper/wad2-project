@@ -11,7 +11,7 @@ onMounted(() => {
   if (userData) {
     const user = JSON.parse(userData)
     // prefer username, then display_name, then fall back to email
-    const name = user.displayname
+    const name = user.display_name
     welcomeMessage.value = `Welcome, ${name}!`
     isLoggedIn.value = true
   }
