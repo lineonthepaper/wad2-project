@@ -1,5 +1,48 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import { ref, onMounted, onUnmounted } from 'vue'
+
+const isLoggedIn = ref(false)
+const currentUser = ref(null)
+
+// Function to check login status
+const checkLoginStatus = () => {
+  const userData = sessionStorage.getItem('currentUser')
+  if (userData) {
+    currentUser.value = JSON.parse(userData)
+    isLoggedIn.value = true
+  } else {
+    currentUser.value = null
+    isLoggedIn.value = false
+  }
+}
+
+// Function to handle logout
+const handleLogout = () => {
+  sessionStorage.removeItem('currentUser')
+  isLoggedIn.value = false
+  currentUser.value = null
+  
+  // Dispatch event to notify other components
+  window.dispatchEvent(new Event('loginStatusChanged'))
+  
+  // Redirect to home page
+  window.location.href = '/'
+}
+
+// Listen for login status changes
+const handleLoginStatusChange = () => {
+  checkLoginStatus()
+}
+
+onMounted(() => {
+  checkLoginStatus()
+  window.addEventListener('loginStatusChanged', handleLoginStatusChange)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('loginStatusChanged', handleLoginStatusChange)
+})
 </script>
 
 <template>
@@ -38,12 +81,31 @@ import { RouterLink, RouterView } from 'vue-router'
                 <li class="nav-item text-end">
                   <RouterLink :to="{ name: 'help' }">Help</RouterLink>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" v-if="!isLoggedIn">
                   <button type="button" class="btn btn-pink quicksand-semibold">
                     <RouterLink :to="{ name: 'login' }">
                       <span class="fw-bold">Sign up/Login</span>
                     </RouterLink>
                   </button>
+                </li>
+                <li class="nav-item dropdown text-end" v-else>
+                  <button
+                    type="button"
+                    class="btn btn-outline-pink quicksand-semibold dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <span class="fw-bold">
+                      {{ currentUser?.display_name || currentUser?.email }}
+                    </span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="handleLogout">
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
                 </li>
               </ul>
             </div>
@@ -99,5 +161,26 @@ li a {
 }
 li {
   padding: 0px 10px;
+}
+
+/* Style for logout button */
+.btn-outline-pink {
+  color: #ff4275;
+  border-color: #ff4275;
+  background-color: white;
+}
+
+.btn-outline-pink:hover {
+  background-color: #ff4275;
+  color: white;
+}
+
+.dropdown-item {
+  color: #ff4275;
+}
+
+.dropdown-item:hover {
+  background-color: #ff4275;
+  color: white;
 }
 </style>

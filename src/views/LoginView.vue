@@ -43,6 +43,8 @@ async function handleLogin() {
   if (response.ok && data.account) {
     // Store user data in sessionStorage
     sessionStorage.setItem('currentUser', JSON.stringify(data.account))
+    // Dispatch event to notify navbar and other components
+    window.dispatchEvent(new Event('loginStatusChanged'))
     // Redirect to home page
     router.push('/')
   }
