@@ -22,10 +22,10 @@ const handleLogout = () => {
   sessionStorage.removeItem('currentUser')
   isLoggedIn.value = false
   currentUser.value = null
-  
+
   // Dispatch event to notify other components
   window.dispatchEvent(new Event('loginStatusChanged'))
-  
+
   // Redirect to home page
   window.location.href = '/'
 }
@@ -100,6 +100,11 @@ onUnmounted(() => {
                     </span>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                  <button class="dropdown-item" @click="$router.push('/CDB')">
+    Customer Dashboard
+                  </button>
+                    </li>
                     <li>
                       <button class="dropdown-item" @click="handleLogout">
                         Logout
