@@ -10,6 +10,8 @@ import SignUpView from '@/views/SignUpView.vue'
 import ServicesView from '../views/ServicesView.vue'
 import ServiceDetail from '../views/ServiceDetail.vue'
 import customerDB from '../views/customerDB.vue'
+import DashboardView from '../views/DashboardView.vue'   // <-- new import
+
 
 
 export const routes = [
@@ -22,8 +24,8 @@ export const routes = [
   { path: '/help', name: 'help', title: 'Help', component: HelpView },
   { path: '/signup', name: 'signup', title: 'Sign Up', component: SignUpView }, // named signup
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
-  { path: '/CDB', component: customerDB }
-
+  { path: '/CDB', component: customerDB },
+  { path: '/dashboard', name: 'dashboard', title: 'Dashboard', component: DashboardView } 
 ]
 
 

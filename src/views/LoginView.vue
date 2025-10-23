@@ -5,8 +5,7 @@
     <form @submit.prevent="handleLogin">
       <input v-model="email" type="email" placeholder="Email" required aria-label="email"/>
       <input v-model="password" type="password" placeholder="Password" required aria-label="password"/>
-      <button type="submit">Login</button>
-    </form>
+      <button type="submit" :disabled="loading">Login</button>    </form>
 
     <p v-if="message">{{ message }}</p>
 
@@ -16,25 +15,45 @@
     </p>
   </div>
 </template>
- 
+
+// ...existing code...
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const email = ref('')
 const password = ref('')
 const message = ref('')
 
 async function handleLogin() {
-  const response = await fetch('/api/accounts.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      method: 'loginAccount',
-      email: email.value,
-      password: password.value,
-    }),
-  })
-  const data = await response.json()
-  message.value = data.message
+  try {
+    const response = await fetch('/api/accounts.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: 'loginAccount',
+        email: email.value,
+        password: password.value,
+      }),
+    })
+
+    // parse safely
+    const ct = response.headers.get('content-type') || ''
+    const data = ct.includes('application/json') ? await response.json() : { message: await response.text() }
+
+    message.value = data.message || ''
+
+    if (response.ok && data.account) {
+      // pick display name from response
+      const displayName = data.account.displayName || data.account.name || data.account.display_name || ''
+      if (displayName) localStorage.setItem('displayName', displayName)
+
+      // redirect to dashboard
+      await router.push({ name: 'dashboard' })
+    }
+  } catch (err) {
+    message.value = 'Network error. Please try again.'
+  }
 }
 </script>
 

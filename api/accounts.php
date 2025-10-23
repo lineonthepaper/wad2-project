@@ -109,4 +109,47 @@ if ($method === "POST") {
             exit;
         }
     }
+
+    if ($method == "loginAccount") {
+        try {
+            $payloadEmail = $payload['email'] ?? '';
+            $payloadPassword = $payload['password'] ?? '';
+
+            $accountDAO = new AccountDAO($useServer);
+            $account = $accountDAO->getAccountByEmail($payloadEmail);
+
+            if (!$account) {
+                http_response_code(401);
+                echo json_encode(["message" => "Invalid email or password"]);
+                exit;
+            }
+
+            // Get stored hash - adjust property name based on your Account class
+            $storedHash = $account->password; // or $account->getPassword()
+
+            if (password_verify($payloadPassword, $storedHash)) {
+                // Login successful
+                http_response_code(200);
+                echo json_encode([
+                    "message" => "Login successful",
+                    "account" => [
+                        "displayName" => $account->display_name, // adjust property name
+                        "email" => $account->email
+                    ]
+                ]);
+                exit;
+            } else {
+                http_response_code(401); 
+                echo json_encode(["message" => "Invalid email or password"]);
+                exit;
+            }
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(["message" => "Login failed: " . $e->getMessage()]);
+            exit;
+        }
+    }
+    
 }
+
+?>
