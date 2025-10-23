@@ -10,6 +10,7 @@ onMounted(() => {
   if (userData) {
     const user = JSON.parse(userData)
     welcomeMessage.value = `Welcome, ${user.display_name || user.email}!`
+    isLoggedIn.value = true
   }
 })
 </script>
