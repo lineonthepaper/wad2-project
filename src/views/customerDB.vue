@@ -185,21 +185,21 @@
             </div>
             <div class="card-body">
               <div class="actions-grid">
-                <button class="action-btn">
-                  <i class="fas fa-plus"></i>
+                <button class="action-btn" @click="navigateToCreateShipment">
+                  <i class="fas fa-plus-circle"></i>
                   <span>New Shipment</span>
                 </button>
-                <button class="action-btn">
-                  <i class="fas fa-download"></i>
-                  <span>Export Data</span>
+                <button class="action-btn" @click="navigateToFAQ">
+                  <i class="fas fa-question-circle"></i>
+                  <span>FAQ</span>
                 </button>
-                <button class="action-btn">
-                  <i class="fas fa-bell"></i>
-                  <span>Notifications</span>
+                <button class="action-btn" @click="navigateToHelp">
+                  <i class="fas fa-life-ring"></i>
+                  <span>Help</span>
                 </button>
-                <button class="action-btn">
-                  <i class="fas fa-cog"></i>
-                  <span>Settings</span>
+                <button class="action-btn" @click="navigateToLogin">
+                  <i class="fas fa-sign-in-alt"></i>
+                  <span>Login Page</span>
                 </button>
               </div>
             </div>
@@ -392,10 +392,30 @@ export default {
     });
   },
   methods: {
+    // Navigation Methods
+    navigateToCreateShipment() {
+      this.$router.push('/shipment');
+      console.log('Navigating to Create Shipment page');
+    },
+
+    navigateToFAQ() {
+      this.$router.push('/faq');
+      console.log('Navigating to FAQ page');
+    },
+
+    navigateToHelp() {
+      this.$router.push('/help');
+      console.log('Navigating to Help page');
+    },
+
+    navigateToLogin() {
+      this.$router.push('/login');
+      console.log('Navigating to Login page');
+    },
+
+    // Existing Globe Methods (same as before)
     async initGlobe() {
       try {
-        console.log('Starting globe initialization...');
-
         const container = this.$refs.globeContainer;
         if (!container) {
           throw new Error('Globe container not found');
@@ -404,22 +424,14 @@ export default {
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 500;
 
-        console.log('Container dimensions:', width, 'x', height);
-
-        // Initialize globe with basic settings
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-          .backgroundColor('#000011')
+          .backgroundColor('var(--dark-slate-blue)')
           .width(width)
           .height(height)(container);
 
-        console.log('Basic globe created');
-
-        // Add initial data
         this.updateGlobeData();
-
         this.globeInitialized = true;
-        console.log('Globe initialized successfully');
 
       } catch (error) {
         console.error('Globe initialization error:', error);
@@ -432,10 +444,8 @@ export default {
       if (!this.globe) return;
 
       try {
-        // Update points data - show all parcels as points
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
-          // For display, use current location if available, otherwise start location
           displayLocation: parcel.currentLocation || parcel.location
         }));
 
@@ -448,12 +458,9 @@ export default {
           .pointRadius(0.4)
           .pointLabel(d => `${d.trackingId}: ${d.customer} (${d.status})`);
 
-        // Update arcs if we have a selected parcel
         if (this.selectedParcel) {
           this.updateRouteForParcel(this.selectedParcel);
         }
-
-        console.log('Globe data updated successfully');
 
       } catch (error) {
         console.error('Error updating globe data:', error);
@@ -463,11 +470,7 @@ export default {
     },
 
     showParcelRoute(parcel) {
-      if (!this.globe) {
-        console.error('Globe not ready');
-        return;
-      }
-
+      if (!this.globe) return;
       this.selectedParcel = parcel;
       this.updateRouteForParcel(parcel);
     },
@@ -475,25 +478,21 @@ export default {
     updateRouteForParcel(parcel) {
       if (!this.globe) return;
 
-      // Create multiple arcs to show the complete journey
       this.arcsData = [
-        // Arc from start to current location (green - completed path)
         {
           start: parcel.location,
           end: parcel.currentLocation || parcel.location,
-          color: '#00ff00',
+          color: 'var(--hot-pink)',
           stroke: 1.5
         },
-        // Arc from current location to destination (orange - remaining path)
         {
           start: parcel.currentLocation || parcel.location,
           end: parcel.destination,
-          color: '#ffa500',
+          color: 'var(--pink)',
           stroke: 1.5
         }
       ];
 
-      // Update the globe with new arcs
       this.globe
         .arcsData(this.arcsData)
         .arcStartLat(d => d.start[0])
@@ -507,23 +506,14 @@ export default {
         .arcDashGap(0.1)
         .arcDashAnimateTime(4000);
 
-      // Focus camera on the entire route
       this.focusOnRoute(parcel.location, parcel.destination);
     },
 
     focusOnRoute(start, end) {
       if (!this.globe) return;
-
       const midLat = (start[0] + end[0]) / 2;
       const midLng = (start[1] + end[1]) / 2;
-
-      // Calculate a good altitude to show the entire route
-      const latDiff = Math.abs(start[0] - end[0]);
-      const lngDiff = Math.abs(start[1] - end[1]);
-      const maxDiff = Math.max(latDiff, lngDiff);
-      const altitude = Math.max(1.5, 3 - maxDiff * 0.5);
-
-      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude });
+      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 1.8 });
     },
 
     clearRoute() {
@@ -532,7 +522,6 @@ export default {
         this.selectedParcel = null;
         this.globe.arcsData(this.arcsData);
         this.globe.pointOfView({ lat: 0, lng: 0, altitude: 1.8 });
-        // Refresh points data
         this.updateGlobeData();
       }
     },
@@ -541,7 +530,6 @@ export default {
       if (parcel.status === 'Delivered') return 100;
       if (parcel.status === 'Pending') return 0;
 
-      // Simple linear progress calculation based on distance
       const start = parcel.location;
       const current = parcel.currentLocation || parcel.location;
       const end = parcel.destination;
@@ -550,28 +538,23 @@ export default {
       const traveledDistance = this.calculateDistance(start, current);
 
       if (totalDistance === 0) return 0;
-
       return Math.min(100, (traveledDistance / totalDistance) * 100);
     },
 
     calculateDistance(coord1, coord2) {
-      // Haversine distance calculation
       const [lat1, lon1] = coord1;
       const [lat2, lon2] = coord2;
-
-      const R = 6371; // Earth's radius in km
+      const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     },
 
     getLocationName(coords) {
-      // Simple coordinate to city name mapping
       const locations = {
         '37.7749,-122.4194': 'San Francisco',
         '40.7128,-74.0060': 'New York',
@@ -583,18 +566,17 @@ export default {
         '39.8283,-98.5795': 'Kansas',
         '45.4642,9.1900': 'Milan'
       };
-
       const key = `${coords[0]},${coords[1]}`;
       return locations[key] || 'Unknown Location';
     },
 
     getStatusColor(status) {
       const colors = {
-        'In Progress': '#ffa500',
-        'Delivered': '#00ff00',
-        'Pending': '#ff4444'
+        'In Progress': 'var(--hot-pink)',
+        'Delivered': 'var(--pink)',
+        'Pending': 'var(--dark-pink)'
       };
-      return colors[status] || '#cccccc';
+      return colors[status] || 'var(--slate-blue)';
     },
 
     formatDate(dateString) {
@@ -622,10 +604,21 @@ export default {
 /* Import Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
+/* Pink Color Palette */
+:root {
+  --hot-pink: #ff4275;
+  --dark-pink: #ff759e;
+  --pink: #ff9096;
+  --dark-slate-blue: #455a64;
+  --slate-blue: #8796b3;
+  --light-pink: #ffe8ee;
+  --pink-grey: #f1d9df;
+}
+
 /* Base Styles */
 .dashboard-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -635,11 +628,11 @@ export default {
 }
 
 .header-background {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   color: white;
   padding: 2rem;
   border-radius: 0 0 20px 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(255, 66, 117, 0.3);
 }
 
 .header-content {
@@ -737,19 +730,19 @@ export default {
 }
 
 .stat-card.stat-in-progress {
-  border-left-color: #ffa500;
+  border-left-color: var(--hot-pink);
 }
 
 .stat-card.stat-delivered {
-  border-left-color: #28a745;
+  border-left-color: var(--pink);
 }
 
 .stat-card.stat-pending {
-  border-left-color: #dc3545;
+  border-left-color: var(--dark-pink);
 }
 
 .stat-card.stat-total {
-  border-left-color: #667eea;
+  border-left-color: var(--slate-blue);
 }
 
 .stat-content {
@@ -771,19 +764,19 @@ export default {
 }
 
 .stat-in-progress .stat-icon {
-  background: linear-gradient(135deg, #ffa500, #ff8c00);
+  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
 }
 
 .stat-delivered .stat-icon {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, var(--pink), var(--dark-pink));
 }
 
 .stat-pending .stat-icon {
-  background: linear-gradient(135deg, #dc3545, #e83e8c);
+  background: linear-gradient(135deg, var(--dark-pink), var(--hot-pink));
 }
 
 .stat-total .stat-icon {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
 }
 
 .stat-data {
@@ -792,7 +785,7 @@ export default {
 
 .stat-title {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--dark-slate-blue);
   margin: 0 0 0.3rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -802,7 +795,7 @@ export default {
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.3rem;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
 }
 
 .stat-trend {
@@ -814,11 +807,11 @@ export default {
 }
 
 .stat-trend.up {
-  color: #28a745;
+  color: var(--hot-pink);
 }
 
 .stat-trend.down {
-  color: #dc3545;
+  color: var(--dark-pink);
 }
 
 .stat-chart {
@@ -834,7 +827,7 @@ export default {
 
 .chart-bar {
   flex: 1;
-  background: linear-gradient(to top, #667eea, #764ba2);
+  background: linear-gradient(to top, var(--hot-pink), var(--dark-pink));
   border-radius: 2px;
   min-height: 2px;
 }
@@ -867,13 +860,15 @@ export default {
   align-items: center;
   padding: 1.5rem 1.5rem 0;
   margin-bottom: 1rem;
+  background: var(--light-pink);
+  border-bottom: 1px solid var(--pink-grey);
 }
 
 .card-header h3 {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -890,8 +885,8 @@ export default {
   height: 36px;
   border: none;
   border-radius: 8px;
-  background: #f8f9fa;
-  color: #666;
+  background: white;
+  color: var(--hot-pink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -900,7 +895,7 @@ export default {
 }
 
 .btn-icon:hover {
-  background: #667eea;
+  background: var(--hot-pink);
   color: white;
   transform: scale(1.05);
 }
@@ -914,21 +909,22 @@ export default {
 .search-box i {
   position: absolute;
   left: 10px;
-  color: #999;
+  color: var(--slate-blue);
 }
 
 .search-box input {
   padding: 0.5rem 0.5rem 0.5rem 2rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--pink-grey);
   border-radius: 8px;
   font-size: 0.9rem;
   width: 180px;
   transition: border-color 0.3s ease;
+  background: var(--light-pink);
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--hot-pink);
 }
 
 .card-body {
@@ -943,7 +939,7 @@ export default {
   width: 100%;
   height: 400px;
   border-radius: 12px;
-  background: #000011;
+  background: var(--dark-slate-blue);
   position: relative;
   overflow: hidden;
   margin-bottom: 1rem;
@@ -955,23 +951,23 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #666;
+  color: white;
   font-size: 1.1rem;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border: 4px solid var(--light-pink);
+  border-top: 4px solid var(--hot-pink);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
 .globe-error {
-  color: #e74c3c;
-  background: #ffeaea;
+  color: white;
+  background: var(--dark-pink);
   padding: 2rem;
   text-align: center;
 }
@@ -979,11 +975,10 @@ export default {
 .error-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #e74c3c;
 }
 
 .btn-retry {
-  background: #667eea;
+  background: var(--hot-pink);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -994,12 +989,12 @@ export default {
 }
 
 .btn-retry:hover {
-  background: #5a6fd8;
+  background: var(--dark-pink);
 }
 
 /* Selected Parcel Info */
 .selected-parcel-info {
-  background: #f8f9fa;
+  background: var(--light-pink);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -1014,7 +1009,7 @@ export default {
 .parcel-header h4 {
   margin: 0;
   font-size: 1.1rem;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
 }
 
 .route-progress {
@@ -1026,12 +1021,12 @@ export default {
   justify-content: space-between;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--slate-blue);
 }
 
 .progress-percent {
   font-weight: 600;
-  color: #667eea;
+  color: var(--hot-pink);
 }
 
 .progress-track {
@@ -1040,7 +1035,7 @@ export default {
 
 .progress-bar {
   height: 8px;
-  background: #e9ecef;
+  background: var(--pink-grey);
   border-radius: 4px;
   overflow: hidden;
   position: relative;
@@ -1048,7 +1043,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #28a745, #17a2b8, #667eea);
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink), var(--dark-pink));
   transition: width 0.5s ease;
 }
 
@@ -1059,25 +1054,26 @@ export default {
   width: 20px;
   height: 20px;
   background: white;
-  border: 2px solid #667eea;
+  border: 2px solid var(--hot-pink);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
-  color: #667eea;
+  color: var(--hot-pink);
 }
 
 .no-selection {
   text-align: center;
   padding: 3rem 1rem;
-  color: #999;
+  color: var(--slate-blue);
 }
 
 .no-selection i {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
+  color: var(--pink);
 }
 
 .no-selection p {
@@ -1098,26 +1094,26 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pink-grey);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .parcel-item:hover {
-  border-color: #667eea;
+  border-color: var(--hot-pink);
   transform: translateX(5px);
 }
 
 .parcel-item.active {
-  border-color: #667eea;
-  background: #f0f4ff;
+  border-color: var(--hot-pink);
+  background: var(--light-pink);
 }
 
 .parcel-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -1140,7 +1136,7 @@ export default {
 .tracking-id {
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
   margin: 0;
 }
 
@@ -1156,12 +1152,12 @@ export default {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--slate-blue);
 }
 
 .info-item i {
   width: 12px;
-  color: #667eea;
+  color: var(--hot-pink);
 }
 
 .parcel-progress {
@@ -1173,21 +1169,21 @@ export default {
 .progress-mini {
   flex: 1;
   height: 4px;
-  background: #e9ecef;
+  background: var(--pink-grey);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .progress-fill-mini {
   height: 100%;
-  background: linear-gradient(90deg, #17a2b8, #667eea);
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
   transition: width 0.5s ease;
 }
 
 .progress-text {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #667eea;
+  color: var(--hot-pink);
   min-width: 35px;
 }
 
@@ -1202,18 +1198,18 @@ export default {
 }
 
 .status-in-progress {
-  background: #fff3cd;
-  color: #856404;
+  background: var(--light-pink);
+  color: var(--hot-pink);
 }
 
 .status-delivered {
-  background: #d1ecf1;
-  color: #0c5460;
+  background: var(--pink-grey);
+  color: var(--pink);
 }
 
 .status-pending {
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--pink-grey);
+  color: var(--dark-pink);
 }
 
 /* Bottom Section */
@@ -1235,19 +1231,19 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pink-grey);
   border-radius: 12px;
   background: white;
-  color: #666;
+  color: var(--slate-blue);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--hot-pink);
+  color: var(--hot-pink);
   transform: translateY(-3px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.2);
 }
 
 .action-btn i {
@@ -1270,13 +1266,13 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pink-grey);
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .notification-item:hover {
-  border-color: #667eea;
+  border-color: var(--hot-pink);
   transform: translateX(5px);
 }
 
@@ -1291,18 +1287,18 @@ export default {
 }
 
 .notification-icon.success {
-  background: #d1ecf1;
-  color: #0c5460;
+  background: var(--light-pink);
+  color: var(--hot-pink);
 }
 
 .notification-icon.info {
-  background: #d1e7ff;
-  color: #0d6efd;
+  background: var(--pink-grey);
+  color: var(--pink);
 }
 
 .notification-icon.warning {
-  background: #fff3cd;
-  color: #856404;
+  background: var(--pink-grey);
+  color: var(--dark-pink);
 }
 
 .notification-content {
@@ -1312,12 +1308,12 @@ export default {
 .notification-text {
   margin: 0 0 0.3rem;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
 }
 
 .notification-time {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--slate-blue);
 }
 
 /* Animations */
