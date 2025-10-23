@@ -30,7 +30,6 @@ useHead({
     },
   ],
   titleTemplate: `%s - Fluffy Shipping`,
-  script: { src: '//mozilla.github.io/pdf.js/build/pdf.mjs', type: 'module' },
 })
 
 const headTitle = useHead({
