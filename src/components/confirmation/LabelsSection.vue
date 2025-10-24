@@ -5,7 +5,7 @@
         style="width: 100vw; height: 100vw"
         type="application/pdf"
         id="pdfViewer"
-        :src="generatedPdf"
+        src="about:blank"
       ></iframe>
       <div ref="view" class="col"></div>
     </div>
@@ -31,7 +31,6 @@ export default {
       htmlPage,
       view,
       sendToOrFrom,
-      generatedPdf: 'about:blank',
     }
   },
   mounted() {
@@ -151,13 +150,11 @@ export default {
 
     console.log(this.htmlPage.getElementsByClassName('page').length)
 
-    function addPageToPdf(pages, generatedPdf, index = 0) {
+    function addPageToPdf(pages, index = 0) {
       if (pages.length == 0) {
         labelPdf.deletePage(index + 1)
         // window.open(labelPdf.output('bloburl'))
-        generatedPdf = labelPdf.output('datauristring')
-
-        document.getElementById('pdfViewer').src = generatedPdf
+        document.getElementById('pdfViewer').src = labelPdf.output('datauristring')
         return
       }
 
@@ -171,7 +168,7 @@ export default {
         y: labelPdf.internal.pageSize.getHeight() * index + margin,
         callback(labelPdf) {
           labelPdf.addPage()
-          addPageToPdf(pages.slice(1), generatedPdf, ++index)
+          addPageToPdf(pages.slice(1), ++index)
         },
         html2canvas: { scale: scale, letterRendering: true },
       })
@@ -179,7 +176,7 @@ export default {
 
     let pagesArr = Array.from(this.htmlPage.getElementsByClassName('page'))
 
-    addPageToPdf(pagesArr, this.generatedPdf)
+    addPageToPdf(pagesArr)
   },
   methods: {
     getCountryName(countryCode) {
