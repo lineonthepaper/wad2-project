@@ -7,7 +7,7 @@
         id="pdfViewer"
         src="about:blank"
       ></iframe>
-      <div ref="view" class="col overflow-hidden" style="height: 0"></div>
+      <div ref="view" class="col overflow-hidden" style="height: 0" aria-hidden="true"></div>
     </div>
   </div>
 </template>
