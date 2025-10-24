@@ -54,6 +54,7 @@ export const useLabelsStore = defineStore('labels', {
         selected: false,
         totalCostSGD: 1,
         type: 'Documents',
+        mailId: 1,
       },
     ],
   }),

@@ -171,6 +171,7 @@ export default {
       sendFromOrTo,
       statuses: ref([]),
       loading: false,
+      mailIds: ref([]),
     }
   },
   methods: {
@@ -241,7 +242,7 @@ export default {
 
         let zone = this.getZone(shipment.recipient.country)
 
-        async function waitForAddressIds(statuses, until) {
+        async function waitForAddressIds(statuses, until, mailIds) {
           await until(() => Object.keys(addressIds).length == 2)
           axios
             .post('/api/mail.php', {
@@ -263,8 +264,10 @@ export default {
               console.log(response.data)
               if (!response.data.success) {
                 statuses.push(false)
+                mailIds.push(null)
               } else {
                 statuses.push(true)
+                mailIds.push(response.data.mailId)
               }
             })
             .catch((error) => {
@@ -272,7 +275,7 @@ export default {
             })
         }
 
-        waitForAddressIds(this.statuses, this.until)
+        waitForAddressIds(this.statuses, this.until, this.mailIds)
 
         // then send email
       }
@@ -286,6 +289,7 @@ export default {
         loading,
         cart,
         labels,
+        mailIds,
       ) {
         console.log(statuses)
 
@@ -302,6 +306,7 @@ export default {
             remainingShipments.push(cart.shipments[i])
           } else {
             labels.shipments.push(JSON.parse(JSON.stringify(cart.shipments[i])))
+            labels.shipments[labels.shipments.length - 1].mailId = mailIds[i]
           }
         }
 
@@ -325,6 +330,7 @@ export default {
         this.loading,
         this.cart,
         this.labels,
+        this.mailIds,
       )
     },
   },
