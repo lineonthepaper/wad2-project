@@ -36,8 +36,8 @@ export default {
         let addressDetails = page.appendChild(document.createElement('div'))
         addressDetails.className = 'col-5'
 
-        let sendFromHeader = addressDetails.appendChild(document.createElement('h3'))
-        sendFromHeader.innerText = person.title
+        let sendToOrFromHeader = addressDetails.appendChild(document.createElement('h3'))
+        sendToOrFromHeader.innerText = person.title
 
         let name = addressDetails.appendChild(document.createElement('p'))
         name.innerText = s[person.id].name
@@ -67,8 +67,8 @@ export default {
       postageInfoDiv.className = 'col-2'
 
       let postageInfoP = postageInfoDiv.appendChild(document.createElement('p'))
-      postageInfoP.className = 'p-3'
-      postageInfoP.innerText = 'Postage Paid'
+      postageInfoP.className = 'p-3 fw-bold border rounded border-secondary'
+      postageInfoP.innerText = 'Postage Paid\n' + s.service.price + ' SGD'
 
       // TODO: add postage amount, weight, item info
 
