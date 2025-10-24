@@ -131,6 +131,14 @@ export default {
     // TODO: convert to pdf
 
     // TODO: render pdf instead of putting html in view div
+    for (let s of this.labels.shipments) {
+      JsBarcode('#barCode' + s.mailId, 'SGP' + s.mailId, {
+        // lineColor: '#ff759e',
+        height: 80,
+        width: 4,
+      })
+      // console.log('added barcode')
+    }
   },
   methods: {
     getCountryName(countryCode) {
@@ -151,6 +159,7 @@ import { useLabelsStore } from '@/stores/labels'
 import { ref, useTemplateRef } from 'vue'
 
 import { jsPDF } from 'jspdf'
+import JsBarcode from 'jsbarcode'
 
 import countryData from '/json/countryData'
 </script>
