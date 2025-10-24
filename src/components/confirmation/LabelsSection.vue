@@ -70,7 +70,57 @@ export default {
       postageInfoP.className = 'p-3 fw-bold border rounded border-secondary'
       postageInfoP.innerText = 'Postage Paid\n' + s.service.price + ' SGD'
 
-      // TODO: add postage amount, weight, item info
+      let barCode = postageInfoDiv.appendChild(document.createElement('canvas'))
+      barCode.id = 'barCode' + s.mailId
+      barCode.className = 'w-100'
+      // console.log(barCode.id)
+
+      let weightInfo = postageInfoDiv.appendChild(document.createElement('p'))
+      weightInfo.innerText = 'Weight: ' + s.dimensions.weight + ' kg'
+
+      let itemDetails = page.appendChild(document.createElement('div'))
+      itemDetails.className = 'col'
+
+      let itemDetailsHeader = itemDetails.appendChild(document.createElement('h3'))
+      itemDetailsHeader.innerText = 'Item Details'
+
+      let itemDetailsTable = itemDetails.appendChild(document.createElement('table'))
+      itemDetailsTable.className = 'table'
+
+      let itemDetailsThead = itemDetailsTable.appendChild(document.createElement('thead'))
+
+      let theadTr = itemDetailsThead.appendChild(document.createElement('tr'))
+
+      const itemDetailsTableHeaders = ['Description', 'Price', 'Weight', 'HS code']
+
+      for (let title of itemDetailsTableHeaders) {
+        let th = theadTr.appendChild(document.createElement('th'))
+        th.innerText = title
+      }
+
+      let itemDetailsTbody = itemDetailsTable.appendChild(document.createElement('tbody'))
+
+      for (let rowId in s.items) {
+        let tr = itemDetailsTbody.appendChild(document.createElement('tr'))
+
+        let desc = tr.appendChild(document.createElement('td'))
+        desc.innerText = s.items[rowId].itemDescription
+
+        let price = tr.appendChild(document.createElement('td'))
+        price.innerText = s.items[rowId].costSGD + ' SGD'
+
+        let weight = tr.appendChild(document.createElement('td'))
+        weight.innerText = s.items[rowId].itemWeight + ' kg'
+
+        let hsCode = tr.appendChild(document.createElement('td'))
+        if (
+          s.items[rowId].hsCode !== undefined &&
+          s.items[rowId].hsCode !== null &&
+          s.items[rowId].hsCode !== ''
+        ) {
+          hsCode.innerText = s.items[rowId].hsCode
+        }
+      }
 
       this.htmlPage.append(page)
     }
