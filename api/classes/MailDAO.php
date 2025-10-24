@@ -42,7 +42,7 @@ class MailDAO
 
     public function addMail(
         Mail $newMail
-    ): bool {
+    ): mixed {
 
         $query = "insert into 
         mail(customer_email, sender_address_id, recipient_address_id, parcel_length, parcel_width, parcel_height,
@@ -87,7 +87,7 @@ class MailDAO
                 return false;
             }
         }
-        return true;
+        return $newMailId;
     }
 
     public function addMailStatus(MailStatus $newMailStatus): bool

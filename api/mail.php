@@ -31,7 +31,7 @@ if ($method === "POST") {
                 );
             }
 
-            $success = $mailDAO->addMail(
+            $mailId = $mailDAO->addMail(
                 new Mail(
                     null,
                     $payload["customerEmail"],
@@ -44,14 +44,17 @@ if ($method === "POST") {
                     $payload["service"]
                 )
             );
-            if ($success) {
+            if ($mailId !== false) {
                 $message = "Mail created successfully.";
+                echo json_encode(
+                    ["message" => $message, "success" => true, "mailId" => $mailId]
+                );
             } else {
                 $message = "Error in mail creation.";
+                echo json_encode(
+                    ["message" => $message, "success" => false]
+                );
             }
-            echo json_encode(
-                ["message" => $message, "success" => $success]
-            );
             exit;
         } catch (Exception $e) {
             http_response_code(400);
