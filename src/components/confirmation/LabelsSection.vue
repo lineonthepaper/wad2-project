@@ -13,6 +13,7 @@ export default {
     const htmlPage = document.createElement('div')
 
     const view = useTemplateRef('view')
+    // htmlPage.style.width = '297mm'
 
     const sendToOrFrom = ref([
       { title: 'Send From', id: 'sender' },
@@ -27,10 +28,17 @@ export default {
     }
   },
   mounted() {
+    const labelPdf = new jsPDF({
+      orientation: 'l',
+      unit: 'mm',
+      format: 'a4',
+      compress: true,
+    })
+
     for (let s of this.labels.shipments) {
       let page = document.createElement('div')
 
-      page.className = 'border rounded p-2 row'
+      page.className = 'border rounded p-2 row page my-2'
 
       for (let person of this.sendToOrFrom) {
         let addressDetails = page.appendChild(document.createElement('div'))
@@ -87,9 +95,7 @@ export default {
       let itemDetailsTable = itemDetails.appendChild(document.createElement('table'))
       itemDetailsTable.className = 'table'
 
-      let itemDetailsThead = itemDetailsTable.appendChild(document.createElement('thead'))
-
-      let theadTr = itemDetailsThead.appendChild(document.createElement('tr'))
+      let theadTr = itemDetailsTable.appendChild(document.createElement('tr'))
 
       const itemDetailsTableHeaders = ['Description', 'Price', 'Weight', 'HS code']
 
@@ -98,10 +104,10 @@ export default {
         th.innerText = title
       }
 
-      let itemDetailsTbody = itemDetailsTable.appendChild(document.createElement('tbody'))
+      theadTr.className = 'border-bottom'
 
       for (let rowId in s.items) {
-        let tr = itemDetailsTbody.appendChild(document.createElement('tr'))
+        let tr = itemDetailsTable.appendChild(document.createElement('tr'))
 
         let desc = tr.appendChild(document.createElement('td'))
         desc.innerText = s.items[rowId].itemDescription
@@ -126,8 +132,6 @@ export default {
     }
 
     this.view.append(this.htmlPage)
-
-    const labelPdf = new jsPDF()
     // TODO: convert to pdf
 
     // TODO: render pdf instead of putting html in view div
@@ -139,6 +143,34 @@ export default {
       })
       // console.log('added barcode')
     }
+
+    console.log(this.htmlPage.getElementsByClassName('page').length)
+
+    function addPageToPdf(pages, index = 0) {
+      if (pages.length == 0) {
+        // labelPdf.save('labels.pdf')
+        labelPdf.deletePage(index + 1)
+        window.open(labelPdf.output('bloburl'))
+        return
+      }
+
+      let pageWidth = 297
+      let margin = 10
+      let srcWidth = pages[0].scrollWidth
+      let scale = (pageWidth - margin * 2) / srcWidth
+
+      labelPdf.html(pages[0], {
+        x: margin,
+        y: labelPdf.internal.pageSize.getHeight() * index + margin,
+        callback(labelPdf) {
+          labelPdf.addPage()
+          addPageToPdf(pages.slice(1), ++index)
+        },
+        html2canvas: { scale: scale, letterRendering: true },
+      })
+    }
+
+    addPageToPdf(Array.from(this.htmlPage.getElementsByClassName('page')))
   },
   methods: {
     getCountryName(countryCode) {
