@@ -1,6 +1,12 @@
 <template>
   <div class="container-fluid">
     <div class="row py-2">
+      <iframe
+        style="width: 100vw; height: 100vw"
+        type="application/pdf"
+        id="pdfViewer"
+        :src="generatedPdf"
+      ></iframe>
       <div ref="view" class="col"></div>
     </div>
   </div>
@@ -25,6 +31,7 @@ export default {
       htmlPage,
       view,
       sendToOrFrom,
+      generatedPdf: 'about:blank',
     }
   },
   mounted() {
@@ -132,9 +139,7 @@ export default {
     }
 
     this.view.append(this.htmlPage)
-    // TODO: convert to pdf
 
-    // TODO: render pdf instead of putting html in view div
     for (let s of this.labels.shipments) {
       JsBarcode('#barCode' + s.mailId, 'SGP' + s.mailId, {
         // lineColor: '#ff759e',
@@ -146,11 +151,13 @@ export default {
 
     console.log(this.htmlPage.getElementsByClassName('page').length)
 
-    function addPageToPdf(pages, index = 0) {
+    function addPageToPdf(pages, generatedPdf, index = 0) {
       if (pages.length == 0) {
-        // labelPdf.save('labels.pdf')
         labelPdf.deletePage(index + 1)
-        window.open(labelPdf.output('bloburl'))
+        // window.open(labelPdf.output('bloburl'))
+        generatedPdf = labelPdf.output('datauristring')
+
+        document.getElementById('pdfViewer').src = generatedPdf
         return
       }
 
@@ -164,13 +171,15 @@ export default {
         y: labelPdf.internal.pageSize.getHeight() * index + margin,
         callback(labelPdf) {
           labelPdf.addPage()
-          addPageToPdf(pages.slice(1), ++index)
+          addPageToPdf(pages.slice(1), generatedPdf, ++index)
         },
         html2canvas: { scale: scale, letterRendering: true },
       })
     }
 
-    addPageToPdf(Array.from(this.htmlPage.getElementsByClassName('page')))
+    let pagesArr = Array.from(this.htmlPage.getElementsByClassName('page'))
+
+    addPageToPdf(pagesArr, this.generatedPdf)
   },
   methods: {
     getCountryName(countryCode) {
