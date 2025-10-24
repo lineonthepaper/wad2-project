@@ -2,12 +2,12 @@
   <div class="container-fluid">
     <div class="row py-2">
       <iframe
-        style="width: 100vw; height: 100vw"
+        style="width: 100vw; height: 75vh"
         type="application/pdf"
         id="pdfViewer"
         src="about:blank"
       ></iframe>
-      <div ref="view" class="col"></div>
+      <div ref="view" class="col overflow-hidden" style="height: 0"></div>
     </div>
   </div>
 </template>
