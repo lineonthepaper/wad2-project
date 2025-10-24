@@ -46,7 +46,7 @@
             </div>
             <div class="stat-chart">
               <div class="mini-chart">
-                <div class="chart-bar" v-for="(point, index) in stat.chartData" :key="index" 
+                <div class="chart-bar" v-for="(point, index) in stat.chartData" :key="index"
                      :style="{ height: point + '%' }"></div>
               </div>
             </div>
@@ -83,7 +83,7 @@
                   <p>Initializing 3D Globe...</p>
                 </div>
               </div>
-              
+
               <div v-if="selectedParcel" class="selected-parcel-info">
                 <div class="parcel-header">
                   <h4>Active Tracking: {{ selectedParcel.trackingId }}</h4>
@@ -131,10 +131,10 @@
             </div>
             <div class="card-body">
               <div class="parcels-list">
-                <div 
-                  v-for="parcel in filteredParcels" 
+                <div
+                  v-for="parcel in filteredParcels"
                   :key="parcel.id"
-                  class="parcel-item" 
+                  class="parcel-item"
                   :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
                   @click="showParcelRoute(parcel)"
                 >
@@ -177,7 +177,7 @@
       </section>
 
       <!-- Quick Actions & Notifications -->
-      <section class="bottom-section">
+     <section class="bottom-section">
         <div class="section-column actions-column">
           <div class="section-card">
             <div class="card-header">
@@ -185,21 +185,21 @@
             </div>
             <div class="card-body">
               <div class="actions-grid">
-                <button class="action-btn">
-                  <i class="fas fa-plus"></i>
+                <button class="action-btn" @click="navigateToCreateShipment">
+                  <i class="fas fa-plus-circle"></i>
                   <span>New Shipment</span>
                 </button>
-                <button class="action-btn">
-                  <i class="fas fa-download"></i>
-                  <span>Export Data</span>
+                <button class="action-btn" @click="navigateToFAQ">
+                  <i class="fas fa-question-circle"></i>
+                  <span>FAQ</span>
                 </button>
-                <button class="action-btn">
-                  <i class="fas fa-bell"></i>
-                  <span>Notifications</span>
+                <button class="action-btn" @click="navigateToHelp">
+                  <i class="fas fa-life-ring"></i>
+                  <span>Help</span>
                 </button>
-                <button class="action-btn">
-                  <i class="fas fa-cog"></i>
-                  <span>Settings</span>
+                <button class="action-btn" @click="navigateToLogin">
+                  <i class="fas fa-sign-in-alt"></i>
+                  <span>Login Page</span>
                 </button>
               </div>
             </div>
@@ -332,7 +332,7 @@ export default {
     filteredParcels() {
       if (!this.searchQuery) return this.parcels;
       const query = this.searchQuery.toLowerCase();
-      return this.parcels.filter(parcel => 
+      return this.parcels.filter(parcel =>
         parcel.trackingId.toLowerCase().includes(query) ||
         parcel.customer.toLowerCase().includes(query) ||
         this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query)
@@ -391,7 +391,27 @@ export default {
       }, 100);
     });
   },
-  methods: {
+   methods: {
+    // Navigation Methods
+    navigateToCreateShipment() {
+      this.$router.push('/shipment');
+      console.log('Navigating to Create Shipment page');
+    },
+
+    navigateToFAQ() {
+      this.$router.push('/faq');
+      console.log('Navigating to FAQ page');
+    },
+
+    navigateToHelp() {
+      this.$router.push('/help');
+      console.log('Navigating to Help page');
+    },
+
+    navigateToLogin() {
+      this.$router.push('/login');
+      console.log('Navigating to Login page');
+    },
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -622,10 +642,21 @@ export default {
 /* Import Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
+/* Pink Color Palette */
+:root {
+  --hot-pink: #ff4275;
+  --dark-pink: #ff759e;
+  --pink: #ff9096;
+  --dark-slate-blue: #455a64;
+  --slate-blue: #8796b3;
+  --light-pink: #ffe8ee;
+  --pink-grey: #f1d9df;
+}
+
 /* Base Styles */
 .dashboard-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -635,11 +666,11 @@ export default {
 }
 
 .header-background {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   color: white;
   padding: 2rem;
   border-radius: 0 0 20px 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(255, 66, 117, 0.3);
 }
 
 .header-content {
@@ -737,19 +768,19 @@ export default {
 }
 
 .stat-card.stat-in-progress {
-  border-left-color: #ffa500;
+  border-left-color: var(--hot-pink);
 }
 
 .stat-card.stat-delivered {
-  border-left-color: #28a745;
+  border-left-color: var(--pink);
 }
 
 .stat-card.stat-pending {
-  border-left-color: #dc3545;
+  border-left-color: var(--dark-pink);
 }
 
 .stat-card.stat-total {
-  border-left-color: #667eea;
+  border-left-color: var(--slate-blue);
 }
 
 .stat-content {
@@ -771,19 +802,19 @@ export default {
 }
 
 .stat-in-progress .stat-icon {
-  background: linear-gradient(135deg, #ffa500, #ff8c00);
+  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
 }
 
 .stat-delivered .stat-icon {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, var(--pink), var(--dark-pink));
 }
 
 .stat-pending .stat-icon {
-  background: linear-gradient(135deg, #dc3545, #e83e8c);
+  background: linear-gradient(135deg, var(--dark-pink), var(--hot-pink));
 }
 
 .stat-total .stat-icon {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
 }
 
 .stat-data {
@@ -792,7 +823,7 @@ export default {
 
 .stat-title {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--dark-slate-blue);
   margin: 0 0 0.3rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -802,7 +833,7 @@ export default {
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.3rem;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
 }
 
 .stat-trend {
@@ -814,11 +845,11 @@ export default {
 }
 
 .stat-trend.up {
-  color: #28a745;
+  color: var(--hot-pink);
 }
 
 .stat-trend.down {
-  color: #dc3545;
+  color: var(--dark-pink);
 }
 
 .stat-chart {
@@ -834,7 +865,7 @@ export default {
 
 .chart-bar {
   flex: 1;
-  background: linear-gradient(to top, #667eea, #764ba2);
+  background: linear-gradient(to top, var(--hot-pink), var(--dark-pink));
   border-radius: 2px;
   min-height: 2px;
 }
@@ -867,13 +898,15 @@ export default {
   align-items: center;
   padding: 1.5rem 1.5rem 0;
   margin-bottom: 1rem;
+  background: var(--light-pink);
+  border-bottom: 1px solid var(--pink-grey);
 }
 
 .card-header h3 {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -890,8 +923,8 @@ export default {
   height: 36px;
   border: none;
   border-radius: 8px;
-  background: #f8f9fa;
-  color: #666;
+  background: white;
+  color: var(--hot-pink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -900,7 +933,7 @@ export default {
 }
 
 .btn-icon:hover {
-  background: #667eea;
+  background: var(--hot-pink);
   color: white;
   transform: scale(1.05);
 }
@@ -914,21 +947,22 @@ export default {
 .search-box i {
   position: absolute;
   left: 10px;
-  color: #999;
+  color: var(--slate-blue);
 }
 
 .search-box input {
   padding: 0.5rem 0.5rem 0.5rem 2rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--pink-grey);
   border-radius: 8px;
   font-size: 0.9rem;
   width: 180px;
   transition: border-color 0.3s ease;
+  background: var(--light-pink);
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--hot-pink);
 }
 
 .card-body {
@@ -943,7 +977,7 @@ export default {
   width: 100%;
   height: 400px;
   border-radius: 12px;
-  background: #000011;
+  background: var(--dark-slate-blue);
   position: relative;
   overflow: hidden;
   margin-bottom: 1rem;
@@ -955,23 +989,23 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #666;
+  color: white;
   font-size: 1.1rem;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border: 4px solid var(--light-pink);
+  border-top: 4px solid var(--hot-pink);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
 .globe-error {
-  color: #e74c3c;
-  background: #ffeaea;
+  color: white;
+  background: var(--dark-pink);
   padding: 2rem;
   text-align: center;
 }
@@ -979,11 +1013,10 @@ export default {
 .error-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #e74c3c;
 }
 
 .btn-retry {
-  background: #667eea;
+  background: var(--hot-pink);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -994,12 +1027,12 @@ export default {
 }
 
 .btn-retry:hover {
-  background: #5a6fd8;
+  background: var(--dark-pink);
 }
 
 /* Selected Parcel Info */
 .selected-parcel-info {
-  background: #f8f9fa;
+  background: var(--light-pink);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -1014,7 +1047,7 @@ export default {
 .parcel-header h4 {
   margin: 0;
   font-size: 1.1rem;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
 }
 
 .route-progress {
@@ -1026,12 +1059,12 @@ export default {
   justify-content: space-between;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--slate-blue);
 }
 
 .progress-percent {
   font-weight: 600;
-  color: #667eea;
+  color: var(--hot-pink);
 }
 
 .progress-track {
@@ -1040,7 +1073,7 @@ export default {
 
 .progress-bar {
   height: 8px;
-  background: #e9ecef;
+  background: var(--pink-grey);
   border-radius: 4px;
   overflow: hidden;
   position: relative;
@@ -1048,7 +1081,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #28a745, #17a2b8, #667eea);
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink), var(--dark-pink));
   transition: width 0.5s ease;
 }
 
@@ -1059,25 +1092,26 @@ export default {
   width: 20px;
   height: 20px;
   background: white;
-  border: 2px solid #667eea;
+  border: 2px solid var(--hot-pink);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
-  color: #667eea;
+  color: var(--hot-pink);
 }
 
 .no-selection {
   text-align: center;
   padding: 3rem 1rem;
-  color: #999;
+  color: var(--slate-blue);
 }
 
 .no-selection i {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
+  color: var(--pink);
 }
 
 .no-selection p {
@@ -1098,26 +1132,26 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pink-grey);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .parcel-item:hover {
-  border-color: #667eea;
+  border-color: var(--hot-pink);
   transform: translateX(5px);
 }
 
 .parcel-item.active {
-  border-color: #667eea;
-  background: #f0f4ff;
+  border-color: var(--hot-pink);
+  background: var(--light-pink);
 }
 
 .parcel-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -1140,7 +1174,7 @@ export default {
 .tracking-id {
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
   margin: 0;
 }
 
@@ -1156,12 +1190,12 @@ export default {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--slate-blue);
 }
 
 .info-item i {
   width: 12px;
-  color: #667eea;
+  color: var(--hot-pink);
 }
 
 .parcel-progress {
@@ -1173,21 +1207,21 @@ export default {
 .progress-mini {
   flex: 1;
   height: 4px;
-  background: #e9ecef;
+  background: var(--pink-grey);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .progress-fill-mini {
   height: 100%;
-  background: linear-gradient(90deg, #17a2b8, #667eea);
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
   transition: width 0.5s ease;
 }
 
 .progress-text {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #667eea;
+  color: var(--hot-pink);
   min-width: 35px;
 }
 
@@ -1202,18 +1236,18 @@ export default {
 }
 
 .status-in-progress {
-  background: #fff3cd;
-  color: #856404;
+  background: var(--light-pink);
+  color: var(--hot-pink);
 }
 
 .status-delivered {
-  background: #d1ecf1;
-  color: #0c5460;
+  background: var(--pink-grey);
+  color: var(--pink);
 }
 
 .status-pending {
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--pink-grey);
+  color: var(--dark-pink);
 }
 
 /* Bottom Section */
@@ -1235,19 +1269,19 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pink-grey);
   border-radius: 12px;
   background: white;
-  color: #666;
+  color: var(--slate-blue);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--hot-pink);
+  color: var(--hot-pink);
   transform: translateY(-3px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.2);
 }
 
 .action-btn i {
@@ -1270,13 +1304,13 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pink-grey);
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .notification-item:hover {
-  border-color: #667eea;
+  border-color: var(--hot-pink);
   transform: translateX(5px);
 }
 
@@ -1291,18 +1325,18 @@ export default {
 }
 
 .notification-icon.success {
-  background: #d1ecf1;
-  color: #0c5460;
+  background: var(--light-pink);
+  color: var(--hot-pink);
 }
 
 .notification-icon.info {
-  background: #d1e7ff;
-  color: #0d6efd;
+  background: var(--pink-grey);
+  color: var(--pink);
 }
 
 .notification-icon.warning {
-  background: #fff3cd;
-  color: #856404;
+  background: var(--pink-grey);
+  color: var(--dark-pink);
 }
 
 .notification-content {
@@ -1312,12 +1346,12 @@ export default {
 .notification-text {
   margin: 0 0 0.3rem;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: var(--dark-slate-blue);
 }
 
 .notification-time {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--slate-blue);
 }
 
 /* Animations */
@@ -1337,7 +1371,7 @@ export default {
   .tracking-section {
     grid-template-columns: 1fr;
   }
-  
+
   .bottom-section {
     grid-template-columns: 1fr;
   }
@@ -1349,25 +1383,25 @@ export default {
     text-align: center;
     gap: 1.5rem;
   }
-  
+
   .header-stats {
     justify-content: center;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .actions-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .card-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
-  
+
   .search-box input {
     width: 100%;
   }
