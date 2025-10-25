@@ -1,232 +1,253 @@
 <template>
-  <div class="dashboard-wrapper">
-    <!-- Header -->
-    <div class="dashboard-header">
-      <div class="header-background">
-        <div class="header-content">
-          <div class="header-text">
-            <h1 class="dashboard-title">
-              <span class="title-main">Parcel Tracking</span>
-              <span class="title-sub">Dashboard</span>
-            </h1>
-            <p class="welcome-message">Welcome back, <strong>Alex Johnson</strong>! Track your shipments in real-time.</p>
-          </div>
-          <div class="header-stats">
-            <div class="header-stat">
-              <span class="stat-value">{{ totalShipments }}</span>
-              <span class="stat-label">Total Shipments</span>
+  <div>
+    <!-- Show dashboard only when authenticated -->
+    <div class="dashboard-wrapper" v-if="isAuthenticated">
+      <!-- Header -->
+      <div class="dashboard-header">
+        <div class="header-background">
+          <div class="header-content">
+            <div class="header-text">
+              <h1 class="dashboard-title">
+                <span class="title-main">Parcel Tracking</span>
+                <span class="title-sub">Dashboard</span>
+              </h1>
+              <p class="welcome-message">Welcome back, <strong>{{user.email}}</strong>! Track your shipments in real-time.</p>
             </div>
-            <div class="header-stat">
-              <span class="stat-value">{{ stats.inProgress }}</span>
-              <span class="stat-label">In Transit</span>
+            <div class="header-stats">
+              <div class="header-stat">
+                <span class="stat-value">{{ totalShipments }}</span>
+                <span class="stat-label">Total Shipments</span>
+              </div>
+              <div class="header-stat">
+                <span class="stat-value">{{ stats.inProgress }}</span>
+                <span class="stat-label">In Transit</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Stats Overview -->
+        <section class="stats-overview">
+          <div class="stats-grid">
+            <div class="stat-card" :class="`stat-${stat.key}`" v-for="stat in enhancedStats" :key="stat.key">
+              <div class="stat-content">
+                <div class="stat-icon">
+                  <i :class="stat.icon"></i>
+                </div>
+                <div class="stat-data">
+                  <h3 class="stat-title">{{ stat.title }}</h3>
+                  <p class="stat-number">{{ stat.value }}</p>
+                  <div class="stat-trend" :class="stat.trend">
+                    <i :class="stat.trendIcon"></i>
+                    <span>{{ stat.trendValue }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-chart">
+                <div class="mini-chart">
+                  <div class="chart-bar" v-for="(point, index) in stat.chartData" :key="index"
+                       :style="{ height: point + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Globe and Tracking -->
+        <section class="tracking-section">
+          <div class="section-column globe-column">
+            <div class="section-card">
+              <div class="card-header">
+                <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
+                <div class="card-actions">
+                  <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
+                    <i class="fas fa-sync-alt"></i>
+                  </button>
+                  <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div ref="globeContainer" class="globe-container">
+                  <div v-if="globeError" class="globe-error">
+                    <div class="error-icon">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <p>Failed to load globe visualization</p>
+                    <button class="btn-retry" @click="forceReinit">Retry</button>
+                  </div>
+                  <div v-else-if="!globeInitialized" class="globe-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Initializing 3D Globe...</p>
+                  </div>
+                </div>
+
+                <div v-if="selectedParcel" class="selected-parcel-info">
+                  <div class="parcel-header">
+                    <h4>Active Tracking: {{ selectedParcel.trackingId }}</h4>
+                    <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
+                      {{ selectedParcel.status }}
+                    </span>
+                  </div>
+                  <div class="route-progress">
+                    <div class="progress-labels">
+                      <span class="progress-label">{{ getLocationName(selectedParcel.location) }}</span>
+                      <span class="progress-percent">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
+                      <span class="progress-label">{{ getLocationName(selectedParcel.destination) }}</span>
+                    </div>
+                    <div class="progress-track">
+                      <div class="progress-bar">
+                        <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
+                        <div class="progress-marker" :style="{ left: calculateProgress(selectedParcel) + '%' }">
+                          <i class="fas fa-shipping-fast"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="no-selection">
+                  <i class="fas fa-mouse-pointer"></i>
+                  <p>Select a shipment from the list to view its route</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-column parcels-column">
+            <div class="section-card">
+              <div class="card-header">
+                <h3><i class="fas fa-boxes"></i> Recent Shipments</h3>
+                <div class="card-actions">
+                  <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search shipments..." v-model="searchQuery">
+                  </div>
+                  <button class="btn-icon" title="Filter">
+                    <i class="fas fa-filter"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="parcels-list">
+                  <div
+                    v-for="parcel in filteredParcels"
+                    :key="parcel.id"
+                    class="parcel-item"
+                    :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
+                    @click="showParcelRoute(parcel)"
+                  >
+                    <div class="parcel-icon">
+                      <i class="fas fa-box"></i>
+                    </div>
+                    <div class="parcel-details">
+                      <div class="parcel-header">
+                        <h4 class="tracking-id">{{ parcel.trackingId }}</h4>
+                        <span class="status-badge" :class="`status-${parcel.status.toLowerCase().replace(' ', '-')}`">
+                          {{ parcel.status }}
+                        </span>
+                      </div>
+                      <div class="parcel-info">
+                        <div class="info-item">
+                          <i class="fas fa-user"></i>
+                          <span>{{ parcel.customer }}</span>
+                        </div>
+                        <div class="info-item">
+                          <i class="fas fa-map-marker-alt"></i>
+                          <span>{{ getLocationName(parcel.currentLocation || parcel.location) }}</span>
+                        </div>
+                        <div class="info-item">
+                          <i class="fas fa-calendar-alt"></i>
+                          <span>{{ formatDate(parcel.expectedDelivery) }}</span>
+                        </div>
+                      </div>
+                      <div v-if="parcel.status === 'In Progress'" class="parcel-progress">
+                        <div class="progress-mini">
+                          <div class="progress-fill-mini" :style="{ width: calculateProgress(parcel) + '%' }"></div>
+                        </div>
+                        <span class="progress-text">{{ Math.round(calculateProgress(parcel)) }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Actions & Notifications -->
+        <section class="bottom-section">
+          <div class="section-column actions-column">
+            <div class="section-card">
+              <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+              </div>
+              <div class="card-body">
+                <div class="actions-grid">
+                  <button class="action-btn" @click="navigateToCreateShipment">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>New Shipment</span>
+                  </button>
+                  <button class="action-btn" @click="navigateToFAQ">
+                    <i class="fas fa-question-circle"></i>
+                    <span>FAQ</span>
+                  </button>
+                  <button class="action-btn" @click="navigateToHelp">
+                    <i class="fas fa-life-ring"></i>
+                    <span>Help</span>
+                  </button>
+                  <button class="action-btn" @click="navigateToSettings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-column notifications-column">
+            <div class="section-card">
+              <div class="card-header">
+                <h3><i class="fas fa-bell"></i> Recent Activity</h3>
+              </div>
+              <div class="card-body">
+                <div class="notifications-list">
+                  <div class="notification-item" v-for="notification in notifications" :key="notification.id">
+                    <div class="notification-icon" :class="notification.type">
+                      <i :class="notification.icon"></i>
+                    </div>
+                    <div class="notification-content">
+                      <p class="notification-text">{{ notification.message }}</p>
+                      <span class="notification-time">{{ notification.time }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Stats Overview -->
-      <section class="stats-overview">
-        <div class="stats-grid">
-          <div class="stat-card" :class="`stat-${stat.key}`" v-for="stat in enhancedStats" :key="stat.key">
-            <div class="stat-content">
-              <div class="stat-icon">
-                <i :class="stat.icon"></i>
-              </div>
-              <div class="stat-data">
-                <h3 class="stat-title">{{ stat.title }}</h3>
-                <p class="stat-number">{{ stat.value }}</p>
-                <div class="stat-trend" :class="stat.trend">
-                  <i :class="stat.trendIcon"></i>
-                  <span>{{ stat.trendValue }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="stat-chart">
-              <div class="mini-chart">
-                <div class="chart-bar" v-for="(point, index) in stat.chartData" :key="index"
-                     :style="{ height: point + '%' }"></div>
-              </div>
-            </div>
-          </div>
+    <!-- Show login prompt when not authenticated -->
+    <div v-else class="login-required">
+      <div class="login-message">
+        <div class="message-icon">
+          <i class="fas fa-lock"></i>
         </div>
-      </section>
-
-      <!-- Globe and Tracking -->
-      <section class="tracking-section">
-        <div class="section-column globe-column">
-          <div class="section-card">
-            <div class="card-header">
-              <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
-              <div class="card-actions">
-                <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
-                  <i class="fas fa-sync-alt"></i>
-                </button>
-                <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-            <div class="card-body">
-              <div ref="globeContainer" class="globe-container">
-                <div v-if="globeError" class="globe-error">
-                  <div class="error-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                  </div>
-                  <p>Failed to load globe visualization</p>
-                  <button class="btn-retry" @click="forceReinit">Retry</button>
-                </div>
-                <div v-else-if="!globeInitialized" class="globe-loading">
-                  <div class="loading-spinner"></div>
-                  <p>Initializing 3D Globe...</p>
-                </div>
-              </div>
-
-              <div v-if="selectedParcel" class="selected-parcel-info">
-                <div class="parcel-header">
-                  <h4>Active Tracking: {{ selectedParcel.trackingId }}</h4>
-                  <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
-                    {{ selectedParcel.status }}
-                  </span>
-                </div>
-                <div class="route-progress">
-                  <div class="progress-labels">
-                    <span class="progress-label">{{ getLocationName(selectedParcel.location) }}</span>
-                    <span class="progress-percent">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
-                    <span class="progress-label">{{ getLocationName(selectedParcel.destination) }}</span>
-                  </div>
-                  <div class="progress-track">
-                    <div class="progress-bar">
-                      <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
-                      <div class="progress-marker" :style="{ left: calculateProgress(selectedParcel) + '%' }">
-                        <i class="fas fa-shipping-fast"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="no-selection">
-                <i class="fas fa-mouse-pointer"></i>
-                <p>Select a shipment from the list to view its route</p>
-              </div>
-            </div>
-          </div>
+        <h2>Authentication Required</h2>
+        <p>Please log in to access your parcel tracking dashboard</p>
+        <div class="action-buttons">
+          <button @click="redirectToLogin" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i>
+            Go to Login
+          </button>
+      
         </div>
-
-        <div class="section-column parcels-column">
-          <div class="section-card">
-            <div class="card-header">
-              <h3><i class="fas fa-boxes"></i> Recent Shipments</h3>
-              <div class="card-actions">
-                <div class="search-box">
-                  <i class="fas fa-search"></i>
-                  <input type="text" placeholder="Search shipments..." v-model="searchQuery">
-                </div>
-                <button class="btn-icon" title="Filter">
-                  <i class="fas fa-filter"></i>
-                </button>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="parcels-list">
-                <div
-                  v-for="parcel in filteredParcels"
-                  :key="parcel.id"
-                  class="parcel-item"
-                  :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
-                  @click="showParcelRoute(parcel)"
-                >
-                  <div class="parcel-icon">
-                    <i class="fas fa-box"></i>
-                  </div>
-                  <div class="parcel-details">
-                    <div class="parcel-header">
-                      <h4 class="tracking-id">{{ parcel.trackingId }}</h4>
-                      <span class="status-badge" :class="`status-${parcel.status.toLowerCase().replace(' ', '-')}`">
-                        {{ parcel.status }}
-                      </span>
-                    </div>
-                    <div class="parcel-info">
-                      <div class="info-item">
-                        <i class="fas fa-user"></i>
-                        <span>{{ parcel.customer }}</span>
-                      </div>
-                      <div class="info-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>{{ getLocationName(parcel.currentLocation || parcel.location) }}</span>
-                      </div>
-                      <div class="info-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>{{ formatDate(parcel.expectedDelivery) }}</span>
-                      </div>
-                    </div>
-                    <div v-if="parcel.status === 'In Progress'" class="parcel-progress">
-                      <div class="progress-mini">
-                        <div class="progress-fill-mini" :style="{ width: calculateProgress(parcel) + '%' }"></div>
-                      </div>
-                      <span class="progress-text">{{ Math.round(calculateProgress(parcel)) }}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Quick Actions & Notifications -->
-     <section class="bottom-section">
-        <div class="section-column actions-column">
-          <div class="section-card">
-            <div class="card-header">
-              <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
-            </div>
-            <div class="card-body">
-              <div class="actions-grid">
-                <button class="action-btn" @click="navigateToCreateShipment">
-                  <i class="fas fa-plus-circle"></i>
-                  <span>New Shipment</span>
-                </button>
-                <button class="action-btn" @click="navigateToFAQ">
-                  <i class="fas fa-question-circle"></i>
-                  <span>FAQ</span>
-                </button>
-                <button class="action-btn" @click="navigateToHelp">
-                  <i class="fas fa-life-ring"></i>
-                  <span>Help</span>
-                </button>
-                <button class="action-btn" @click="navigateToLogin">
-                  <i class="fas fa-sign-in-alt"></i>
-                  <span>Login Page</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-column notifications-column">
-          <div class="section-card">
-            <div class="card-header">
-              <h3><i class="fas fa-bell"></i> Recent Activity</h3>
-            </div>
-            <div class="card-body">
-              <div class="notifications-list">
-                <div class="notification-item" v-for="notification in notifications" :key="notification.id">
-                  <div class="notification-icon" :class="notification.type">
-                    <i :class="notification.icon"></i>
-                  </div>
-                  <div class="notification-content">
-                    <p class="notification-text">{{ notification.message }}</p>
-                    <span class="notification-time">{{ notification.time }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   </div>
 </template>
@@ -238,6 +259,10 @@ export default {
   name: "EnhancedParcelDashboard",
   data() {
     return {
+      isAuthenticated: false,
+      user: {
+        email: ''
+      },
       searchQuery: '',
       selectedParcel: null,
       globeInitialized: false,
@@ -384,34 +409,95 @@ export default {
     }
   },
   mounted() {
-    console.log('Component mounted, initializing globe...');
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.initGlobe();
-      }, 100);
-    });
+    this.checkAuthentication();
+    if (this.isAuthenticated) {
+      this.initializeDashboard();
+    }
+
+    // Listen for login status changes
+    window.addEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
-   methods: {
+  beforeUnmount() {
+    // Clean up event listener
+    window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
+  },
+  methods: {
+    checkAuthentication() {
+      const userData = sessionStorage.getItem('currentUser');
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          this.user.email = user.email || user.display_name || 'User';
+          this.isAuthenticated = true;
+          console.log('User authenticated:', this.user.email);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          this.isAuthenticated = false;
+        }
+      } else {
+        this.isAuthenticated = false;
+        console.log('No user data found in sessionStorage');
+      }
+    },
+
+    handleLoginStatusChange() {
+      console.log('Login status changed, rechecking authentication...');
+      this.checkAuthentication();
+      if (this.isAuthenticated) {
+        this.initializeDashboard();
+      }
+    },
+
+    initializeDashboard() {
+      console.log('Initializing dashboard for authenticated user...');
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.initGlobe();
+        }, 100);
+      });
+    },
+
+    redirectToLogin() {
+      // Redirect to login page
+      window.location.href = '/login';
+    },
+
     // Navigation Methods
     navigateToCreateShipment() {
-      this.$router.push('/shipment');
-      console.log('Navigating to Create Shipment page');
+      if (!this.isAuthenticated) {
+        alert('Please log in to create a shipment');
+        this.redirectToLogin();
+        return;
+      }
+      // Redirect to shipment page
+      window.location.href = '/shipment';
     },
 
     navigateToFAQ() {
-      this.$router.push('/faq');
-      console.log('Navigating to FAQ page');
+      if (!this.isAuthenticated) {
+        this.redirectToLogin();
+        return;
+      }
+      window.location.href = '/faq';
     },
 
     navigateToHelp() {
-      this.$router.push('/help');
-      console.log('Navigating to Help page');
+      if (!this.isAuthenticated) {
+        this.redirectToLogin();
+        return;
+      }
+      window.location.href = '/help';
     },
 
-    navigateToLogin() {
-      this.$router.push('/login');
-      console.log('Navigating to Login page');
+    navigateToSettings() {
+      if (!this.isAuthenticated) {
+        this.redirectToLogin();
+        return;
+      }
+      // You can implement settings navigation here
+      alert('Settings page would open here');
     },
+
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -1354,6 +1440,86 @@ export default {
   color: var(--slate-blue);
 }
 
+/* Login Required Styles */
+.login-required {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-message {
+  text-align: center;
+  background: white;
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(255, 66, 117, 0.2);
+  max-width: 400px;
+  width: 90%;
+}
+
+.message-icon {
+  font-size: 4rem;
+  color: var(--hot-pink);
+  margin-bottom: 1.5rem;
+}
+
+.login-message h2 {
+  color: var(--dark-slate-blue);
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.login-message p {
+  color: var(--slate-blue);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: var(--hot-pink);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--dark-pink);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: var(--light-pink);
+  color: var(--hot-pink);
+  border: 1px solid var(--hot-pink);
+}
+
+.btn-secondary:hover {
+  background: var(--hot-pink);
+  color: white;
+}
+
 /* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
@@ -1404,6 +1570,20 @@ export default {
 
   .search-box input {
     width: 100%;
+  }
+
+  /* Responsive design for login message */
+  .login-message {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    justify-content: center;
   }
 }
 </style>
