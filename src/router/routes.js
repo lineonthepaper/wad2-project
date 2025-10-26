@@ -10,24 +10,23 @@ import SignUpView from '@/views/SignUpView.vue'
 import ServicesView from '../views/ServicesView.vue'
 import ServiceDetail from '../views/ServiceDetail.vue'
 import customerDB from '../views/customerDB.vue'
-import DashboardView from '../views/DashboardView.vue'   // <-- new import
-
-
+import DashboardView from '../views/DashboardView.vue' // <-- new import
+import ConfirmationView from '@/views/ConfirmationView.vue'
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
   { path: '/faq', name: 'faq', title: 'FAQ', component: FAQView },
   { path: '/services', name: 'services', title: 'Our services', component: ServicesView },
   { path: '/shipment', name: 'shipment', title: 'Shipment', component: ShipmentView },
-  { path: '/login', name: 'login', title: 'Login', component: LoginView },    // single /login route
+  { path: '/login', name: 'login', title: 'Login', component: LoginView }, // single /login route
   { path: '/cart', name: 'cart', title: 'Cart', component: CartView },
   { path: '/help', name: 'help', title: 'Help', component: HelpView },
   { path: '/signup', name: 'signup', title: 'Sign Up', component: SignUpView }, // named signup
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
   { path: '/CDB', component: customerDB },
-  { path: '/dashboard', name: 'dashboard', title: 'Dashboard', component: DashboardView } 
+  { path: '/dashboard', name: 'dashboard', title: 'Dashboard', component: DashboardView },
+  { path: '/confirmation', name: 'confirmation', title: 'Confirmed!', component: ConfirmationView },
 ]
-
 
 const router = createRouter({
   history: createWebHistory(),

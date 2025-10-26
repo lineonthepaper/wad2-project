@@ -29,6 +29,7 @@
             <th>Declared Value</th>
             <th>Item Weight</th>
             <th>Item Quantity</th>
+            <th>HS Code</th>
           </tr>
         </thead>
         <tbody>
@@ -131,7 +132,7 @@ export default {
 </script>
 
 <style scoped>
-@media screen and (max-width: 510px) {
+@media screen and (max-width: 540px) {
   .table {
     transform: scale(0.8);
   }
@@ -143,9 +144,15 @@ export default {
   }
 }
 
-@media screen and (max-width: 320px) {
+@media screen and (max-width: 400px) {
   .table {
-    transform: scale(0.55);
+    transform: scale(0.6);
+  }
+}
+
+@media screen and (max-width: 340px) {
+  .table {
+    transform: scale(0.5);
   }
 }
 </style>

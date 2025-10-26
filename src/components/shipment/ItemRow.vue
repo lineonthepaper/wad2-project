@@ -71,6 +71,18 @@
         @keypress="blockNonNumericInput($event)"
       />
     </td>
+
+    <!-- HS Code -->
+    <td>
+      <input
+        type="text"
+        class="form-control form-control-lg"
+        style="max-width: 5em"
+        v-model="inputs[5].input"
+        @change="updateItemRow(rowId, inputs[5].name, inputs[5].input)"
+        placeholder="opt."
+      />
+    </td>
   </tr>
 </template>
 
@@ -125,12 +137,14 @@ export default {
     let itemValue = null
     let itemWeight = null
     let itemQuantity = null
+    let hsCode = null
     const inputs = ref([
       { name: 'itemDescription', input: itemDescription },
       { name: 'itemCurrency', input: itemCurrency },
       { name: 'itemValue', input: itemValue },
       { name: 'itemWeight', input: itemWeight },
       { name: 'itemQuantity', input: itemQuantity },
+      { name: 'hsCode', input: hsCode },
     ])
     return {
       inputs,

@@ -12,7 +12,7 @@
 
 | Request Method | Parameters                                                                                                                                                                                                                                                                                                                                                 | response.data returns                                   |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| POST           | method: addMail <br> customerEmail: <br> senderAddressId: <br> recipientAddressId: <br> mailItems: {array of mailItem arrays, with keys ["itemDescription", "declaredCurrency", "declaredValue", "itemWeight", "itemQuantity", "hsCode"]} <br> parcelLength: <br> parcelWidth: <br> parcelHeight: <br> service: {array with keys ["name", "type", "zone"]} | message                                                 |
+| POST           | method: addMail <br> customerEmail: <br> senderAddressId: <br> recipientAddressId: <br> mailItems: {array of mailItem arrays, with keys ["itemDescription", "declaredCurrency", "declaredValue", "itemWeight", "itemQuantity", "hsCode"]} <br> parcelLength: <br> parcelWidth: <br> parcelHeight: <br> service: {array with keys ["name", "type", "zone"]} | message, success <br> if successful: mailId             |
 | POST           | method: addMailStatus <br> mailId: <br> statusCode: <br> statusTimestamp: <br> statusDescription: <br> statusLocation:                                                                                                                                                                                                                                     | message                                                 |
 | POST           | method: getMailById <br> mailId:                                                                                                                                                                                                                                                                                                                           | message <br> if successful: mail object                 |
 | POST           | method: getAllMailByCustomerEmail <br> customerEmail:                                                                                                                                                                                                                                                                                                      | message <br> if successful: array of mail objects       |
@@ -30,10 +30,10 @@
 
 ## addresses.php
 
-| Request Method | Parameters                                                                                                                                                                                                                                 | response.data returns                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| POST           | method: addAddress <br> name: <br> email: <br> phone: <br> phoneCountryCode: <br> address: {array with keys ["addressLines", "postalCode", "countryCode"] where "addressLines" is an array with 3 values, one value for each address line} | message                                    |
-| POST           | method: getAddressById <br> addressId:                                                                                                                                                                                                     | message <br> if successful: address object |
+| Request Method | Parameters                                                                                                                                                                                                                                 | response.data returns                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| POST           | method: addAddress <br> name: <br> email: <br> phone: <br> phoneCountryCode: <br> address: {array with keys ["addressLines", "postalCode", "countryCode"] where "addressLines" is an array with 3 values, one value for each address line} | message, success <br> if successful: addressId |
+| POST           | method: getAddressById <br> addressId:                                                                                                                                                                                                     | message <br> if successful: address object     |
 
 # Classes
 
@@ -43,7 +43,7 @@ Constructor: bool $useServer = true
 
 ## Address
 
-Constructor: ?int $addressId, string $name, string $email, int $phone, string $phoneCountryCode, array $address
+Constructor: ?int $addressId, string $name, string $email, ?int $phone, ?string $phoneCountryCode, array $address
 
 Format of array $address:
 [
@@ -58,9 +58,9 @@ Methods:
 - getName(): int
 - getEmail(): string
 - getAddress(): array as above
-- getPhoneNumberString(): string
-- getPhone(): int
-- getPhoneCountryCode(): string
+- getPhoneNumberString(): ?string
+- getPhone(): ?int
+- getPhoneCountryCode(): ?string
 - setAddressId(int $addressId): void
 - jsonSerialize(): mixed
 
@@ -130,7 +130,7 @@ Constructor: bool $userServer = true
 
 Methods:
 
-- addAddress(Address $newAddress): bool
+- addAddress(Address $newAddress): mixed (int or bool)
 - addMail(Mail $newMail): bool
 - addMailStatus(MailStatus $newMailStatus): bool
 - getMailById(int $mailId): ?Mail

@@ -17,7 +17,7 @@ if ($method === "POST") {
     if ($method == "addAddress") {
         try {
             $mailDAO = new MailDAO($useServer);
-            $success = $mailDAO->addAddress(new Address(
+            $addressId = $mailDAO->addAddress(new Address(
                 null,
                 $payload["name"],
                 $payload["email"],
@@ -25,18 +25,21 @@ if ($method === "POST") {
                 $payload["phoneCountryCode"],
                 $payload["address"]
             ));
-            if ($success) {
-                echo json_encode(
-                    ["message" => "Address created successfully."]
-                );
+            if ($addressId !== false) {
+                $message = "Address created successfully.";
+                $success = true;
+                echo json_encode(["message" => $message, "success" => $success, "addressId" => $addressId]);
                 exit;
             } else {
-                echo json_encode(["message" => "Error in address creation."]);
+                $message = "Error in address creation.";
+                $success = false;
+                echo json_encode(["message" => $message, "success" => $success]);
                 exit;
             }
+            exit;
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Caught exception " . $e->getMessage()]);
+            echo json_encode(["message" => "Caught exception " . $e->getMessage(), "success" => false]);
             exit;
         }
     } elseif ($method == "getAddressById") {
