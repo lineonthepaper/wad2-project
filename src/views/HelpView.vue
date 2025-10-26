@@ -22,7 +22,7 @@
             <div class="d-flex">
               <i class="bi bi-info-circle-fill text-primary me-3 mt-1"></i>
               <p class="mb-0 fw-medium">
-                By accessing this website, you are deemed to have accepted these terms and conditions. 
+                By accessing this website, you are deemed to have accepted these terms and conditions.
                 We reserve the right to amend these terms and conditions from time to time.
               </p>
             </div>
@@ -34,7 +34,7 @@
     <div class="container py-4">
       <div class="row justify-content-center">
         <div class="col-12 col-lg-10 col-xl-8">
-          
+
           <div class="d-lg-none mb-4">
             <div class="card">
               <div class="card-header bg-light">
@@ -67,7 +67,7 @@
               </div>
             </div>
             <p class="terms-text">
-              By accessing and using the fluffy shipping website, you unconditionally accept and agree to be bound by these Terms of Use. 
+              By accessing and using the fluffy shipping website, you unconditionally accept and agree to be bound by these Terms of Use.
               If you disagree with any of these terms, you must immediately discontinue your access to this website and your use of the services offered.
             </p>
           </section>
@@ -86,12 +86,12 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="card border-0 bg-light mb-4">
               <div class="card-body">
                 <p class="terms-text mb-3">
-                  We use best efforts to ensure that all data handled by this website, including your data and information, 
-                  login process, and all transactions are subject to security measures as mandated by relevant authorities 
+                  We use best efforts to ensure that all data handled by this website, including your data and information,
+                  login process, and all transactions are subject to security measures as mandated by relevant authorities
                   and compliance standards such as PCI DSS.
                 </p>
                 <p class="terms-text mb-0 fst-italic">
@@ -146,7 +146,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="prohibited-actions">
               <h5 class="text-danger mb-3 text-center text-md-start">You must not:</h5>
               <div class="row g-3">
@@ -199,7 +199,7 @@
                   </div>
                   <div class="card-body text-center">
                     <p class="terms-text mb-0">
-                      You may not create a link to any page of this website without our prior written consent. 
+                      You may not create a link to any page of this website without our prior written consent.
                       Any links created are at your own risk.
                     </p>
                   </div>
@@ -213,7 +213,7 @@
                   </div>
                   <div class="card-body text-center">
                     <p class="terms-text mb-0">
-                      We do not monitor or review content of third-party websites linked from our site. 
+                      We do not monitor or review content of third-party websites linked from our site.
                       Access to such sites is at your own risk.
                     </p>
                   </div>
@@ -249,8 +249,8 @@
               <div class="mt-4">
                 <h5 class="fw-semibold mb-3 text-center text-md-start">General Disclaimer</h5>
                 <p class="terms-text">
-                  To the fullest extent permitted by applicable law, we disclaim all representations and warranties 
-                  relating to this website and its contents. We do not warrant that this website will always be 
+                  To the fullest extent permitted by applicable law, we disclaim all representations and warranties
+                  relating to this website and its contents. We do not warrant that this website will always be
                   accessible, uninterrupted, timely, secure, or error-free.
                 </p>
               </div>
@@ -261,7 +261,7 @@
                   <h6 class="text-danger fw-bold mb-0">LIMITATION OF LIABILITY</h6>
                 </div>
                 <p class="terms-text mb-0">
-                  WE SHALL NOT BE LIABLE for any direct, indirect, incidental, special, consequential or punitive damages 
+                  WE SHALL NOT BE LIABLE for any direct, indirect, incidental, special, consequential or punitive damages
                   resulting from or in connection with your use of this website.
                 </p>
               </div>
@@ -280,7 +280,7 @@
               </div>
             </div>
             <p class="terms-text">
-              All content on this website is protected by copyright laws and belongs to us and/or our suppliers. 
+              All content on this website is protected by copyright laws and belongs to us and/or our suppliers.
               No content may be copied, reproduced, or distributed without express permission.
             </p>
             <div class="row mt-3 g-3">
@@ -314,7 +314,7 @@
               <div class="card-body text-center">
                 <i class="bi bi-geo-alt-fill text-primary fs-1 mb-3 d-block"></i>
                 <p class="terms-text mb-0">
-                  These Terms of Use shall be governed by and construed in accordance with the laws of the Republic of Singapore. 
+                  These Terms of Use shall be governed by and construed in accordance with the laws of the Republic of Singapore.
                   You agree to submit to the exclusive jurisdiction of the courts of the Republic of Singapore.
                 </p>
               </div>
@@ -323,10 +323,10 @@
 
           <section class="text-center py-4 mt-4 border-top">
             <p class="text-muted mb-2">
-              &copy; 2025 Singapore Post Limited. All Rights Reserved.
+              &copy; 2025 WAD2 Project. All Rights Reserved.
             </p>
             <small class="text-muted">
-              ezy2ship is a registered trademark of Singapore Post Limited.
+              Fluffy Shipping is a registered trademark of WAD2 project.
             </small>
           </section>
 
@@ -528,15 +528,15 @@ export default {
     margin-bottom: 1rem;
     border-radius: 8px;
   }
-  
+
   .section-title {
     font-size: 1.25rem;
   }
-  
+
   .agreement-item {
     padding: 0.75rem;
   }
-  
+
   .prohibited-item {
     padding: 0.75rem;
     font-size: 0.9rem;
@@ -548,7 +548,7 @@ export default {
   .terms-section {
     padding: 1.25rem;
   }
-  
+
   .section-title {
     font-size: 1.3rem;
   }
@@ -573,13 +573,13 @@ export default {
   .terms-container {
     background: white;
   }
-  
+
   .terms-section {
     box-shadow: none;
     border: 1px solid #dee2e6;
     page-break-inside: avoid;
   }
-  
+
   .agreement-item, .prohibited-item {
     background: white !important;
     border: 1px solid #dee2e6 !important;
@@ -597,7 +597,7 @@ export default {
   .agreement-item, .prohibited-item {
     min-height: 60px;
   }
-  
+
   .btn, .form-select {
     min-height: 44px;
   }
