@@ -1,4 +1,16 @@
 <template>
+  <!-- Add the toggle button - moved to bottom right -->
+  <div class="mode-toggle-container">
+    <button 
+      class="btn mode-toggle-btn"
+      @click="cycleMode"
+      :title="`Current mode: ${modeLabels[currentMode]}. Click to switch to ${modeLabels[(currentMode + 1) % 3]}`"
+    >
+      <i class="bi" :class="modeIcons[currentMode]"></i>
+      <span class="mode-label">{{ modeLabels[currentMode] }}</span>
+    </button>
+  </div>
+
   <header>
       <hr />
       <div class="row bg-light-pink justify-content-center airplane-header">
@@ -9,7 +21,7 @@
       <hr />
   </header>
 
-  <div class="terms-container">
+  <div class="terms-container" :class="`mode-${currentMode}`">
     <section class="container py-4 py-lg-5 border-bottom">
       <div class="row justify-content-center">
         <div class="col-12 col-lg-10 col-xl-8">
@@ -339,6 +351,13 @@
 <script>
 export default {
   name: 'TermsAndConditions',
+  data() {
+    return {
+      currentMode: 0, // 0: original, 1: dark, 2: light perception
+      modeLabels: ['Original', 'Dark Mode', 'Light Perception'],
+      modeIcons: ['bi-palette', 'bi-moon', 'bi-eye']
+    }
+  },
   methods: {
     scrollToSection(event) {
       const sectionId = event.target.value;
@@ -351,6 +370,16 @@ export default {
           });
         }
       }
+    },
+    cycleMode() {
+      this.currentMode = (this.currentMode + 1) % 3;
+      this.applyMode();
+    },
+    applyMode() {
+      // Remove all mode classes first
+      document.body.classList.remove('mode-0', 'mode-1', 'mode-2');
+      // Add current mode class
+      document.body.classList.add(`mode-${this.currentMode}`);
     }
   },
   mounted() {
@@ -367,6 +396,9 @@ export default {
         }
       });
     });
+    
+    // Apply initial mode
+    this.applyMode();
   }
 }
 </script>
@@ -380,6 +412,305 @@ export default {
   --lighter-pink: #ffeef2;
 }
 
+/* Mode Toggle Button Styles - MOVED TO BOTTOM RIGHT */
+.mode-toggle-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px; /* Changed from left: 20px to right: 20px */
+  z-index: 1000;
+}
+
+.mode-toggle-btn {
+  background: var(--hot-pink);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 15px;
+  box-shadow: 0 4px 12px rgba(255, 66, 117, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.mode-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 66, 117, 0.4);
+  background: var(--dark-pink);
+  color: white;
+}
+
+.mode-label {
+  font-size: 0.9rem;
+}
+
+/* Original Mode (Mode 0) - Your existing styles */
+.terms-container.mode-0 {
+  background-color: var(--light-pink);
+  min-height: 100vh;
+}
+
+.terms-container.mode-0 .terms-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(255, 66, 117, 0.1);
+  border-left: 4px solid var(--pink);
+}
+
+.terms-container.mode-0 .section-title {
+  color: var(--hot-pink);
+}
+
+.terms-container.mode-0 .terms-text {
+  color: #495057;
+}
+
+.terms-container.mode-0 .agreement-item {
+  background: var(--light-pink);
+  border-left: 4px solid var(--dark-pink);
+}
+
+.terms-container.mode-0 .agreement-item:hover {
+  background: var(--lighter-pink);
+}
+
+.terms-container.mode-0 .prohibited-item {
+  background: #fff5f7;
+  border: 1px solid #ffe3e9;
+}
+
+.terms-container.mode-0 .card {
+  background: white;
+}
+
+.terms-container.mode-0 .alert-light {
+  background-color: #fff5f7;
+  border-color: var(--pink);
+}
+
+.terms-container.mode-0 .text-primary {
+  color: var(--hot-pink) !important;
+}
+
+.terms-container.mode-0 .text-muted {
+  color: #6c757d !important;
+}
+
+/* Dark Mode (Mode 1) */
+.terms-container.mode-1 {
+  background-color: #1a1a1a;
+  min-height: 100vh;
+  color: #e0e0e0;
+}
+
+.terms-container.mode-1 .terms-section {
+  background: #2d2d2d;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  border-left: 4px solid #555;
+}
+
+.terms-container.mode-1 .section-title {
+  color: #ffffff;
+}
+
+.terms-container.mode-1 .terms-text {
+  color: #b0b0b0;
+}
+
+.terms-container.mode-1 .agreement-item {
+  background: #3a3a3a;
+  border-left: 4px solid #666;
+  color: #e0e0e0;
+}
+
+.terms-container.mode-1 .agreement-item:hover {
+  background: #444;
+}
+
+.terms-container.mode-1 .prohibited-item {
+  background: #333;
+  border: 1px solid #555;
+  color: #e0e0e0;
+}
+
+.terms-container.mode-1 .card {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.terms-container.mode-1 .alert-light {
+  background: #333;
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+.terms-container.mode-1 .text-primary {
+  color: #ffffff !important;
+}
+
+.terms-container.mode-1 .text-muted {
+  color: #888 !important;
+}
+
+.terms-container.mode-1 .bg-light {
+  background-color: #333 !important;
+}
+
+.terms-container.mode-1 .border {
+  border-color: #444 !important;
+}
+
+.terms-container.mode-1 .border-bottom {
+  border-bottom-color: #444 !important;
+}
+
+.terms-container.mode-1 .border-top {
+  border-top-color: #444 !important;
+}
+
+.terms-container.mode-1 .card-header.bg-light {
+  background-color: #333 !important;
+}
+
+.terms-container.mode-1 .card.border-0.bg-light {
+  background-color: #333 !important;
+}
+
+.terms-container.mode-1 .alert-warning {
+  background-color: #332b00;
+  border-color: #665800;
+  color: #e0e0e0;
+}
+
+.terms-container.mode-1 .bg-danger.bg-opacity-10 {
+  background-color: rgba(139, 0, 0, 0.2) !important;
+  border-color: rgba(178, 34, 34, 0.4) !important;
+}
+
+/* Light Perception Mode (Mode 2) - High Contrast for Light Sensitivity */
+.terms-container.mode-2 {
+  background-color: #fffff0; /* Ivory background for reduced glare */
+  min-height: 100vh;
+  color: #2c2c2c;
+  font-weight: 500;
+}
+
+.terms-container.mode-2 .terms-section {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #4a4a4a;
+  border: 2px solid #333;
+}
+
+.terms-container.mode-2 .section-title {
+  color: #000000;
+  font-weight: 700;
+}
+
+.terms-container.mode-2 .terms-text {
+  color: #2c2c2c;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+.terms-container.mode-2 .agreement-item {
+  background: #f8f8f8;
+  border-left: 4px solid #666;
+  border: 1px solid #333;
+  font-weight: 500;
+}
+
+.terms-container.mode-2 .agreement-item:hover {
+  background: #eeeeee;
+}
+
+.terms-container.mode-2 .prohibited-item {
+  background: #fffaf0;
+  border: 2px solid #333;
+  font-weight: 500;
+  color: #2c2c2c;
+}
+
+.terms-container.mode-2 .card {
+  background: #ffffff;
+  border: 2px solid #333;
+  color: #2c2c2c;
+  font-weight: 500;
+}
+
+.terms-container.mode-2 .alert-light {
+  background: #fffaf0;
+  border: 2px solid #333;
+  color: #2c2c2c;
+  font-weight: 500;
+}
+
+.terms-container.mode-2 .text-primary {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+.terms-container.mode-2 .text-muted {
+  color: #555 !important;
+  font-weight: 500;
+}
+
+.terms-container.mode-2 .bg-light {
+  background-color: #f8f8f8 !important;
+}
+
+.terms-container.mode-2 .border {
+  border-color: #333 !important;
+}
+
+.terms-container.mode-2 .border-bottom {
+  border-bottom-color: #333 !important;
+}
+
+.terms-container.mode-2 .border-top {
+  border-top-color: #333 !important;
+}
+
+.terms-container.mode-2 .card-header.bg-light {
+  background-color: #f0f0f0 !important;
+}
+
+.terms-container.mode-2 .card.border-0.bg-light {
+  background-color: #f8f8f8 !important;
+  border: 2px solid #333 !important;
+}
+
+.terms-container.mode-2 .alert-warning {
+  background-color: #fff8e1;
+  border: 2px solid #ffa000;
+  color: #2c2c2c;
+  font-weight: 500;
+}
+
+.terms-container.mode-2 .bg-danger.bg-opacity-10 {
+  background-color: rgba(255, 235, 235, 0.9) !important;
+  border: 2px solid #d32f2f !important;
+}
+
+.terms-container.mode-2 .btn,
+.terms-container.mode-2 .form-select {
+  border: 2px solid #333;
+  font-weight: 500;
+}
+
+.terms-container.mode-2 .form-select:focus {
+  border-color: #000;
+  box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
+}
+
+/* Rest of your existing styles */
 .terms-container {
   background-color: var(--light-pink);
   min-height: 100vh;
@@ -541,6 +872,15 @@ export default {
     padding: 0.75rem;
     font-size: 0.9rem;
   }
+  
+  .mode-toggle-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .mode-label {
+    display: none; /* Hide label on mobile to save space */
+  }
 }
 
 /* Tablet Styles */
@@ -583,6 +923,10 @@ export default {
   .agreement-item, .prohibited-item {
     background: white !important;
     border: 1px solid #dee2e6 !important;
+  }
+  
+  .mode-toggle-container {
+    display: none;
   }
 }
 

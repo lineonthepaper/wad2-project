@@ -50,7 +50,7 @@ if ($method === "POST") {
                     $payload['displayName'],
                     $payload['email'],
                     Account::hashPassword($payload['password']),
-                    $payload['isStaff'] == true
+                    (bool)($payload['isStaff'] ?? false)
                 )
             );
             if ($success) {

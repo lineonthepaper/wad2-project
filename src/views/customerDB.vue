@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-wrapper">
-    <!-- Header -->
+    <!-- Header with pink styling-->
     <div class="dashboard-header">
       <div class="header-background">
         <div class="header-content">
@@ -197,9 +197,9 @@
                   <i class="fas fa-life-ring"></i>
                   <span>Help</span>
                 </button>
-                <button class="action-btn" @click="navigateToLogin">
-                  <i class="fas fa-sign-in-alt"></i>
-                  <span>Login Page</span>
+                <button class="action-btn" @click="logout">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
@@ -408,12 +408,24 @@ export default {
       console.log('Navigating to Help page');
     },
 
-    navigateToLogin() {
+    // Logout Method
+    logout() {
+      // Clear authentication state
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('userRole');
+      
+      // Clear any Vuex store state if you're using it
+      if (this.$store && this.$store.commit) {
+        this.$store.commit('clearAuth');
+      }
+      
+      // Redirect to login page
       this.$router.push('/login');
-      console.log('Navigating to Login page');
+      console.log('User logged out successfully');
     },
 
-    // Existing Globe Methods (same as before)
+    // Existing Globe Methods
     async initGlobe() {
       try {
         const container = this.$refs.globeContainer;
