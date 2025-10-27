@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-wrapper">
-    <!-- Header with pink styling-->
+    <!-- Header -->
     <div class="dashboard-header">
       <div class="header-background">
         <div class="header-content">
@@ -185,21 +185,21 @@
             </div>
             <div class="card-body">
               <div class="actions-grid">
-                <button class="action-btn" @click="navigateToCreateShipment">
-                  <i class="fas fa-plus-circle"></i>
+                <button class="action-btn">
+                  <i class="fas fa-plus"></i>
                   <span>New Shipment</span>
                 </button>
-                <button class="action-btn" @click="navigateToFAQ">
-                  <i class="fas fa-question-circle"></i>
-                  <span>FAQ</span>
+                <button class="action-btn">
+                  <i class="fas fa-download"></i>
+                  <span>Export Data</span>
                 </button>
-                <button class="action-btn" @click="navigateToHelp">
-                  <i class="fas fa-life-ring"></i>
-                  <span>Help</span>
+                <button class="action-btn">
+                  <i class="fas fa-bell"></i>
+                  <span>Notifications</span>
                 </button>
-                <button class="action-btn" @click="logout">
-                  <i class="fas fa-sign-out-alt"></i>
-                  <span>Logout</span>
+                <button class="action-btn">
+                  <i class="fas fa-cog"></i>
+                  <span>Settings</span>
                 </button>
               </div>
             </div>
@@ -392,42 +392,10 @@ export default {
     });
   },
   methods: {
-    // Navigation Methods
-    navigateToCreateShipment() {
-      this.$router.push('/shipment');
-      console.log('Navigating to Create Shipment page');
-    },
-
-    navigateToFAQ() {
-      this.$router.push('/faq');
-      console.log('Navigating to FAQ page');
-    },
-
-    navigateToHelp() {
-      this.$router.push('/help');
-      console.log('Navigating to Help page');
-    },
-
-    // Logout Method
-    logout() {
-      // Clear authentication state
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      localStorage.removeItem('userRole');
-      
-      // Clear any Vuex store state if you're using it
-      if (this.$store && this.$store.commit) {
-        this.$store.commit('clearAuth');
-      }
-      
-      // Redirect to login page
-      this.$router.push('/login');
-      console.log('User logged out successfully');
-    },
-
-    // Existing Globe Methods
     async initGlobe() {
       try {
+        console.log('Starting globe initialization...');
+
         const container = this.$refs.globeContainer;
         if (!container) {
           throw new Error('Globe container not found');
@@ -436,14 +404,22 @@ export default {
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 500;
 
+        console.log('Container dimensions:', width, 'x', height);
+
+        // Initialize globe with basic settings
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-          .backgroundColor('var(--dark-slate-blue)')
+          .backgroundColor('#000011')
           .width(width)
           .height(height)(container);
 
+        console.log('Basic globe created');
+
+        // Add initial data
         this.updateGlobeData();
+
         this.globeInitialized = true;
+        console.log('Globe initialized successfully');
 
       } catch (error) {
         console.error('Globe initialization error:', error);
@@ -456,8 +432,10 @@ export default {
       if (!this.globe) return;
 
       try {
+        // Update points data - show all parcels as points
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
+          // For display, use current location if available, otherwise start location
           displayLocation: parcel.currentLocation || parcel.location
         }));
 
@@ -470,9 +448,12 @@ export default {
           .pointRadius(0.4)
           .pointLabel(d => `${d.trackingId}: ${d.customer} (${d.status})`);
 
+        // Update arcs if we have a selected parcel
         if (this.selectedParcel) {
           this.updateRouteForParcel(this.selectedParcel);
         }
+
+        console.log('Globe data updated successfully');
 
       } catch (error) {
         console.error('Error updating globe data:', error);
@@ -482,7 +463,11 @@ export default {
     },
 
     showParcelRoute(parcel) {
-      if (!this.globe) return;
+      if (!this.globe) {
+        console.error('Globe not ready');
+        return;
+      }
+
       this.selectedParcel = parcel;
       this.updateRouteForParcel(parcel);
     },
@@ -490,21 +475,25 @@ export default {
     updateRouteForParcel(parcel) {
       if (!this.globe) return;
 
+      // Create multiple arcs to show the complete journey
       this.arcsData = [
+        // Arc from start to current location (green - completed path)
         {
           start: parcel.location,
           end: parcel.currentLocation || parcel.location,
-          color: 'var(--hot-pink)',
+          color: '#00ff00',
           stroke: 1.5
         },
+        // Arc from current location to destination (orange - remaining path)
         {
           start: parcel.currentLocation || parcel.location,
           end: parcel.destination,
-          color: 'var(--pink)',
+          color: '#ffa500',
           stroke: 1.5
         }
       ];
 
+      // Update the globe with new arcs
       this.globe
         .arcsData(this.arcsData)
         .arcStartLat(d => d.start[0])
@@ -518,14 +507,23 @@ export default {
         .arcDashGap(0.1)
         .arcDashAnimateTime(4000);
 
+      // Focus camera on the entire route
       this.focusOnRoute(parcel.location, parcel.destination);
     },
 
     focusOnRoute(start, end) {
       if (!this.globe) return;
+
       const midLat = (start[0] + end[0]) / 2;
       const midLng = (start[1] + end[1]) / 2;
-      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 1.8 });
+
+      // Calculate a good altitude to show the entire route
+      const latDiff = Math.abs(start[0] - end[0]);
+      const lngDiff = Math.abs(start[1] - end[1]);
+      const maxDiff = Math.max(latDiff, lngDiff);
+      const altitude = Math.max(1.5, 3 - maxDiff * 0.5);
+
+      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude });
     },
 
     clearRoute() {
@@ -534,6 +532,7 @@ export default {
         this.selectedParcel = null;
         this.globe.arcsData(this.arcsData);
         this.globe.pointOfView({ lat: 0, lng: 0, altitude: 1.8 });
+        // Refresh points data
         this.updateGlobeData();
       }
     },
@@ -542,6 +541,7 @@ export default {
       if (parcel.status === 'Delivered') return 100;
       if (parcel.status === 'Pending') return 0;
 
+      // Simple linear progress calculation based on distance
       const start = parcel.location;
       const current = parcel.currentLocation || parcel.location;
       const end = parcel.destination;
@@ -550,23 +550,28 @@ export default {
       const traveledDistance = this.calculateDistance(start, current);
 
       if (totalDistance === 0) return 0;
+
       return Math.min(100, (traveledDistance / totalDistance) * 100);
     },
 
     calculateDistance(coord1, coord2) {
+      // Haversine distance calculation
       const [lat1, lon1] = coord1;
       const [lat2, lon2] = coord2;
-      const R = 6371;
+
+      const R = 6371; // Earth's radius in km
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     },
 
     getLocationName(coords) {
+      // Simple coordinate to city name mapping
       const locations = {
         '37.7749,-122.4194': 'San Francisco',
         '40.7128,-74.0060': 'New York',
@@ -578,17 +583,18 @@ export default {
         '39.8283,-98.5795': 'Kansas',
         '45.4642,9.1900': 'Milan'
       };
+
       const key = `${coords[0]},${coords[1]}`;
       return locations[key] || 'Unknown Location';
     },
 
     getStatusColor(status) {
       const colors = {
-        'In Progress': 'var(--hot-pink)',
-        'Delivered': 'var(--pink)',
-        'Pending': 'var(--dark-pink)'
+        'In Progress': '#ffa500',
+        'Delivered': '#00ff00',
+        'Pending': '#ff4444'
       };
-      return colors[status] || 'var(--slate-blue)';
+      return colors[status] || '#cccccc';
     },
 
     formatDate(dateString) {
@@ -616,21 +622,10 @@ export default {
 /* Import Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
-/* Pink Color Palette */
-:root {
-  --hot-pink: #ff4275;
-  --dark-pink: #ff759e;
-  --pink: #ff9096;
-  --dark-slate-blue: #455a64;
-  --slate-blue: #8796b3;
-  --light-pink: #ffe8ee;
-  --pink-grey: #f1d9df;
-}
-
 /* Base Styles */
 .dashboard-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -640,11 +635,11 @@ export default {
 }
 
 .header-background {
-  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 2rem;
   border-radius: 0 0 20px 20px;
-  box-shadow: 0 4px 20px rgba(255, 66, 117, 0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
 .header-content {
@@ -742,19 +737,19 @@ export default {
 }
 
 .stat-card.stat-in-progress {
-  border-left-color: var(--hot-pink);
+  border-left-color: #ffa500;
 }
 
 .stat-card.stat-delivered {
-  border-left-color: var(--pink);
+  border-left-color: #28a745;
 }
 
 .stat-card.stat-pending {
-  border-left-color: var(--dark-pink);
+  border-left-color: #dc3545;
 }
 
 .stat-card.stat-total {
-  border-left-color: var(--slate-blue);
+  border-left-color: #667eea;
 }
 
 .stat-content {
@@ -776,19 +771,19 @@ export default {
 }
 
 .stat-in-progress .stat-icon {
-  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
+  background: linear-gradient(135deg, #ffa500, #ff8c00);
 }
 
 .stat-delivered .stat-icon {
-  background: linear-gradient(135deg, var(--pink), var(--dark-pink));
+  background: linear-gradient(135deg, #28a745, #20c997);
 }
 
 .stat-pending .stat-icon {
-  background: linear-gradient(135deg, var(--dark-pink), var(--hot-pink));
+  background: linear-gradient(135deg, #dc3545, #e83e8c);
 }
 
 .stat-total .stat-icon {
-  background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
+  background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
 .stat-data {
@@ -797,7 +792,7 @@ export default {
 
 .stat-title {
   font-size: 0.9rem;
-  color: var(--dark-slate-blue);
+  color: #666;
   margin: 0 0 0.3rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -807,7 +802,7 @@ export default {
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.3rem;
-  color: var(--dark-slate-blue);
+  color: #2c3e50;
 }
 
 .stat-trend {
@@ -819,11 +814,11 @@ export default {
 }
 
 .stat-trend.up {
-  color: var(--hot-pink);
+  color: #28a745;
 }
 
 .stat-trend.down {
-  color: var(--dark-pink);
+  color: #dc3545;
 }
 
 .stat-chart {
@@ -839,7 +834,7 @@ export default {
 
 .chart-bar {
   flex: 1;
-  background: linear-gradient(to top, var(--hot-pink), var(--dark-pink));
+  background: linear-gradient(to top, #667eea, #764ba2);
   border-radius: 2px;
   min-height: 2px;
 }
@@ -872,15 +867,13 @@ export default {
   align-items: center;
   padding: 1.5rem 1.5rem 0;
   margin-bottom: 1rem;
-  background: var(--light-pink);
-  border-bottom: 1px solid var(--pink-grey);
 }
 
 .card-header h3 {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
-  color: var(--dark-slate-blue);
+  color: #2c3e50;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -897,8 +890,8 @@ export default {
   height: 36px;
   border: none;
   border-radius: 8px;
-  background: white;
-  color: var(--hot-pink);
+  background: #f8f9fa;
+  color: #666;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -907,7 +900,7 @@ export default {
 }
 
 .btn-icon:hover {
-  background: var(--hot-pink);
+  background: #667eea;
   color: white;
   transform: scale(1.05);
 }
@@ -921,22 +914,21 @@ export default {
 .search-box i {
   position: absolute;
   left: 10px;
-  color: var(--slate-blue);
+  color: #999;
 }
 
 .search-box input {
   padding: 0.5rem 0.5rem 0.5rem 2rem;
-  border: 1px solid var(--pink-grey);
+  border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 0.9rem;
   width: 180px;
   transition: border-color 0.3s ease;
-  background: var(--light-pink);
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: var(--hot-pink);
+  border-color: #667eea;
 }
 
 .card-body {
@@ -951,7 +943,7 @@ export default {
   width: 100%;
   height: 400px;
   border-radius: 12px;
-  background: var(--dark-slate-blue);
+  background: #000011;
   position: relative;
   overflow: hidden;
   margin-bottom: 1rem;
@@ -963,23 +955,23 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: white;
+  color: #666;
   font-size: 1.1rem;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--light-pink);
-  border-top: 4px solid var(--hot-pink);
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
 .globe-error {
-  color: white;
-  background: var(--dark-pink);
+  color: #e74c3c;
+  background: #ffeaea;
   padding: 2rem;
   text-align: center;
 }
@@ -987,10 +979,11 @@ export default {
 .error-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
+  color: #e74c3c;
 }
 
 .btn-retry {
-  background: var(--hot-pink);
+  background: #667eea;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -1001,12 +994,12 @@ export default {
 }
 
 .btn-retry:hover {
-  background: var(--dark-pink);
+  background: #5a6fd8;
 }
 
 /* Selected Parcel Info */
 .selected-parcel-info {
-  background: var(--light-pink);
+  background: #f8f9fa;
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -1021,7 +1014,7 @@ export default {
 .parcel-header h4 {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--dark-slate-blue);
+  color: #2c3e50;
 }
 
 .route-progress {
@@ -1033,12 +1026,12 @@ export default {
   justify-content: space-between;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
-  color: var(--slate-blue);
+  color: #666;
 }
 
 .progress-percent {
   font-weight: 600;
-  color: var(--hot-pink);
+  color: #667eea;
 }
 
 .progress-track {
@@ -1047,7 +1040,7 @@ export default {
 
 .progress-bar {
   height: 8px;
-  background: var(--pink-grey);
+  background: #e9ecef;
   border-radius: 4px;
   overflow: hidden;
   position: relative;
@@ -1055,7 +1048,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--pink), var(--dark-pink));
+  background: linear-gradient(90deg, #28a745, #17a2b8, #667eea);
   transition: width 0.5s ease;
 }
 
@@ -1066,26 +1059,25 @@ export default {
   width: 20px;
   height: 20px;
   background: white;
-  border: 2px solid var(--hot-pink);
+  border: 2px solid #667eea;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
-  color: var(--hot-pink);
+  color: #667eea;
 }
 
 .no-selection {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--slate-blue);
+  color: #999;
 }
 
 .no-selection i {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
-  color: var(--pink);
 }
 
 .no-selection p {
@@ -1106,26 +1098,26 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--pink-grey);
+  border: 1px solid #e9ecef;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .parcel-item:hover {
-  border-color: var(--hot-pink);
+  border-color: #667eea;
   transform: translateX(5px);
 }
 
 .parcel-item.active {
-  border-color: var(--hot-pink);
-  background: var(--light-pink);
+  border-color: #667eea;
+  background: #f0f4ff;
 }
 
 .parcel-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -1148,7 +1140,7 @@ export default {
 .tracking-id {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--dark-slate-blue);
+  color: #2c3e50;
   margin: 0;
 }
 
@@ -1164,12 +1156,12 @@ export default {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--slate-blue);
+  color: #666;
 }
 
 .info-item i {
   width: 12px;
-  color: var(--hot-pink);
+  color: #667eea;
 }
 
 .parcel-progress {
@@ -1181,21 +1173,21 @@ export default {
 .progress-mini {
   flex: 1;
   height: 4px;
-  background: var(--pink-grey);
+  background: #e9ecef;
   border-radius: 2px;
   overflow: hidden;
 }
 
 .progress-fill-mini {
   height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
+  background: linear-gradient(90deg, #17a2b8, #667eea);
   transition: width 0.5s ease;
 }
 
 .progress-text {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--hot-pink);
+  color: #667eea;
   min-width: 35px;
 }
 
@@ -1210,18 +1202,18 @@ export default {
 }
 
 .status-in-progress {
-  background: var(--light-pink);
-  color: var(--hot-pink);
+  background: #fff3cd;
+  color: #856404;
 }
 
 .status-delivered {
-  background: var(--pink-grey);
-  color: var(--pink);
+  background: #d1ecf1;
+  color: #0c5460;
 }
 
 .status-pending {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
+  background: #f8d7da;
+  color: #721c24;
 }
 
 /* Bottom Section */
@@ -1243,19 +1235,19 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem 1rem;
-  border: 1px solid var(--pink-grey);
+  border: 1px solid #e9ecef;
   border-radius: 12px;
   background: white;
-  color: var(--slate-blue);
+  color: #666;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-btn:hover {
-  border-color: var(--hot-pink);
-  color: var(--hot-pink);
+  border-color: #667eea;
+  color: #667eea;
   transform: translateY(-3px);
-  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.2);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
 }
 
 .action-btn i {
@@ -1278,13 +1270,13 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--pink-grey);
+  border: 1px solid #e9ecef;
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .notification-item:hover {
-  border-color: var(--hot-pink);
+  border-color: #667eea;
   transform: translateX(5px);
 }
 
@@ -1299,18 +1291,18 @@ export default {
 }
 
 .notification-icon.success {
-  background: var(--light-pink);
-  color: var(--hot-pink);
+  background: #d1ecf1;
+  color: #0c5460;
 }
 
 .notification-icon.info {
-  background: var(--pink-grey);
-  color: var(--pink);
+  background: #d1e7ff;
+  color: #0d6efd;
 }
 
 .notification-icon.warning {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
+  background: #fff3cd;
+  color: #856404;
 }
 
 .notification-content {
@@ -1320,12 +1312,12 @@ export default {
 .notification-text {
   margin: 0 0 0.3rem;
   font-size: 0.9rem;
-  color: var(--dark-slate-blue);
+  color: #2c3e50;
 }
 
 .notification-time {
   font-size: 0.8rem;
-  color: var(--slate-blue);
+  color: #999;
 }
 
 /* Animations */

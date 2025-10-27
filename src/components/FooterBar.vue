@@ -1,5 +1,7 @@
 <template>
-  <div class="container-fluid p-3 mt-3">© 2025 Singapore Post Limited. All Rights Reserved.</div>
+  <div class="container-fluid p-3 mt-3">
+    2025 Fluffy Shipping, a SMU Web Application Development 2 project
+  </div>
 </template>
 
 <style scoped>

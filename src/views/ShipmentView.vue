@@ -12,6 +12,8 @@ import serviceData from '/json/serviceData.json'
 
 import { useShipmentStore } from '@/stores/shipment'
 import { useCartStore } from '@/stores/cart'
+
+import '/src/assets/sectionViews.css'
 </script>
 
 <script>
@@ -101,7 +103,7 @@ export default {
 
       // compute all previous sections
       for (let i = 0; i < index; i++) {
-        console.log(this.sections[i])
+        // console.log(this.sections[i])
         if (i == 0) {
           this.processBriefInfo()
         }
@@ -120,6 +122,7 @@ export default {
     receiveUpdateShipmentType(shipmentType) {
       // console.log('received ' + shipmentType)
       this.sections[0].data['shipmentType'] = shipmentType
+      this.shipment.type = shipmentType
     },
     receiveUpdateDimensions(dimension, value) {
       // console.log('received ' + dimension + ' ' + value)
@@ -162,8 +165,14 @@ export default {
     registerCompleteItems() {
       this.sections[2].data['completeItems'] = {}
       for (let rowId in this.sections[2].data['items']) {
-        if (Object.keys(this.sections[2].data['items'][rowId]).length === 6) {
-          this.sections[2].data['completeItems'][rowId] = this.sections[2].data['items'][rowId]
+        if ('hsCode' in this.sections[2].data['items'][rowId]) {
+          if (Object.keys(this.sections[2].data['items'][rowId]).length == 7) {
+            this.sections[2].data['completeItems'][rowId] = this.sections[2].data['items'][rowId]
+          }
+        } else {
+          if (Object.keys(this.sections[2].data['items'][rowId]).length == 6) {
+            this.sections[2].data['completeItems'][rowId] = this.sections[2].data['items'][rowId]
+          }
         }
       }
       // console.log(this.sections[2].data['completeItems'])
@@ -173,7 +182,7 @@ export default {
     },
     receiveUpdateDeliveryDetails(details) {
       this.sections[3].data = details
-      console.log(this.sections[3].data)
+      // console.log(this.sections[3].data)
 
       let properties = [
         'name',
@@ -301,6 +310,7 @@ export default {
       if (this.shipment.complete == true) {
         this.shipment.totalCostSGD = this.totalSGD
         this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
+        console.log(this.cart.shipments)
         this.shipment.$reset()
         console.log('added to cart')
       }
@@ -312,7 +322,7 @@ export default {
       for (let property in this.sections[0].data) {
         if (this.sections[0].data[property] !== '' && this.sections[0].data[property] !== null) {
           count++
-          console.log(this.sections[0].data[property])
+          // console.log(this.sections[0].data[property])
         }
       }
       return count / 7
@@ -333,7 +343,7 @@ export default {
       }
       let senderCount = 0
       let recipientCount = 0
-      let requiredProperties = ['name', 'line1', 'city', 'state', 'postalCode']
+      let requiredProperties = ['name', 'email', 'line1', 'city', 'state', 'postalCode']
       for (let r of requiredProperties) {
         if (this.sections[3].data.sender[r] !== null && this.sections[3].data.sender[r] !== '') {
           senderCount++
@@ -345,7 +355,7 @@ export default {
           recipientCount++
         }
       }
-      return (senderCount + recipientCount) / 10
+      return (senderCount + recipientCount) / 12
     },
     overallCompletion() {
       return (
@@ -394,7 +404,12 @@ export default {
       <hr />
     </header>
 
-    <div class="row justify-content-center" v-for="(section, index) in sections" :key="section.id">
+    <div
+      class="row justify-content-center"
+      v-for="(section, index) in sections"
+      :key="section.id"
+      :id="section.id"
+    >
       <div class="col-1 d-flex justify-content-center">
         <div
           :class="[
@@ -454,50 +469,41 @@ export default {
 </template>
 
 <style scoped>
-.section {
-  border: 2px var(--dark-pink) solid;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 10px;
+#briefInfo ::v-deep(.choices__list) {
+  padding: 4px;
+  word-break: normal;
 }
 
-.section-toggler {
-  cursor: pointer;
-  font-weight: bold;
-  user-select: none;
+#delivery ::v-deep(.choices__input) {
+  padding: 0px;
+  word-break: normal;
 }
 
-.section-info {
-  max-height: 0px;
-  overflow: hidden;
-  transition: max-height 0.15s;
+#delivery ::v-deep(.choices__list) {
+  padding: 6px 6px 6px 4px;
 }
 
-.section-info-show {
-  max-height: calc(1px * infinity);
-  overflow: visible;
-  transition: max-height 0.35s;
+#delivery ::v-deep(.choices__item) {
+  padding: 0px;
 }
 
-.number {
-  border: 2px var(--dark-pink) solid;
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-  height: 1.5em;
-  text-align: center;
-  line-height: 1.5em;
-  padding: 10px;
-  box-sizing: content-box;
-  font-weight: bold;
-  display: inline-block;
-  background-color: white;
-  margin: 10px;
-  font-size: 2em;
-  color: var(--dark-slate-blue);
+#delivery ::v-deep(.choices__item--choice) {
+  padding: 4px;
 }
 
-.number-selected {
-  background-color: var(--dark-pink);
-  color: white;
+#delivery ::v-deep(.choices__placeholder) {
+  padding-left: 4px;
+}
+
+#shipment ::v-deep(.choices__list) {
+  padding: 4px;
+}
+
+#shipment ::v-deep(.choices__input) {
+  padding: 6px !important;
+}
+
+#shipment ::v-deep(.choices__placeholder) {
+  padding: 1px;
 }
 </style>

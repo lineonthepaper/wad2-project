@@ -67,7 +67,7 @@ class MailItem implements JsonSerializable
         return $this->itemQuantity;
     }
 
-    public function getHsCode(): string
+    public function getHsCode(): ?string
     {
         return $this->hsCode;
     }
