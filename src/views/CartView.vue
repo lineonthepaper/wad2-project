@@ -139,6 +139,8 @@
       </RouterLink>
     </div>
   </div>
+
+  <button @click="sendEmail()">email</button>
   <RouterView />
 </template>
 
@@ -280,6 +282,8 @@ export default {
         waitForAddressIds(this.statuses, this.until, this.mailIds)
 
         // then send email
+
+        this.sendEmail(shipment)
       }
 
       async function waitForAddMail(
@@ -334,6 +338,39 @@ export default {
         this.labels,
         this.mailIds,
       )
+    },
+    sendEmail() {
+      axios
+        .post('/api/sendEmail.php', {
+          from: {
+            name: 'Fluffy Shipping @ SingPost',
+          },
+          // to: [
+          //   {
+          //     email: shipment.sender.email,
+          //     name: shipment.sender.name,
+          //   },
+          //   {
+          //     email: shipment.recipient.email,
+          //     name: shipment.recipient.name,
+          //   },
+          // ],
+          to: [
+            {
+              email: 'singpostproj@gmail.com',
+              name: 'aaaaaaaaa',
+            },
+          ],
+          subject: 'Test',
+          text: 'testing testing testing',
+          html: '<b>testing</b> testing testing',
+        })
+        .then((response) => {
+          console.log(response.data)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     },
   },
   computed: {
