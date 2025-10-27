@@ -148,7 +148,7 @@ export default {
       // console.log('added barcode')
     }
 
-    console.log(this.htmlPage.getElementsByClassName('page').length)
+    // console.log(this.htmlPage.getElementsByClassName('page').length)
 
     function addPageToPdf(pages, index = 0) {
       if (pages.length == 0) {

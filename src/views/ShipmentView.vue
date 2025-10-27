@@ -92,7 +92,7 @@ export default {
   methods: {
     forceRerender() {
       this.componentKey++
-      console.log('rerendering...')
+      // console.log('rerendering...')
     },
     toggle(id, index) {
       if (this.currentElement == id) {
@@ -210,7 +210,7 @@ export default {
       }
     },
     processBriefInfo() {
-      console.log('processing brief info')
+      // console.log('processing brief info')
       let newProps = {}
 
       if (
@@ -310,9 +310,9 @@ export default {
       if (this.shipment.complete == true) {
         this.shipment.totalCostSGD = this.totalSGD
         this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
-        console.log(this.cart.shipments)
+        // console.log(this.cart.shipments)
         this.shipment.$reset()
-        console.log('added to cart')
+        // console.log('added to cart')
       }
     },
     getCompletionBySection(sectionId) {

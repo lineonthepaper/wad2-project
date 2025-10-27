@@ -232,12 +232,12 @@ export default {
               },
             })
             .then((response) => {
-              console.log(response.data)
+              // console.log(response.data)
               if (response.data.success) {
                 addressIds[person] = response.data.addressId
               }
 
-              console.log(addressIds)
+              // console.log(addressIds)
             })
             .catch((error) => {
               console.error(error)
@@ -265,7 +265,7 @@ export default {
               },
             })
             .then((response) => {
-              console.log(response.data)
+              // console.log(response.data)
               if (!response.data.success) {
                 statuses.push(false)
                 mailIds.push(null)
@@ -297,7 +297,7 @@ export default {
         labels,
         mailIds,
       ) {
-        console.log(statuses)
+        // console.log(statuses)
 
         await until(() => statuses.length == numSelectedShipments)
 

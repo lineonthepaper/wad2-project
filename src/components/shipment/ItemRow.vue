@@ -152,7 +152,7 @@ export default {
   },
   methods: {
     updateItemRow(rowId, inputName, value) {
-      console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
+      // console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
       if (inputName == 'itemCurrency' || inputName == 'itemValue') {
         if (
           this.inputs[1].input !== null &&
@@ -185,7 +185,7 @@ export default {
             // return Math.round((price / response.data.rates[currency]) * 100) / 100
 
             this.$emit('update-item-row', rowId, 'costSGD', response.data.rates.SGD)
-            console.log('emitted ' + response.data.rates.SGD)
+            // console.log('emitted ' + response.data.rates.SGD)
           })
           .catch((error) => {
             console.error(error)
