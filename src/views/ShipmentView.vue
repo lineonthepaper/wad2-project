@@ -341,6 +341,9 @@ export default {
       // return Object.keys(this.sections[0].data).length / 7
     },
     servicesCompletion() {
+      if ('selectedService' in this.sections[1].data) {
+        if (this.sections[1].data.selectedService === undefined) return 0
+      }
       return Object.keys(this.sections[1].data).length / 1
     },
     shipmentDetailsCompletion() {
