@@ -139,8 +139,6 @@
       </RouterLink>
     </div>
   </div>
-
-  <button @click="sendEmail()">email</button>
   <RouterView />
 </template>
 
@@ -246,7 +244,7 @@ export default {
 
         let zone = this.getZone(shipment.recipient.country)
 
-        async function waitForAddressIds(statuses, until, mailIds) {
+        async function waitForAddressIds(statuses, until, mailIds, sendEmail) {
           await until(() => Object.keys(addressIds).length == 2)
           axios
             .post('/api/mail.php', {
@@ -273,17 +271,16 @@ export default {
                 statuses.push(true)
                 mailIds.push(response.data.mailId)
               }
+              // then send email
+
+              sendEmail(shipment, response.data.mailId)
             })
             .catch((error) => {
               console.error(error)
             })
         }
 
-        waitForAddressIds(this.statuses, this.until, this.mailIds)
-
-        // then send email
-
-        this.sendEmail(shipment)
+        waitForAddressIds(this.statuses, this.until, this.mailIds, this.sendEmail)
       }
 
       async function waitForAddMail(
@@ -339,31 +336,21 @@ export default {
         this.mailIds,
       )
     },
-    sendEmail() {
+    sendEmail(shipment, mailId) {
       axios
         .post('/api/sendEmail.php', {
           from: {
             name: 'Fluffy Shipping @ SingPost',
           },
-          // to: [
-          //   {
-          //     email: shipment.sender.email,
-          //     name: shipment.sender.name,
-          //   },
-          //   {
-          //     email: shipment.recipient.email,
-          //     name: shipment.recipient.name,
-          //   },
-          // ],
           to: [
             {
-              email: 'singpostproj@gmail.com',
-              name: 'aaaaaaaaa',
+              email: shipment.sender.email,
+              name: shipment.sender.name,
             },
           ],
-          subject: 'Test',
-          text: 'testing testing testing',
-          html: '<b>testing</b> testing testing',
+          subject: 'Your mail has been registered!',
+          mailId: mailId,
+          shipmentType: shipment.type,
         })
         .then((response) => {
           console.log(response.data)
