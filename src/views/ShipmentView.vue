@@ -315,6 +315,18 @@ export default {
         console.log('added to cart')
       }
     },
+    getCompletionBySection(sectionId) {
+      switch (sectionId) {
+        case 'briefInfo':
+          return this.briefInfoCompletion
+        case 'services':
+          return this.servicesCompletion
+        case 'shipment':
+          return this.shipmentDetailsCompletion
+        case 'delivery':
+          return this.deliveryDetailsCompletion
+      }
+    },
   },
   computed: {
     briefInfoCompletion() {
@@ -433,7 +445,10 @@ export default {
           >
             <div class="text-dark-slate-blue justify-content-between d-flex">
               <h2 class="d-inline-block">{{ section.title }}</h2>
-              <h2 class="d-inline-block downarrow" v-if="currentElement != section.id">+</h2>
+              <h2 class="d-inline-block downarrow" v-if="getCompletionBySection(section.id) == 1">
+                ✓
+              </h2>
+              <h2 class="d-inline-block downarrow" v-else-if="currentElement != section.id">+</h2>
               <h2 class="d-inline-block uparrow" v-else>–</h2>
             </div>
           </div>
