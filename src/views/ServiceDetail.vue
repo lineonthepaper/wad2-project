@@ -3,6 +3,13 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import serviceCatalogue from '/json/serviceCatalogue.json'
 
+const props = defineProps({
+  id: {
+    type: String,
+    required: false
+  }
+})
+
 const route = useRoute()
 
 const activeTab = ref('info')
@@ -13,9 +20,11 @@ const error = ref(null)
 const imageLoaded = ref(false)
 const imageError = ref(false)
 
-const serviceId = computed(() => parseInt(route.params.id))
+const serviceId = computed(() => {
+  return props.id ? parseInt(props.id) : parseInt(route.params.id)
+})
 
-// Image cache to prevent re-fetching
+
 const imageCache = new Map()
 
 const getServiceTypeBadgeClass = (serviceType) => {
@@ -211,6 +220,7 @@ onMounted(() => {
 
         <div v-if="activeTab === 'info'" class="info-section">
           <table class="info-table">
+            <tbody>
             <tr>
               <td><strong>Maximum Weight</strong></td>
               <td>{{ service.max_weight }}kg</td>
@@ -247,6 +257,7 @@ onMounted(() => {
                 </ul>
               </td>
             </tr>
+          </tbody>
           </table>
         </div>
 

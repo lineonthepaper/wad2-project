@@ -109,6 +109,10 @@ onUnmounted(() => {
                       <button class="dropdown-item">
                         Logout
                       </button>
+=======
+                    <li>
+                      <button class="dropdown-item" @click="handleLogout">Logout</button>
+>>>>>>> 0319bdebdff2846287b0224e9426a3e004680fa2
                     </li>
                   </ul>
                 </li>
