@@ -45,7 +45,6 @@
                 />
               </p>
               <p>
-                <!-- {{ s[send.id].line1 }} -->
                 <template v-for="i in 3" :key="i">
                   <input
                     type="text"
@@ -113,7 +112,6 @@
               </button>
             </div>
           </div>
-          <!-- {{ s }} -->
         </div>
       </div>
 
