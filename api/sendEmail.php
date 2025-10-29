@@ -16,8 +16,6 @@ if ($method === "POST") {
     $payload = json_decode(file_get_contents('php://input'), true);
     if (!is_array($payload)) $payload = [];
 
-    $method = $payload['method'] ?? '';
-
     try {
         $recipients = [];
         $personalization = [];
