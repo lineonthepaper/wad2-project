@@ -134,15 +134,18 @@
         </div>
       </div>
     </div>
-    <div class="row text-dark-slate-blue" v-if="'isTracked' in props">
+    <div class="row text-dark-slate-blue" v-if="'isTracked' in props || emissions !== null">
       <h4>Other Information</h4>
       <div v-if="props.isTracked">
         Please drop off your mail at any
         <a href="https://www.singpost.com/locate-us">SingPost Post Office.</a>
       </div>
-      <div v-else>
+      <div v-else-if="'isTracked' in props && !props.isTracked">
         You may drop off your mail at any
         <a href="https://www.singpost.com/locate-us">SingPost Posting Box.</a>
+      </div>
+      <div :class="{ 'd-none': emissions === null }">
+        Your emissions from this shipment: {{ emissions.toFixed(4) }} kgCO<sub>2</sub>e/tonne-km
       </div>
     </div>
   </div>
@@ -158,6 +161,8 @@ import '/node_modules/choices.js/public/assets/styles/choices.css'
 import phoneCodesData from '/json/phoneCodesData.json'
 
 import countryData from '/json/countryData.json'
+
+import { useShipmentStore } from '@/stores/shipment'
 
 onMounted(() => {
   const senderPhoneCode = document.querySelector('#senderPhoneCode')
@@ -235,9 +240,11 @@ export default {
       { title: 'Sender', id: 'sender', inputs: inputs.value.sender },
       { title: 'Recipient', id: 'recipient', inputs: inputs.value.recipient },
     ])
+    const shipment = useShipmentStore()
     return {
       addresses,
       inputs,
+      shipment,
     }
   },
   props: ['props'],
@@ -267,10 +274,59 @@ export default {
       }
       return ''
     },
+    emissions() {
+      let fromLatLong = this.getLatLong(this.shipment.sender.country)
+      let toLatLong = this.getLatLong(this.shipment.recipient.country)
+
+      const R = 6371
+      let distanceLat = this.degToRad(toLatLong.lat - fromLatLong.lat)
+      let distanceLng = this.degToRad(toLatLong.lng - fromLatLong.lng)
+
+      let a =
+        Math.sin(distanceLat / 2) * Math.sin(distanceLat / 2) +
+        Math.cos(this.degToRad(fromLatLong.lat)) *
+          Math.cos(this.degToRad(toLatLong.lat)) *
+          Math.sin(distanceLng / 2) *
+          Math.sin(distanceLng / 2)
+
+      let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+      let d = R * c
+
+      // console.log(d)
+
+      let emissions
+
+      if (d != 0) {
+        // ok let's assume that each freighter plane has an emissions factor of 1.0189 kgCO2e/tonne-km
+        // according to this: https://www.climatiq.io/data/emission-factor/dc6c03f8-8b9e-4dc5-bfa3-4ec08359c959
+
+        let tonneKm = 0.001 * this.shipment.dimensions.weight * d
+
+        emissions = 1.0189 / tonneKm
+      } else {
+        emissions = null
+      }
+
+      console.log(emissions)
+
+      return emissions
+    },
   },
   methods: {
     updateDeliveryDetails() {
       this.$emit('update-delivery-details', this.inputs)
+    },
+    getLatLong(countryCode) {
+      for (let obj of countryData) {
+        if (obj.code2 == countryCode) {
+          return { lat: obj.lat, lng: obj.long }
+        }
+      }
+      return null
+    },
+    degToRad(deg) {
+      return deg * (Math.PI / 180)
     },
   },
 }
