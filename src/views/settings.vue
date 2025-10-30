@@ -146,10 +146,15 @@ const changePassword = async () => {
     const updateResult = await updateResponse.json()
     
     if (updateResponse.ok) {
-      alert('Password changed successfully!')
+      alert('Password changed successfully! Please log in with your new password.') // Added clarification
       oldPassword.value = ''
       newPassword.value = ''
       confirmPassword.value = ''
+      
+      // *** START OF CHANGE: Securely log out the user after password change ***
+      logout() 
+      // *** END OF CHANGE ***
+      
     } else {
       alert(updateResult.message || 'Failed to change password')
     }
