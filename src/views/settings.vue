@@ -4,24 +4,24 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const currentUser = ref(null)
-const username = ref('')
+const displayName = ref('')
 const oldPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 const profilePicture = ref(null)
 const profilePreview = ref('')
+const isLoading = ref(false)
 
 // Check authentication and load current user
 const checkAuth = () => {
   const stored = sessionStorage.getItem('currentUser')
   if (!stored) {
-    // Redirect to login if not authenticated
     router.push('/login')
     return false
   }
   
   currentUser.value = JSON.parse(stored)
-  username.value = currentUser.value.display_name || ''
+  displayName.value = currentUser.value.display_name || ''
   profilePreview.value = currentUser.value.profilePicture || ''
   return true
 }
@@ -38,32 +38,113 @@ watch(currentUser, (newVal) => {
   }
 })
 
-// Handle username change
-const changeUsername = () => {
-  if (!username.value.trim()) {
-    alert('Username cannot be empty.')
+// Handle display name change
+const changeDisplayName = async () => {
+  if (!displayName.value.trim()) {
+    alert('Display name cannot be empty.')
     return
   }
-  currentUser.value.display_name = username.value
-  sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-  alert('Username updated successfully!')
+
+  isLoading.value = true
+  try {
+    const response = await fetch('/api/accounts.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method: 'updateDisplayName',
+        accountId: currentUser.value.account_id,
+        displayName: displayName.value.trim()
+      })
+    })
+
+    const result = await response.json()
+    
+    if (response.ok) {
+      // Update local storage
+      currentUser.value.display_name = displayName.value.trim()
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+      alert('Display name updated successfully!')
+    } else {
+      alert(result.message || 'Failed to update display name')
+    }
+  } catch (error) {
+    console.error('Error updating display name:', error)
+    alert('Error updating display name')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 // Handle password change
-const changePassword = () => {
+const changePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
     alert('Passwords do not match.')
     return
   }
+  
   if (!oldPassword.value || !newPassword.value) {
     alert('Please fill in all fields.')
     return
   }
-  // Mock update - in real app, this would send to backend
-  alert('Password changed successfully!')
-  oldPassword.value = ''
-  newPassword.value = ''
-  confirmPassword.value = ''
+
+  if (newPassword.value.length < 6) {
+    alert('Password must be at least 6 characters long.')
+    return
+  }
+
+  isLoading.value = true
+  try {
+    // First verify old password
+    const verifyResponse = await fetch('/api/accounts.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method: 'verifyPassword',
+        email: currentUser.value.email,
+        password: oldPassword.value
+      })
+    })
+
+    const verifyResult = await verifyResponse.json()
+    
+    if (!verifyResponse.ok || !verifyResult.valid) {
+      alert('Current password is incorrect.')
+      return
+    }
+
+    // Update password
+    const updateResponse = await fetch('/api/accounts.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method: 'updatePassword',
+        accountId: currentUser.value.account_id,
+        newPassword: newPassword.value
+      })
+    })
+
+    const updateResult = await updateResponse.json()
+    
+    if (updateResponse.ok) {
+      alert('Password changed successfully!')
+      oldPassword.value = ''
+      newPassword.value = ''
+      confirmPassword.value = ''
+    } else {
+      alert(updateResult.message || 'Failed to change password')
+    }
+  } catch (error) {
+    console.error('Error changing password:', error)
+    alert('Error changing password')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 // Handle profile picture upload
@@ -94,7 +175,7 @@ const logout = () => {
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
-        <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.username }}!</span>
+        <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.email }}!</span>
         <button class="btn btn-outline-pink btn-sm" @click="logout">
           Logout
         </button>
@@ -115,17 +196,25 @@ const logout = () => {
         </div>
       </div>
 
-      <!-- Change Username -->
+      <!-- Change Display Name -->
       <div class="mb-4">
-        <h5 class="fw-bold text-pink">Change Username</h5>
+        <h5 class="fw-bold text-pink">Change Display Name</h5>
         <div class="input-group">
           <input
-            v-model="username"
+            v-model="displayName"
             type="text"
             class="form-control"
-            placeholder="Enter new username"
+            placeholder="Enter new display name"
+            :disabled="isLoading"
           />
-          <button class="btn btn-pink" @click="changeUsername">Update</button>
+          <button 
+            class="btn btn-pink" 
+            @click="changeDisplayName"
+            :disabled="isLoading"
+          >
+            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+            Update
+          </button>
         </div>
       </div>
 
@@ -139,7 +228,8 @@ const logout = () => {
             v-model="oldPassword"
             type="password"
             class="form-control"
-            placeholder="Old Password"
+            placeholder="Current Password"
+            :disabled="isLoading"
           />
         </div>
         <div class="form-group mb-2">
@@ -148,6 +238,7 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="New Password"
+            :disabled="isLoading"
           />
         </div>
         <div class="form-group mb-3">
@@ -156,9 +247,17 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="Confirm New Password"
+            :disabled="isLoading"
           />
         </div>
-        <button class="btn btn-pink" @click="changePassword">Change Password</button>
+        <button 
+          class="btn btn-pink" 
+          @click="changePassword"
+          :disabled="isLoading"
+        >
+          <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+          Change Password
+        </button>
       </div>
     </div>
   </div>
@@ -185,6 +284,10 @@ const logout = () => {
 }
 .btn-pink:hover {
   background-color: #ff0044;
+}
+.btn-pink:disabled {
+  background-color: #cccccc;
+  border-color: #cccccc;
 }
 .btn-outline-pink {
   color: #ff4275;
