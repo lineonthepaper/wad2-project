@@ -52,7 +52,7 @@ onUnmounted(() => {
         <div class="row align-items-center text-center w-100">
           <div class="col-md-2 col-6 justify-content-center justify-content-sm-start p-2">
             <RouterLink :to="{ name: 'home' }">
-              <img src="../assets/wad2_project_logo.png" alt="Singapore Post Logo" />
+              <img src="../assets/wad2_project_logo.png" alt="WAD2 Project Logo" />
             </RouterLink>
           </div>
           <div class="col py-2 text-end">
@@ -76,7 +76,7 @@ onUnmounted(() => {
                   <RouterLink :to="{ name: 'shipment' }">Create Shipment</RouterLink>
                 </li>
                 <li class="nav-item text-end">
-                  <RouterLink :to="{ name: 'cart' }">Shipment Cart</RouterLink>
+                  <RouterLink :to="{ name: 'cart' }">Cart</RouterLink>
                 </li>
                 <li class="nav-item text-end">
                   <RouterLink :to="{ name: 'help' }">Help</RouterLink>
@@ -96,7 +96,7 @@ onUnmounted(() => {
                     aria-expanded="false"
                   >
                     <span class="fw-bold">
-                      {{ currentUser?.displayName  || currentUser?.email }}
+                      {{ currentUser?.displayName || currentUser?.email }}
                     </span>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -112,7 +112,6 @@ onUnmounted(() => {
                 </li>
               </ul>
             </div>
-            
           </div>
         </div>
       </div>
