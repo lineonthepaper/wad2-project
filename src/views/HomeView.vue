@@ -11,18 +11,18 @@ onMounted(() => {
   if (userData) {
     const user = JSON.parse(userData)
     // Use display_name (from database) or fall back to email
-    const name = user.display_name || user.displayName 
+    const name = user.display_name || user.displayName
     //  ||  user.email
     welcomeMessage.value = `Welcome, ${name}!`
     isLoggedIn.value = true
   }
-  
+
   // Listen for login status changes to update welcome message
   window.addEventListener('loginStatusChanged', () => {
     const userData = sessionStorage.getItem('currentUser')
     if (userData) {
       const user = JSON.parse(userData)
-      const name = user.displayName  || user.email
+      const name = user.displayName || user.email
       welcomeMessage.value = `Welcome, ${name}!`
       isLoggedIn.value = true
     } else {
@@ -80,42 +80,12 @@ onMounted(() => {
     </div>
 
     <div class="row justify-content-center text-center py-2">
-      <div class="col-md-3">
+      <div class="col-md-3 py-2 col-sm-8" v-for="linkCard in linkCards" :key="linkCard.title">
         <div class="card h-100">
-          <RouterLink :to="{ name: 'services' }">
-            <img
-              src="../assets/home/services.png"
-              class="service-icon mx-auto"
-              alt="Hand holding up two gears."
-            />
-            <h5 class="card-title">Our services</h5>
-            <p class="px-3">No matter your destination, Fluffy Shipping can ship it!</p>
-          </RouterLink>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card h-100">
-          <RouterLink :to="{ name: 'faq' }">
-            <img
-              src="../assets/home/faq.png"
-              class="service-icon mx-auto"
-              alt="Two overlapping speech bubbles. The top bubble has a question mark in it."
-            />
-            <h5 class="card-title">FAQ</h5>
-            <p class="px-3">Any questions? Check these frequently asked questions out!</p>
-          </RouterLink>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card h-100">
-          <RouterLink :to="{ name: 'shipment' }">
-            <img
-              src="../assets/home/shipment.png"
-              class="service-icon mx-auto"
-              alt="A moving delivery van. It has a check mark on it."
-            />
-            <h5 class="card-title">Create Shipment</h5>
-            <p class="px-3">Ready to ship with Fluffy Shipping? We're ready when you are!</p>
+          <RouterLink :to="{ name: linkCard.link }">
+            <img :src="linkCard.imgUrl" class="service-icon mx-auto" :alt="linkCard.alt" />
+            <h5 class="card-title px-2">{{ linkCard.title }}</h5>
+            <p class="px-3">{{ linkCard.subtitle }}</p>
           </RouterLink>
         </div>
       </div>
@@ -153,3 +123,36 @@ onMounted(() => {
   box-sizing: content-box;
 }
 </style>
+
+<script>
+export default {
+  data() {
+    const linkCards = [
+      {
+        link: 'services',
+        title: 'Our Services',
+        subtitle: 'No matter your destination, Fluffy Shipping can ship it!',
+        alt: 'Hand holding up two gears.',
+        imgUrl: '/home/services.png',
+      },
+      {
+        link: 'faq',
+        title: 'FAQ',
+        subtitle: 'Any questions? Check out these frequently asked questions!',
+        alt: 'Two overlapping speech bubbles. The top bubble has a question mark in it.',
+        imgUrl: '/home/faq.png',
+      },
+      {
+        link: 'shipment',
+        title: 'Create Shipment',
+        subtitle: "Ready to ship with Fluffy Shipping? We're ready when you are!",
+        alt: 'A moving delivery van. It has a check mark on it.',
+        imgUrl: '/home/shipment.png',
+      },
+    ]
+    return {
+      linkCards,
+    }
+  },
+}
+</script>
