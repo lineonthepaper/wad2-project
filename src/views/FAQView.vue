@@ -30,6 +30,7 @@
         </div>
       </div>
 
+      <!-- Mobile View (Dropdown) -->
       <div class="row d-lg-none mb-3">
         <div class="col-12">
           <select v-model="activeTab" class="form-select form-select-lg" @change="setActiveTab(activeTab)">
@@ -38,10 +39,29 @@
         </div>
       </div>
 
+      <!-- Desktop View (Tabs) -->
       <div class="row d-none d-lg-block">
+        <!-- First Row of Tabs -->
+        <div class="col-12 mb-2">
+          <ul class="nav nav-tabs nav-justified" role="tablist">
+            <li class="nav-item" v-for="tab in firstRowTabs" :key="tab.id">
+              <button
+                class="nav-link text-nowrap"
+                :class="{ active: activeTab === tab.id }"
+                @click="setActiveTab(tab.id)"
+                type="button"
+                role="tab"
+              >
+                {{ tab.name }}
+              </button>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Second Row of Tabs -->
         <div class="col-12">
           <ul class="nav nav-tabs nav-justified" role="tablist">
-            <li class="nav-item" v-for="tab in tabs" :key="tab.id">
+            <li class="nav-item" v-for="tab in secondRowTabs" :key="tab.id">
               <button
                 class="nav-link text-nowrap"
                 :class="{ active: activeTab === tab.id }"
@@ -156,6 +176,16 @@ export default {
 
         { id: 'pack1', category: 'packaging', question: 'How can I get packaging supplies?', answer: 'To purchase packaging materials, please visit: <a href="https://shop.singpost.com/materials-packaging/packing-materials.html" target="_blank">https://shop.singpost.com/materials-packaging/packing-materials.html</a>' }
       ]
+    }
+  },
+  computed: {
+    firstRowTabs() {
+      // First row: first 4 tabs
+      return this.tabs.slice(0, 4);
+    },
+    secondRowTabs() {
+      // Second row: remaining 4 tabs
+      return this.tabs.slice(4);
     }
   },
   methods: {

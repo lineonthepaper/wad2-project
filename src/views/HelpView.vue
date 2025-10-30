@@ -956,4 +956,40 @@ export default {
 .border-top {
   border-top-color: var(--pink) !important;
 }
+
+/* Header styles for different modes */
+.terms-container.mode-1 header {
+  background-color: #1a1a1a;
+  border-color: #444;
+}
+
+.terms-container.mode-1 .bg-light-pink {
+  background-color: #333 !important;
+}
+
+.terms-container.mode-1 .text-hot-pink {
+  color: #ffffff !important;
+}
+
+.terms-container.mode-1 hr {
+  border-color: #444 !important;
+}
+
+.terms-container.mode-2 header {
+  background-color: #fffff0;
+  border-color: #333;
+}
+
+.terms-container.mode-2 .bg-light-pink {
+  background-color: #f8f8f8 !important;
+}
+
+.terms-container.mode-2 .text-hot-pink {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+.terms-container.mode-2 hr {
+  border-color: #333 !important;
+}
 </style>
