@@ -183,6 +183,69 @@ if ($method === "POST") {
             exit;
         }
     }
+
+    // ADD THE NEW updatePassword METHOD HERE - NO OTHER CHANGES
+    if ($method == "updatePassword") {
+        try {
+            // Validate required fields
+            if (!isset($payload['accountId']) || !isset($payload['oldPassword']) || 
+                !isset($payload['newPassword']) || !isset($payload['confirmPassword'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "All password fields are required."]);
+                exit;
+            }
+
+            // Validate password confirmation
+            if ($payload['newPassword'] !== $payload['confirmPassword']) {
+                http_response_code(400);
+                echo json_encode(["message" => "New passwords do not match."]);
+                exit;
+            }
+
+            // Validate password length
+            if (strlen($payload['newPassword']) < 6) {
+                http_response_code(400);
+                echo json_encode(["message" => "New password must be at least 6 characters long."]);
+                exit;
+            }
+
+            $accountDAO = new AccountDAO($useServer);
+            
+            // Get account by ID
+            $account = $accountDAO->getAccountById($payload['accountId']);
+            if (!$account) {
+                http_response_code(404);
+                echo json_encode(["message" => "Account not found."]);
+                exit;
+            }
+
+            // Verify old password
+            if (!password_verify($payload['oldPassword'], $account->getPasswordHashed())) {
+                http_response_code(401);
+                echo json_encode(["message" => "Old password is incorrect."]);
+                exit;
+            }
+
+            // Hash new password
+            $newPasswordHashed = Account::hashPassword($payload['newPassword']);
+
+            // Update password in database
+            $success = $accountDAO->updatePassword($payload['accountId'], $newPasswordHashed);
+            
+            if ($success) {
+                echo json_encode(["message" => "Password changed successfully."]);
+                exit;
+            } else {
+                http_response_code(500);
+                echo json_encode(["message" => "Failed to update password."]);
+                exit;
+            }
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(["message" => "Caught exception: " . $e->getMessage()]);
+            exit;
+        }
+    }
     
 }
 

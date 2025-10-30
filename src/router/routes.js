@@ -12,6 +12,7 @@ import ServiceDetail from '../views/ServiceDetail.vue'
 import customerDB from '../views/customerDB.vue'
 import DashboardView from '../views/DashboardView.vue' // <-- new import
 import ConfirmationView from '@/views/ConfirmationView.vue'
+import settings from  '@/views/settings.vue'
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -26,6 +27,7 @@ export const routes = [
   { path: '/CDB', component: customerDB },
   { path: '/dashboard', name: 'dashboard', title: 'Dashboard', component: DashboardView },
   { path: '/confirmation', name: 'confirmation', title: 'Confirmed!', component: ConfirmationView },
+  {path: '/settings', component: settings}
 ]
 
 const router = createRouter({
