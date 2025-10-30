@@ -54,15 +54,14 @@ const changeDisplayName = async () => {
       },
       body: JSON.stringify({
         method: 'updateDisplayName',
-        email: currentUser.value.email, // Use email instead of accountId
-        displayName: displayName.value.trim()
+        accountId: currentUser.value.account_id, // ✅ use accountId instead of email
+        newDisplayName: displayName.value.trim()
       })
     })
 
     const result = await response.json()
     
     if (response.ok) {
-      // Update local storage
       currentUser.value.display_name = displayName.value.trim()
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
       alert('Display name updated successfully!')
@@ -96,7 +95,7 @@ const changePassword = async () => {
 
   isLoading.value = true
   try {
-    // First verify old password
+    // Step 1: Verify old password
     const verifyResponse = await fetch('/api/accounts.php', {
       method: 'POST',
       headers: {
@@ -116,7 +115,7 @@ const changePassword = async () => {
       return
     }
 
-    // Update password
+    // Step 2: Update password
     const updateResponse = await fetch('/api/accounts.php', {
       method: 'POST',
       headers: {
@@ -124,7 +123,7 @@ const changePassword = async () => {
       },
       body: JSON.stringify({
         method: 'updatePassword',
-        email: currentUser.value.email, // Use email instead of accountId
+        accountId: currentUser.value.account_id, // ✅ use accountId instead of email
         newPassword: newPassword.value
       })
     })
@@ -168,6 +167,7 @@ const logout = () => {
   router.push('/login')
 }
 </script>
+
 
 <template>
   <div class="account-settings container my-5" v-if="currentUser">
