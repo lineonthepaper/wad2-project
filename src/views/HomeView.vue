@@ -15,7 +15,7 @@ onMounted(() => {
     welcomeMessage.value = `Welcome, ${name}!`
     isLoggedIn.value = true
   }
-
+  
   // Listen for login status changes to update welcome message
   window.addEventListener('loginStatusChanged', () => {
     const userData = sessionStorage.getItem('currentUser')
@@ -78,7 +78,7 @@ onMounted(() => {
       </p>
     </div>
 
-    <div class="row justify-content-center text-center py-2 cards-row">
+    <div class="row justify-content-center text-center py-2">
       <div class="col-md-3">
         <div class="card h-100">
           <RouterLink :to="{ name: 'services' }">
@@ -123,57 +123,7 @@ onMounted(() => {
   <RouterView />
 </template>
 
-<style>
-body {
-  background: linear-gradient(135deg, #ff7eb9, #ff65a3, #f5c4d3);
-  background-size: 300% 300%;
-  animation: gradient-animation 15s ease infinite;
-  font-family: 'Quicksand', sans-serif;
-  min-height: 100vh;
-}
-
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-</style>
-
-
 <style scoped>
-.card {
-  background: linear-gradient(135deg, #fff3f8, #ffeaf2);
-  border: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Added transition for smooth hover */
-  border-radius: 15px;
-}
-.card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 20px rgba(255, 101, 163, 0.3);
-}
-
-.btn-pink {
-  background: linear-gradient(90deg, #ff7eb9, #ff65a3);
-  border: none;
-  color: white;
-  transition: transform 0.3s ease, opacity 0.3s ease; /* Added transition for smooth hover */
-  padding: 10px 30px;
-  border-radius: 50px;
-}
-
-.btn-pink:hover {
-  transform: scale(1.08);
-  opacity: 1.0;
-  background: linear-gradient(90deg, #ff65a3, #ff7eb9);
-  color: white;
-}
-
 .card a {
   text-decoration: none;
 }
@@ -201,19 +151,4 @@ body {
   padding: 10px;
   box-sizing: content-box;
 }
-
-.service-icon:hover {
-  transform: scale(1.1);
-}
-
-header.row a {
-  text-decoration: none;
-  color: white;
-}
-
-header .row a:hover {
-  color: white;
-}
-
-
 </style>

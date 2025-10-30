@@ -112,7 +112,7 @@ onUnmounted(() => {
                 </li>
               </ul>
             </div>
-
+            
           </div>
         </div>
       </div>
@@ -122,59 +122,20 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-img {
-  border: none;
-  outline: none;
-}
-
 nav {
   width: 100vw;
   background-color: white;
   height: fit-content;
 }
-
 li a {
   color: #ff4275;
   text-decoration: none;
   font-weight: bold;
-  transition: transform 0.3s eases, color 0.3s ease;
-  display: inline-block;
 }
-
 li a:hover,
 button:hover a {
   color: #ff0044;
-  transform: scale(1.1)
 }
-
-.btn-pink {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  background-color: #ff4275;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  display: inline-block;
-}
-
-.btn-pink:hover {
-  transform: scale(1.08);
-  opacity: 0.9;
-}
-
-.btn-outline-pink {
-  color: #ff4275;
-  border-color: #ff4275;
-  background-color: white;
-  transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease;
-}
-
-.btn-outline-pink:hover {
-  background-color: #ff4275;
-  color: white;
-  transform: scale(1.08);
-}
-
 li {
   padding: 2px 10px;
   text-align: center;
@@ -206,7 +167,7 @@ li {
   padding: 0px 10px;
 }
 
-
+/* Style for logout button */
 .btn-outline-pink {
   color: #ff4275;
   border-color: #ff4275;
