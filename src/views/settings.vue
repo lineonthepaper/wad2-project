@@ -54,7 +54,7 @@ const changeDisplayName = async () => {
       },
       body: JSON.stringify({
         method: 'updateDisplayName',
-        accountId: currentUser.value.account_id,
+        email: currentUser.value.email, // Use email instead of accountId
         displayName: displayName.value.trim()
       })
     })
@@ -124,7 +124,7 @@ const changePassword = async () => {
       },
       body: JSON.stringify({
         method: 'updatePassword',
-        accountId: currentUser.value.account_id,
+        email: currentUser.value.email, // Use email instead of accountId
         newPassword: newPassword.value
       })
     })

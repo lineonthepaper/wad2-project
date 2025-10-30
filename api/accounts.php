@@ -189,6 +189,7 @@ if ($method == "updateDisplayName") {
     try {
         if (!isset($payload['accountId']) || !isset($payload['displayName'])) {
             http_response_code(400);
+            
             echo json_encode(["message" => "Account ID and display name are required."]);
             exit;
         }
