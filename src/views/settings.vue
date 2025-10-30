@@ -11,6 +11,8 @@ const confirmPassword = ref('')
 const profilePicture = ref(null)
 const profilePreview = ref('')
 const isLoading = ref(false)
+const displayNameLoading = ref(false)
+const passwordLoading = ref(false)
 
 // Check authentication and load current user
 const checkAuth = () => {
@@ -20,10 +22,16 @@ const checkAuth = () => {
     return false
   }
   
-  currentUser.value = JSON.parse(stored)
-  displayName.value = currentUser.value.display_name || ''
-  profilePreview.value = currentUser.value.profilePicture || ''
-  return true
+  try {
+    currentUser.value = JSON.parse(stored)
+    displayName.value = currentUser.value.display_name || currentUser.value.displayName || ''
+    profilePreview.value = currentUser.value.profilePicture || '/default-avatar.png'
+    return true
+  } catch (e) {
+    console.error('Error parsing user data:', e)
+    router.push('/login')
+    return false
+  }
 }
 
 // Load current user from sessionStorage with auth check
@@ -45,7 +53,12 @@ const changeDisplayName = async () => {
     return
   }
 
-  isLoading.value = true
+  if (displayName.value.trim() === (currentUser.value.display_name || currentUser.value.displayName)) {
+    alert('Display name is the same as current name.')
+    return
+  }
+
+  displayNameLoading.value = true
   try {
     const response = await fetch('/api/accounts.php', {
       method: 'POST',
@@ -54,7 +67,7 @@ const changeDisplayName = async () => {
       },
       body: JSON.stringify({
         method: 'updateDisplayName',
-        accountId: currentUser.value.account_id, // ✅ use accountId instead of email
+        accountId: currentUser.value.account_id || currentUser.value.id,
         newDisplayName: displayName.value.trim()
       })
     })
@@ -62,7 +75,9 @@ const changeDisplayName = async () => {
     const result = await response.json()
     
     if (response.ok) {
+      // Update both possible property names
       currentUser.value.display_name = displayName.value.trim()
+      currentUser.value.displayName = displayName.value.trim()
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
       alert('Display name updated successfully!')
     } else {
@@ -72,7 +87,7 @@ const changeDisplayName = async () => {
     console.error('Error updating display name:', error)
     alert('Error updating display name')
   } finally {
-    isLoading.value = false
+    displayNameLoading.value = false
   }
 }
 
@@ -83,7 +98,7 @@ const changePassword = async () => {
     return
   }
   
-  if (!oldPassword.value || !newPassword.value) {
+  if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
     alert('Please fill in all fields.')
     return
   }
@@ -93,7 +108,7 @@ const changePassword = async () => {
     return
   }
 
-  isLoading.value = true
+  passwordLoading.value = true
   try {
     // Step 1: Verify old password
     const verifyResponse = await fetch('/api/accounts.php', {
@@ -123,7 +138,7 @@ const changePassword = async () => {
       },
       body: JSON.stringify({
         method: 'updatePassword',
-        accountId: currentUser.value.account_id, // ✅ use accountId instead of email
+        accountId: currentUser.value.account_id || currentUser.value.id,
         newPassword: newPassword.value
       })
     })
@@ -142,7 +157,7 @@ const changePassword = async () => {
     console.error('Error changing password:', error)
     alert('Error changing password')
   } finally {
-    isLoading.value = false
+    passwordLoading.value = false
   }
 }
 
@@ -150,6 +165,18 @@ const changePassword = async () => {
 const handleFileUpload = (e) => {
   const file = e.target.files[0]
   if (!file) return
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file.')
+    return
+  }
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Please select an image smaller than 5MB.')
+    return
+  }
 
   const reader = new FileReader()
   reader.onload = (event) => {
@@ -168,14 +195,13 @@ const logout = () => {
 }
 </script>
 
-
 <template>
   <div class="account-settings container my-5" v-if="currentUser">
     <!-- Header with user info and logout -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
-        <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.email }}!</span>
+        <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.displayName || currentUser.email }}!</span>
         <button class="btn btn-outline-pink btn-sm" @click="logout">
           Logout
         </button>
@@ -186,13 +212,19 @@ const logout = () => {
       <!-- Profile Picture -->
       <div class="text-center mb-4">
         <img
-          :src="profilePreview || '/default-avatar.png'"
+          :src="profilePreview"
           alt="Profile Picture"
           class="rounded-circle mb-3 border"
           style="width: 150px; height: 150px; object-fit: cover;"
         />
         <div>
-          <input type="file" @change="handleFileUpload" accept="image/*" />
+          <input 
+            type="file" 
+            @change="handleFileUpload" 
+            accept="image/*" 
+            class="form-control"
+            style="max-width: 250px; margin: 0 auto;"
+          />
         </div>
       </div>
 
@@ -205,14 +237,14 @@ const logout = () => {
             type="text"
             class="form-control"
             placeholder="Enter new display name"
-            :disabled="isLoading"
+            :disabled="displayNameLoading"
           />
           <button 
             class="btn btn-pink" 
             @click="changeDisplayName"
-            :disabled="isLoading"
+            :disabled="displayNameLoading || !displayName.trim()"
           >
-            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+            <span v-if="displayNameLoading" class="spinner-border spinner-border-sm me-2"></span>
             Update
           </button>
         </div>
@@ -229,7 +261,7 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="Current Password"
-            :disabled="isLoading"
+            :disabled="passwordLoading"
           />
         </div>
         <div class="form-group mb-2">
@@ -238,7 +270,7 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="New Password"
-            :disabled="isLoading"
+            :disabled="passwordLoading"
           />
         </div>
         <div class="form-group mb-3">
@@ -247,15 +279,15 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="Confirm New Password"
-            :disabled="isLoading"
+            :disabled="passwordLoading"
           />
         </div>
         <button 
           class="btn btn-pink" 
           @click="changePassword"
-          :disabled="isLoading"
+          :disabled="passwordLoading || !oldPassword || !newPassword || !confirmPassword"
         >
-          <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+          <span v-if="passwordLoading" class="spinner-border spinner-border-sm me-2"></span>
           Change Password
         </button>
       </div>
@@ -299,9 +331,5 @@ const logout = () => {
 }
 .account-settings {
   max-width: 600px;
-}
-input[type="file"] {
-  display: inline-block;
-  margin-top: 10px;
 }
 </style>
