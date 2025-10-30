@@ -92,7 +92,7 @@ export default {
   methods: {
     forceRerender() {
       this.componentKey++
-      console.log('rerendering...')
+      // console.log('rerendering...')
     },
     toggle(id, index) {
       if (this.currentElement == id) {
@@ -210,7 +210,7 @@ export default {
       }
     },
     processBriefInfo() {
-      console.log('processing brief info')
+      // console.log('processing brief info')
       let newProps = {}
 
       if (
@@ -310,9 +310,21 @@ export default {
       if (this.shipment.complete == true) {
         this.shipment.totalCostSGD = this.totalSGD
         this.cart.shipments.push(JSON.parse(JSON.stringify(this.shipment.$state)))
-        console.log(this.cart.shipments)
+        // console.log(this.cart.shipments)
         this.shipment.$reset()
-        console.log('added to cart')
+        // console.log('added to cart')
+      }
+    },
+    getCompletionBySection(sectionId) {
+      switch (sectionId) {
+        case 'briefInfo':
+          return this.briefInfoCompletion
+        case 'services':
+          return this.servicesCompletion
+        case 'shipment':
+          return this.shipmentDetailsCompletion
+        case 'delivery':
+          return this.deliveryDetailsCompletion
       }
     },
   },
@@ -329,6 +341,9 @@ export default {
       // return Object.keys(this.sections[0].data).length / 7
     },
     servicesCompletion() {
+      if ('selectedService' in this.sections[1].data) {
+        if (this.sections[1].data.selectedService === undefined) return 0
+      }
       return Object.keys(this.sections[1].data).length / 1
     },
     shipmentDetailsCompletion() {
@@ -433,7 +448,10 @@ export default {
           >
             <div class="text-dark-slate-blue justify-content-between d-flex">
               <h2 class="d-inline-block">{{ section.title }}</h2>
-              <h2 class="d-inline-block downarrow" v-if="currentElement != section.id">+</h2>
+              <h2 class="d-inline-block downarrow" v-if="getCompletionBySection(section.id) == 1">
+                ✓
+              </h2>
+              <h2 class="d-inline-block downarrow" v-else-if="currentElement != section.id">+</h2>
               <h2 class="d-inline-block uparrow" v-else>–</h2>
             </div>
           </div>

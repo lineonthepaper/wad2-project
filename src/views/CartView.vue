@@ -45,7 +45,6 @@
                 />
               </p>
               <p>
-                <!-- {{ s[send.id].line1 }} -->
                 <template v-for="i in 3" :key="i">
                   <input
                     type="text"
@@ -113,7 +112,6 @@
               </button>
             </div>
           </div>
-          <!-- {{ s }} -->
         </div>
       </div>
 
@@ -230,12 +228,12 @@ export default {
               },
             })
             .then((response) => {
-              console.log(response.data)
+              // console.log(response.data)
               if (response.data.success) {
                 addressIds[person] = response.data.addressId
               }
 
-              console.log(addressIds)
+              // console.log(addressIds)
             })
             .catch((error) => {
               console.error(error)
@@ -244,7 +242,7 @@ export default {
 
         let zone = this.getZone(shipment.recipient.country)
 
-        async function waitForAddressIds(statuses, until, mailIds) {
+        async function waitForAddressIds(statuses, until, mailIds, sendEmail) {
           await until(() => Object.keys(addressIds).length == 2)
           axios
             .post('/api/mail.php', {
@@ -263,7 +261,7 @@ export default {
               },
             })
             .then((response) => {
-              console.log(response.data)
+              // console.log(response.data)
               if (!response.data.success) {
                 statuses.push(false)
                 mailIds.push(null)
@@ -271,15 +269,16 @@ export default {
                 statuses.push(true)
                 mailIds.push(response.data.mailId)
               }
+              // then send email
+
+              sendEmail(shipment, response.data.mailId)
             })
             .catch((error) => {
               console.error(error)
             })
         }
 
-        waitForAddressIds(this.statuses, this.until, this.mailIds)
-
-        // then send email
+        waitForAddressIds(this.statuses, this.until, this.mailIds, this.sendEmail)
       }
 
       async function waitForAddMail(
@@ -293,7 +292,7 @@ export default {
         labels,
         mailIds,
       ) {
-        console.log(statuses)
+        // console.log(statuses)
 
         await until(() => statuses.length == numSelectedShipments)
 
@@ -334,6 +333,29 @@ export default {
         this.labels,
         this.mailIds,
       )
+    },
+    sendEmail(shipment, mailId) {
+      axios
+        .post('/api/sendEmail.php', {
+          from: {
+            name: 'Fluffy Shipping @ SingPost',
+          },
+          to: [
+            {
+              email: shipment.sender.email,
+              name: shipment.sender.name,
+            },
+          ],
+          subject: 'Your mail has been registered!',
+          mailId: mailId,
+          shipmentType: shipment.type,
+        })
+        .then((response) => {
+          console.log(response.data)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     },
   },
   computed: {

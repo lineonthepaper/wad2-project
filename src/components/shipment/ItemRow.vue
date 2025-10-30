@@ -94,6 +94,7 @@ input::-webkit-inner-spin-button {
 }
 
 input[type='number'] {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 </style>
@@ -152,7 +153,7 @@ export default {
   },
   methods: {
     updateItemRow(rowId, inputName, value) {
-      console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
+      // console.log('emitting ' + inputName + ' ' + value + ' on row ' + rowId)
       if (inputName == 'itemCurrency' || inputName == 'itemValue') {
         if (
           this.inputs[1].input !== null &&
@@ -169,28 +170,41 @@ export default {
         this.$emit('update-item-row', rowId, 'costSGD', price)
       } else {
         axios
-          .get('https://api.fxratesapi.com/latest', {
-            params: {
-              api_key: import.meta.env.VITE_FXRATESAPI_KEY,
-              base: currency,
-              places: 2,
-              currencies: 'SGD',
-              resolution: '1d',
-              amount: price,
-            },
+          .post('/api/convertCurrency.php', {
+            base: currency,
+            places: 2,
+            currencies: 'SGD',
+            resolution: '1d',
+            amount: price,
           })
           .then((response) => {
-            // console.log(response.data.rates.SGD)
-            // console.log('converted: ' + price / response.data.rates[currency])
-            // return Math.round((price / response.data.rates[currency]) * 100) / 100
+            // console.log(response.data)
 
             this.$emit('update-item-row', rowId, 'costSGD', response.data.rates.SGD)
-            console.log('emitted ' + response.data.rates.SGD)
           })
           .catch((error) => {
             console.error(error)
-            return null
           })
+        // axios
+        //   .get('/api/convertCurrency.php', {
+        //     params: {
+        //       base: currency,
+        //       places: 2,
+        //       currencies: 'SGD',
+        //       resolution: '1d',
+        //       amount: price,
+        //     },
+        //   })
+        //   .then((response) => {
+        //     console.log(response.data)
+
+        //     this.$emit('update-item-row', rowId, 'costSGD', response.data.rates.SGD)
+        //     // console.log('emitted ' + response.data.rates.SGD)
+        //   })
+        //   .catch((error) => {
+        //     console.error(error)
+        //     return null
+        //   })
       }
     },
   },
