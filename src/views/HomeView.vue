@@ -11,12 +11,12 @@ onMounted(() => {
   if (userData) {
     const user = JSON.parse(userData)
     // Use display_name (from database) or fall back to email
-    const name = user.display_name || user.displayName 
+    const name = user.display_name || user.displayName
     //  ||  user.email
     welcomeMessage.value = `Welcome, ${name}!`
     isLoggedIn.value = true
   }
-  
+
   // Listen for login status changes to update welcome message
   window.addEventListener('loginStatusChanged', () => {
     const userData = sessionStorage.getItem('currentUser')
@@ -125,8 +125,18 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
 .card a {
   text-decoration: none;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  background-color: #ffe6f0;
 }
 
 .card a h5 {
