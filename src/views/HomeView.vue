@@ -11,7 +11,8 @@ onMounted(() => {
   if (userData) {
     const user = JSON.parse(userData)
     // Use display_name (from database) or fall back to email
-    const name = user.display_name || user.displayName  ||  user.email
+    const name = user.display_name || user.displayName 
+    //  ||  user.email
     welcomeMessage.value = `Welcome, ${name}!`
     isLoggedIn.value = true
   }
@@ -21,7 +22,7 @@ onMounted(() => {
     const userData = sessionStorage.getItem('currentUser')
     if (userData) {
       const user = JSON.parse(userData)
-      const name = user.display_name || user.email
+      const name = user.displayName  || user.email
       welcomeMessage.value = `Welcome, ${name}!`
       isLoggedIn.value = true
     } else {

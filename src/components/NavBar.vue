@@ -96,7 +96,7 @@ onUnmounted(() => {
                     aria-expanded="false"
                   >
                     <span class="fw-bold">
-                      {{ currentUser?.display_name || currentUser?.email }}
+                      {{ currentUser?.displayName  || currentUser?.email }}
                     </span>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
