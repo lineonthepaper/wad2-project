@@ -21,7 +21,7 @@ const checkAuth = () => {
     router.push('/login')
     return false
   }
-  
+
   try {
     currentUser.value = JSON.parse(stored)
     displayName.value = currentUser.value.display_name || currentUser.value.displayName || ''
@@ -60,24 +60,34 @@ const changeDisplayName = async () => {
 
   displayNameLoading.value = true
   try {
+    // Fetch account ID if missing
+    let accountId = currentUser.value.account_id
+    if (!accountId) {
+      const res = await fetch('/api/accounts.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method: 'getAccountByEmail', email: currentUser.value.email })
+      })
+      const data = await res.json()
+      accountId = data.account.account_id
+    }
+
     const response = await fetch('/api/accounts.php', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         method: 'updateDisplayName',
-        accountId: currentUser.value.account_id || currentUser.value.id,
+        accountId,
         newDisplayName: displayName.value.trim()
       })
     })
 
     const result = await response.json()
-    
+
     if (response.ok) {
-      // Update both possible property names
       currentUser.value.display_name = displayName.value.trim()
       currentUser.value.displayName = displayName.value.trim()
+      currentUser.value.account_id = accountId
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
       alert('Display name updated successfully!')
     } else {
@@ -97,7 +107,7 @@ const changePassword = async () => {
     alert('Passwords do not match.')
     return
   }
-  
+
   if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
     alert('Please fill in all fields.')
     return
@@ -110,43 +120,56 @@ const changePassword = async () => {
 
   passwordLoading.value = true
   try {
-    // Step 1: Verify old password
-    const verifyResponse = await fetch('/api/accounts.php', {
+    // Fetch account ID if missing
+    let accountId = currentUser.value.account_id
+    if (!accountId) {
+      const res = await fetch('/api/accounts.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method: 'getAccountByEmail', email: currentUser.value.email })
+      })
+      const data = await res.json()
+      accountId = data.account.account_id
+    }
+
+    // Verify old password using loginAccount
+    const verifyRes = await fetch('/api/accounts.php', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        method: 'verifyPassword',
+        method: 'loginAccount',
         email: currentUser.value.email,
         password: oldPassword.value
       })
     })
+    const verifyData = await verifyRes.json()
 
-    const verifyResult = await verifyResponse.json()
-    
-    if (!verifyResponse.ok || !verifyResult.valid) {
+    if (!verifyRes.ok) {
       alert('Current password is incorrect.')
       return
     }
 
-    // Step 2: Update password
-    const updateResponse = await fetch('/api/accounts.php', {
+    // Update password
+    const updateRes = await fetch('/api/accounts.php', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         method: 'updatePassword',
-        accountId: currentUser.value.account_id || currentUser.value.id,
+        accountId,
         newPassword: newPassword.value
       })
     })
+    const updateData = await updateRes.json()
 
+<<<<<<< HEAD
     const updateResult = await updateResponse.json()
     
     if (updateResponse.ok) {
       alert('Password changed successfully! Please log in with your new password.') // Added clarification
+=======
+    if (updateRes.ok) {
+      alert('Password changed successfully!')
+>>>>>>> c18d992d170247a942a5ac44827bc6e347c2b7b5
       oldPassword.value = ''
       newPassword.value = ''
       confirmPassword.value = ''
@@ -156,7 +179,7 @@ const changePassword = async () => {
       // *** END OF CHANGE ***
       
     } else {
-      alert(updateResult.message || 'Failed to change password')
+      alert(updateData.message || 'Failed to change password')
     }
   } catch (error) {
     console.error('Error changing password:', error)
@@ -171,13 +194,11 @@ const handleFileUpload = (e) => {
   const file = e.target.files[0]
   if (!file) return
 
-  // Validate file type
   if (!file.type.startsWith('image/')) {
     alert('Please select an image file.')
     return
   }
 
-  // Validate file size (max 5MB)
   if (file.size > 5 * 1024 * 1024) {
     alert('Please select an image smaller than 5MB.')
     return
@@ -206,9 +227,7 @@ const logout = () => {
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
         <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.displayName || currentUser.email }}!</span>
-        <button class="btn btn-outline-pink btn-sm" @click="logout">
-          Logout
-        </button>
+        <button class="btn btn-outline-pink btn-sm" @click="logout">Logout</button>
       </div>
     </div>
 
@@ -221,31 +240,15 @@ const logout = () => {
           style="width: 150px; height: 150px; object-fit: cover;"
         />
         <div>
-          <input 
-            type="file" 
-            @change="handleFileUpload" 
-            accept="image/*" 
-            class="form-control"
-            style="max-width: 250px; margin: 0 auto;"
-          />
+          <input type="file" @change="handleFileUpload" accept="image/*" class="form-control" style="max-width: 250px; margin: 0 auto;" />
         </div>
       </div>
 
       <div class="mb-4">
         <h5 class="fw-bold text-pink">Change Display Name</h5>
         <div class="input-group">
-          <input
-            v-model="displayName"
-            type="text"
-            class="form-control"
-            placeholder="Enter new display name"
-            :disabled="displayNameLoading"
-          />
-          <button 
-            class="btn btn-pink" 
-            @click="changeDisplayName"
-            :disabled="displayNameLoading || !displayName.trim()"
-          >
+          <input v-model="displayName" type="text" class="form-control" placeholder="Enter new display name" :disabled="displayNameLoading" />
+          <button class="btn btn-pink" @click="changeDisplayName" :disabled="displayNameLoading || !displayName.trim()">
             <span v-if="displayNameLoading" class="spinner-border spinner-border-sm me-2"></span>
             Update
           </button>
@@ -257,37 +260,15 @@ const logout = () => {
       <div>
         <h5 class="fw-bold text-pink">Change Password</h5>
         <div class="form-group mb-2">
-          <input
-            v-model="oldPassword"
-            type="password"
-            class="form-control"
-            placeholder="Current Password"
-            :disabled="passwordLoading"
-          />
+          <input v-model="oldPassword" type="password" class="form-control" placeholder="Current Password" :disabled="passwordLoading" />
         </div>
         <div class="form-group mb-2">
-          <input
-            v-model="newPassword"
-            type="password"
-            class="form-control"
-            placeholder="New Password"
-            :disabled="passwordLoading"
-          />
+          <input v-model="newPassword" type="password" class="form-control" placeholder="New Password" :disabled="passwordLoading" />
         </div>
         <div class="form-group mb-3">
-          <input
-            v-model="confirmPassword"
-            type="password"
-            class="form-control"
-            placeholder="Confirm New Password"
-            :disabled="passwordLoading"
-          />
+          <input v-model="confirmPassword" type="password" class="form-control" placeholder="Confirm New Password" :disabled="passwordLoading" />
         </div>
-        <button 
-          class="btn btn-pink" 
-          @click="changePassword"
-          :disabled="passwordLoading || !oldPassword || !newPassword || !confirmPassword"
-        >
+        <button class="btn btn-pink" @click="changePassword" :disabled="passwordLoading || !oldPassword || !newPassword || !confirmPassword">
           <span v-if="passwordLoading" class="spinner-border spinner-border-sm me-2"></span>
           Change Password
         </button>
@@ -306,30 +287,11 @@ const logout = () => {
 </template>
 
 <style scoped>
-.text-pink {
-  color: #ff4275;
-}
-.btn-pink {
-  background-color: #ff4275;
-  color: white;
-  border: none;
-}
-.btn-pink:hover {
-  background-color: #ff0044;
-}
-.btn-pink:disabled {
-  background-color: #cccccc;
-  border-color: #cccccc;
-}
-.btn-outline-pink {
-  color: #ff4275;
-  border-color: #ff4275;
-}
-.btn-outline-pink:hover {
-  background-color: #ff4275;
-  color: white;
-}
-.account-settings {
-  max-width: 600px;
-}
+.text-pink { color: #ff4275; }
+.btn-pink { background-color: #ff4275; color: white; border: none; }
+.btn-pink:hover { background-color: #ff0044; }
+.btn-pink:disabled { background-color: #cccccc; border-color: #cccccc; }
+.btn-outline-pink { color: #ff4275; border-color: #ff4275; }
+.btn-outline-pink:hover { background-color: #ff4275; color: white; }
+.account-settings { max-width: 600px; }
 </style>
