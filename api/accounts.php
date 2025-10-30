@@ -88,41 +88,43 @@ if ($method === "POST") {
             exit;
         }
     }
-    if ($method == "loginAccount") {
-    try {
-        if (!isset($payload['email']) || !isset($payload['password'])) {
-            http_response_code(400);
-            echo json_encode(["message" => "Email and password are required."]);
-            exit;
-        }
 
-        $accountDAO = new AccountDAO($useServer);
-        
-        // Verify password using the existing method in AccountDAO
-        if ($accountDAO->verifyPassword($payload['email'], $payload['password'])) {
-            $account = $accountDAO->getAccountByEmail($payload['email']);
-            if ($account) {
-                echo json_encode([
-                    "message" => "Login successful.",
-                    "account" => $account->jsonSerialize()
-                ]);
-                exit;
-            } else {
-                http_response_code(500);
-                echo json_encode(["message" => "Error retrieving account information."]);
+    if ($method == "loginAccount") {
+        try {
+            if (!isset($payload['email']) || !isset($payload['password'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "Email and password are required."]);
                 exit;
             }
-        } else {
-            http_response_code(401);
-            echo json_encode(["message" => "Invalid email or password."]);
+
+            $accountDAO = new AccountDAO($useServer);
+            
+            // Verify password using the existing method in AccountDAO
+            if ($accountDAO->verifyPassword($payload['email'], $payload['password'])) {
+                $account = $accountDAO->getAccountByEmail($payload['email']);
+                if ($account) {
+                    echo json_encode([
+                        "message" => "Login successful.",
+                        "account" => $account->jsonSerialize()
+                    ]);
+                    exit;
+                } else {
+                    http_response_code(500);
+                    echo json_encode(["message" => "Error retrieving account information."]);
+                    exit;
+                }
+            } else {
+                http_response_code(401);
+                echo json_encode(["message" => "Invalid email or password."]);
+                exit;
+            }
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(["message" => "Caught exception: " . $e->getMessage()]);
             exit;
         }
-    } catch (Exception $e) {
-        http_response_code(400);
-        echo json_encode(["message" => "Caught exception: " . $e->getMessage()]);
-        exit;
     }
-}
+
     if ($method == "getAccountByEmail") {
         try {
             $accountDAO = new AccountDAO($useServer);
@@ -144,130 +146,97 @@ if ($method === "POST") {
         }
     }
 
-    if ($method == "loginAccount") {
+    // ADD THIS MISSING METHOD
+    if ($method == "verifyPassword") {
         try {
-            $payloadEmail = $payload['email'] ?? '';
-            $payloadPassword = $payload['password'] ?? '';
-
-            $accountDAO = new AccountDAO($useServer);
-            $account = $accountDAO->getAccountByEmail($payloadEmail);
-
-            if (!$account) {
-                http_response_code(401);
-                echo json_encode(["message" => "Invalid email or password"]);
+            if (!isset($payload['email']) || !isset($payload['password'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "Email and password are required."]);
                 exit;
             }
 
-            // Get stored hash - adjust property name based on your Account class
-            $storedHash = $account->password; // or $account->getPassword()
+            $accountDAO = new AccountDAO($useServer);
+            $isValid = $accountDAO->verifyPassword($payload['email'], $payload['password']);
+            
+            echo json_encode([
+                "valid" => $isValid,
+                "message" => $isValid ? "Password is valid." : "Password is invalid."
+            ]);
+            exit;
+            
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(["message" => "Error verifying password: " . $e->getMessage()]);
+            exit;
+        }
+    }
 
-            if (password_verify($payloadPassword, $storedHash)) {
-                // Login successful
-                http_response_code(200);
-                echo json_encode([
-                    "message" => "Login successful",
-                    "account" => [
-                        "displayName" => $account->display_name, // adjust property name
-                        "email" => $account->email
-                    ]
-                ]);
+    // KEEP ONLY ONE VERSION OF updateDisplayName
+    if ($method == "updateDisplayName") {
+        try {
+            if (!isset($payload['accountId']) || !isset($payload['newDisplayName'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "Account ID and new display name are required."]);
                 exit;
+            }
+
+            $accountId = (int)$payload['accountId'];
+            $newDisplayName = trim($payload['newDisplayName']);
+
+            if (empty($newDisplayName)) {
+                http_response_code(400);
+                echo json_encode(["message" => "Display name cannot be empty."]);
+                exit;
+            }
+
+            $accountDAO = new AccountDAO($useServer);
+            $success = $accountDAO->updateDisplayName($accountId, $newDisplayName);
+
+            if ($success) {
+                echo json_encode(["message" => "Display name updated successfully."]);
             } else {
-                http_response_code(401); 
-                echo json_encode(["message" => "Invalid email or password"]);
-                exit;
+                http_response_code(500);
+                echo json_encode(["message" => "Failed to update display name."]);
             }
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Login failed: " . $e->getMessage()]);
-            exit;
+            echo json_encode(["message" => "Error updating display name: " . $e->getMessage()]);
         }
-
-    
+        exit;
     }
-    if ($method == "updateDisplayName") {
-    $accountId = $payload['accountId'];
-    $newDisplayName = $payload['newDisplayName'];
 
-    $accountDAO = new AccountDAO($useServer);
-    $success = $accountDAO->updateDisplayName($accountId, $newDisplayName);
+    if ($method == "updatePassword") {
+        try {
+            if (!isset($payload['accountId']) || !isset($payload['newPassword'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "Account ID and new password are required."]);
+                exit;
+            }
 
-    if ($success) {
-        echo json_encode(["message" => "Display name updated successfully."]);
-    } else {
-        http_response_code(500);
-        echo json_encode(["message" => "Failed to update display name."]);
-    }
-    exit;
+            $accountId = (int)$payload['accountId'];
+            $newPassword = $payload['newPassword'];
+
+            if (strlen($newPassword) < 6) {
+                http_response_code(400);
+                echo json_encode(["message" => "Password must be at least 6 characters long."]);
+                exit;
+            }
+
+            $accountDAO = new AccountDAO($useServer);
+            $newPasswordHashed = Account::hashPassword($newPassword);
+            $success = $accountDAO->updatePassword($accountId, $newPasswordHashed);
+
+            if ($success) {
+                echo json_encode(["message" => "Password updated successfully."]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["message" => "Failed to update password."]);
+            }
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(["message" => "Error updating password: " . $e->getMessage()]);
+        }
+        exit;
+    } 
 }
-
-if ($method == "updateDisplayName") {
-    try {
-        if (!isset($payload['accountId']) || !isset($payload['newDisplayName'])) {
-            http_response_code(400);
-            echo json_encode(["message" => "Account ID and new display name are required."]);
-            exit;
-        }
-
-        $accountId = (int)$payload['accountId'];
-        $newDisplayName = trim($payload['newDisplayName']);
-
-        if (empty($newDisplayName)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Display name cannot be empty."]);
-            exit;
-        }
-
-        $accountDAO = new AccountDAO($useServer);
-        $success = $accountDAO->updateDisplayName($accountId, $newDisplayName);
-
-        if ($success) {
-            echo json_encode(["message" => "Display name updated successfully."]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["message" => "Failed to update display name."]);
-        }
-    } catch (Exception $e) {
-        http_response_code(400);
-        echo json_encode(["message" => "Error updating display name: " . $e->getMessage()]);
-    }
-    exit;
-}
-
-if ($method == "updatePassword") {
-    try {
-        if (!isset($payload['accountId']) || !isset($payload['newPassword'])) {
-            http_response_code(400);
-            echo json_encode(["message" => "Account ID and new password are required."]);
-            exit;
-        }
-
-        $accountId = (int)$payload['accountId'];
-        $newPassword = $payload['newPassword'];
-
-        if (strlen($newPassword) < 6) {
-            http_response_code(400);
-            echo json_encode(["message" => "Password must be at least 6 characters long."]);
-            exit;
-        }
-
-        $accountDAO = new AccountDAO($useServer);
-        $newPasswordHashed = Account::hashPassword($newPassword);
-        $success = $accountDAO->updatePassword($accountId, $newPasswordHashed);
-
-        if ($success) {
-            echo json_encode(["message" => "Password updated successfully."]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["message" => "Failed to update password."]);
-        }
-    } catch (Exception $e) {
-        http_response_code(400);
-        echo json_encode(["message" => "Error updating password: " . $e->getMessage()]);
-    }
-    exit;
-} 
-    
-}
-
 ?>
