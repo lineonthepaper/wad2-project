@@ -114,4 +114,3 @@ class AccountDAO
     return password_verify($password, $account->getPasswordHashed());
 }
 }
-

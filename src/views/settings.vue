@@ -171,7 +171,6 @@ const logout = () => {
 
 <template>
   <div class="account-settings container my-5" v-if="currentUser">
-    <!-- Header with user info and logout -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
@@ -183,7 +182,6 @@ const logout = () => {
     </div>
 
     <div class="card shadow-lg p-4 rounded-4 border-0">
-      <!-- Profile Picture -->
       <div class="text-center mb-4">
         <img
           :src="profilePreview || '/default-avatar.png'"
@@ -196,7 +194,6 @@ const logout = () => {
         </div>
       </div>
 
-      <!-- Change Display Name -->
       <div class="mb-4">
         <h5 class="fw-bold text-pink">Change Display Name</h5>
         <div class="input-group">
@@ -220,7 +217,6 @@ const logout = () => {
 
       <hr />
 
-      <!-- Change Password -->
       <div>
         <h5 class="fw-bold text-pink">Change Password</h5>
         <div class="form-group mb-2">
@@ -262,7 +258,6 @@ const logout = () => {
     </div>
   </div>
 
-  <!-- Loading/Unauthorized state -->
   <div v-else class="container my-5">
     <div class="text-center">
       <div class="spinner-border text-pink" role="status">
