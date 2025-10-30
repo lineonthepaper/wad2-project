@@ -10,12 +10,12 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 const profilePicture = ref(null)
 const profilePreview = ref('')
-const isLoading = ref(false)
 
 // Check authentication and load current user
 const checkAuth = () => {
   const stored = sessionStorage.getItem('currentUser')
   if (!stored) {
+    // Redirect to login if not authenticated
     router.push('/login')
     return false
   }
@@ -38,46 +38,19 @@ watch(currentUser, (newVal) => {
   }
 })
 
-// Handle username change - UPDATED TO USE BACKEND
-const changeUsername = async () => {
+// Handle username change
+const changeUsername = () => {
   if (!username.value.trim()) {
     alert('Username cannot be empty.')
     return
   }
-
-  isLoading.value = true
-  try {
-    const response = await fetch('/api/account.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        method: 'updateDisplayName',
-        accountId: currentUser.value.account_id,
-        displayName: username.value.trim()
-      })
-    })
-
-    const data = await response.json()
-
-    if (response.ok) {
-      // Update local storage with new user data
-      currentUser.value.display_name = username.value.trim()
-      sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-      alert('Username updated successfully!')
-    } else {
-      alert(data.message || 'Failed to update username.')
-    }
-  } catch (error) {
-    alert('Error updating username: ' + error.message)
-  } finally {
-    isLoading.value = false
-  }
+  currentUser.value.display_name = username.value
+  sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+  alert('Username updated successfully!')
 }
 
 // Handle password change
-const changePassword = async () => {
+const changePassword = () => {
   if (newPassword.value !== confirmPassword.value) {
     alert('Passwords do not match.')
     return
@@ -86,38 +59,11 @@ const changePassword = async () => {
     alert('Please fill in all fields.')
     return
   }
-
-  isLoading.value = true
-  try {
-    const response = await fetch('/api/account.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        method: 'updatePassword',
-        accountId: currentUser.value.account_id,
-        oldPassword: oldPassword.value,
-        newPassword: newPassword.value,
-        confirmPassword: confirmPassword.value
-      })
-    })
-
-    const data = await response.json()
-
-    if (response.ok) {
-      alert('Password changed successfully!')
-      oldPassword.value = ''
-      newPassword.value = ''
-      confirmPassword.value = ''
-    } else {
-      alert(data.message || 'Failed to change password.')
-    }
-  } catch (error) {
-    alert('Error changing password: ' + error.message)
-  } finally {
-    isLoading.value = false
-  }
+  // Mock update - in real app, this would send to backend
+  alert('Password changed successfully!')
+  oldPassword.value = ''
+  newPassword.value = ''
+  confirmPassword.value = ''
 }
 
 // Handle profile picture upload
@@ -148,7 +94,7 @@ const logout = () => {
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
-        <span class="me-3">Welcome, {{ currentUser.display_name }}!</span>
+        <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.username }}!</span>
         <button class="btn btn-outline-pink btn-sm" @click="logout">
           Logout
         </button>
@@ -178,11 +124,8 @@ const logout = () => {
             type="text"
             class="form-control"
             placeholder="Enter new username"
-            :disabled="isLoading"
           />
-          <button class="btn btn-pink" @click="changeUsername" :disabled="isLoading">
-            {{ isLoading ? 'Updating...' : 'Update' }}
-          </button>
+          <button class="btn btn-pink" @click="changeUsername">Update</button>
         </div>
       </div>
 
@@ -197,7 +140,6 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="Old Password"
-            :disabled="isLoading"
           />
         </div>
         <div class="form-group mb-2">
@@ -206,7 +148,6 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="New Password"
-            :disabled="isLoading"
           />
         </div>
         <div class="form-group mb-3">
@@ -215,12 +156,9 @@ const logout = () => {
             type="password"
             class="form-control"
             placeholder="Confirm New Password"
-            :disabled="isLoading"
           />
         </div>
-        <button class="btn btn-pink" @click="changePassword" :disabled="isLoading">
-          {{ isLoading ? 'Changing...' : 'Change Password' }}
-        </button>
+        <button class="btn btn-pink" @click="changePassword">Change Password</button>
       </div>
     </div>
   </div>
@@ -247,10 +185,6 @@ const logout = () => {
 }
 .btn-pink:hover {
   background-color: #ff0044;
-}
-.btn-pink:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
 }
 .btn-outline-pink {
   color: #ff4275;
