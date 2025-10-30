@@ -21,7 +21,7 @@ const checkAuth = () => {
   }
   
   currentUser.value = JSON.parse(stored)
-  username.value = currentUser.value.display_name || currentUser.value.displayName || ''
+  username.value = currentUser.value.display_name || ''
   profilePreview.value = currentUser.value.profilePicture || ''
   return true
 }
@@ -38,20 +38,45 @@ watch(currentUser, (newVal) => {
   }
 })
 
-// Handle username change - REMOVED SINCE updateDisplayName DOESN'T EXIST IN BACKEND
-const changeUsername = () => {
+// Handle username change - UPDATED TO USE BACKEND
+const changeUsername = async () => {
   if (!username.value.trim()) {
     alert('Username cannot be empty.')
     return
   }
-  
-  // For now, just update locally since backend doesn't have updateDisplayName
-  currentUser.value.display_name = username.value.trim()
-  sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-  alert('Username updated locally! (Backend update not implemented)')
+
+  isLoading.value = true
+  try {
+    const response = await fetch('/api/account.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method: 'updateDisplayName',
+        accountId: currentUser.value.account_id,
+        displayName: username.value.trim()
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok) {
+      // Update local storage with new user data
+      currentUser.value.display_name = username.value.trim()
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+      alert('Username updated successfully!')
+    } else {
+      alert(data.message || 'Failed to update username.')
+    }
+  } catch (error) {
+    alert('Error updating username: ' + error.message)
+  } finally {
+    isLoading.value = false
+  }
 }
 
-// Handle password change - FIXED METHOD NAME
+// Handle password change
 const changePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
     alert('Passwords do not match.')
@@ -70,7 +95,7 @@ const changePassword = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        method: 'updatePassword', // CHANGED FROM 'changePassword' TO 'updatePassword'
+        method: 'updatePassword',
         accountId: currentUser.value.account_id,
         oldPassword: oldPassword.value,
         newPassword: newPassword.value,
@@ -123,7 +148,7 @@ const logout = () => {
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
-        <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.displayName }}!</span>
+        <span class="me-3">Welcome, {{ currentUser.display_name }}!</span>
         <button class="btn btn-outline-pink btn-sm" @click="logout">
           Logout
         </button>
@@ -159,7 +184,6 @@ const logout = () => {
             {{ isLoading ? 'Updating...' : 'Update' }}
           </button>
         </div>
-        <small class="text-muted">Note: Username changes are currently local only</small>
       </div>
 
       <hr />
