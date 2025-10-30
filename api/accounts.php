@@ -217,7 +217,29 @@ if ($method == "updatePassword") {
     exit;
 }
 
-    
+if ($method == "verifyPassword") {
+    try {
+        if (!isset($payload['email']) || !isset($payload['password'])) {
+            http_response_code(400);
+            echo json_encode(["message" => "Email and password are required."]);
+            exit;
+        }
+
+        $accountDAO = new AccountDAO($useServer);
+        $isValid = $accountDAO->verifyPassword($payload['email'], $payload['password']);
+        
+        echo json_encode([
+            "valid" => $isValid,
+            "message" => $isValid ? "Password is valid." : "Password is invalid."
+        ]);
+        exit;
+        
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(["message" => "Error verifying password: " . $e->getMessage()]);
+        exit;
+    }
+}    
     
 }
 
