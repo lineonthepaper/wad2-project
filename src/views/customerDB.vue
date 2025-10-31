@@ -178,36 +178,8 @@
           </div>
         </section>
 
-        <!-- Quick Actions & Notifications -->
-        <section class="bottom-section">
-          <div class="section-column actions-column">
-            <div class="section-card">
-              <div class="card-header">
-                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
-              </div>
-              <div class="card-body">
-                <div class="actions-grid">
-                  <button class="action-btn" @click="navigateToCreateShipment">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>New Shipment</span>
-                  </button>
-                  <button class="action-btn" @click="navigateToFAQ">
-                    <i class="fas fa-question-circle"></i>
-                    <span>FAQ</span>
-                  </button>
-                  <button class="action-btn" @click="navigateToHelp">
-                    <i class="fas fa-life-ring"></i>
-                    <span>Help</span>
-                  </button>
-                  <button class="action-btn" @click="navigateToSettings">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <!-- Notifications Section Only -->
+        <section class="notifications-section">
           <div class="section-column notifications-column">
             <div class="section-card">
               <div class="card-header">
@@ -245,7 +217,6 @@
             <i class="fas fa-sign-in-alt"></i>
             Go to Login
           </button>
-      
         </div>
       </div>
     </div>
@@ -458,44 +429,7 @@ export default {
     },
 
     redirectToLogin() {
-      // Redirect to login page
       window.location.href = '/login';
-    },
-
-    // Navigation Methods
-    navigateToCreateShipment() {
-      if (!this.isAuthenticated) {
-        alert('Please log in to create a shipment');
-        this.redirectToLogin();
-        return;
-      }
-      // Redirect to shipment page
-      window.location.href = '/shipment';
-    },
-
-    navigateToFAQ() {
-      if (!this.isAuthenticated) {
-        this.redirectToLogin();
-        return;
-      }
-      window.location.href = '/faq';
-    },
-
-    navigateToHelp() {
-      if (!this.isAuthenticated) {
-        this.redirectToLogin();
-        return;
-      }
-      window.location.href = '/help';
-    },
-
-    navigateToSettings() {
-      if (!this.isAuthenticated) {
-        this.redirectToLogin();
-        return;
-      }
-      // You can implement settings navigation here
-      alert('Settings page would open here');
     },
 
     async initGlobe() {
@@ -1336,50 +1270,15 @@ export default {
   color: var(--dark-pink);
 }
 
-/* Bottom Section */
-.bottom-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+/* Notifications Section */
+.notifications-section {
+  margin-bottom: 2rem;
 }
 
-.actions-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+.notifications-column {
+  width: 100%;
 }
 
-.action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem 1rem;
-  border: 1px solid var(--pink-grey);
-  border-radius: 12px;
-  background: white;
-  color: var(--slate-blue);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.action-btn:hover {
-  border-color: var(--hot-pink);
-  color: var(--hot-pink);
-  transform: translateY(-3px);
-  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.2);
-}
-
-.action-btn i {
-  font-size: 1.5rem;
-}
-
-.action-btn span {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-/* Notifications */
 .notifications-list {
   display: flex;
   flex-direction: column;
@@ -1509,17 +1408,6 @@ export default {
   transform: translateY(-2px);
 }
 
-.btn-secondary {
-  background: var(--light-pink);
-  color: var(--hot-pink);
-  border: 1px solid var(--hot-pink);
-}
-
-.btn-secondary:hover {
-  background: var(--hot-pink);
-  color: white;
-}
-
 /* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
@@ -1535,10 +1423,6 @@ export default {
 /* Responsive */
 @media (max-width: 1024px) {
   .tracking-section {
-    grid-template-columns: 1fr;
-  }
-
-  .bottom-section {
     grid-template-columns: 1fr;
   }
 }
@@ -1558,10 +1442,6 @@ export default {
     grid-template-columns: 1fr;
   }
 
-  .actions-grid {
-    grid-template-columns: 1fr;
-  }
-
   .card-header {
     flex-direction: column;
     gap: 1rem;
@@ -1572,7 +1452,6 @@ export default {
     width: 100%;
   }
 
-  /* Responsive design for login message */
   .login-message {
     padding: 2rem 1.5rem;
     margin: 1rem;

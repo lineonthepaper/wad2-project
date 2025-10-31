@@ -10,9 +10,9 @@ import SignUpView from '@/views/SignUpView.vue'
 import ServicesView from '../views/ServicesView.vue'
 import ServiceDetail from '../views/ServiceDetail.vue'
 import customerDB from '../views/customerDB.vue'
-import DashboardView from '../views/DashboardView.vue' // <-- new import
 import ConfirmationView from '@/views/ConfirmationView.vue'
 import settings from  '@/views/settings.vue'
+import changePassword from '@/views/changePassword.vue'
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -24,10 +24,10 @@ export const routes = [
   { path: '/help', name: 'help', title: 'Help', component: HelpView },
   { path: '/signup', name: 'signup', title: 'Sign Up', component: SignUpView }, // named signup
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
-  { path: '/CDB', component: customerDB },
-  { path: '/dashboard', name: 'dashboard', title: 'Dashboard', component: DashboardView },
+  { path: '/CDB',name: 'dashboard', title: 'Dashboard', component: customerDB },
   { path: '/confirmation', name: 'confirmation', title: 'Confirmed!', component: ConfirmationView },
-  {path: '/settings', component: settings}
+  {path: '/settings',name: 'settings', title: 'settings', component: settings},
+  {path: '/changePassword',name: 'changepw', title: 'chaneePassword', component: changePassword}
 ]
 
 const router = createRouter({

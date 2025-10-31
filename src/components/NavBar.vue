@@ -101,8 +101,8 @@ onUnmounted(() => {
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                      <button class="dropdown-item" @click="$router.push('/CDB')">
-                        Customer Dashboard
+                      <button class="dropdown-item" @click="$router.push('/settings')">
+                        Settings
                       </button>
                     </li>
                     <li>
