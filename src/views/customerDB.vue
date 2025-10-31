@@ -2,6 +2,19 @@
   <div>
     <!-- Show dashboard only when authenticated -->
     <div class="dashboard-wrapper" v-if="isAuthenticated">
+      <!-- Loading Overlay -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner-large"></div>
+        <p>Loading your shipments...</p>
+      </div>
+
+      <!-- Error Banner -->
+      <div v-if="errorMessage" class="error-banner">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ errorMessage }}
+        <button @click="fetchUserShipments" class="btn-retry">Retry</button>
+      </div>
+
       <!-- Header -->
       <div class="dashboard-header">
         <div class="header-background">
@@ -28,7 +41,7 @@
       </div>
 
       <!-- Main Content -->
-      <div class="main-content">
+      <div class="main-content" v-if="!loading">
         <!-- Stats Overview -->
         <section class="stats-overview">
           <div class="stats-grid">
@@ -172,6 +185,13 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- Empty state -->
+                  <div v-if="filteredParcels.length === 0" class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>No shipments found</p>
+                    <p class="empty-subtext" v-if="searchQuery">Try adjusting your search terms</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -195,6 +215,12 @@
                       <p class="notification-text">{{ notification.message }}</p>
                       <span class="notification-time">{{ notification.time }}</span>
                     </div>
+                  </div>
+
+                  <!-- Empty notifications -->
+                  <div v-if="notifications.length === 0" class="empty-notifications">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No recent activity</p>
                   </div>
                 </div>
               </div>
@@ -226,7 +252,7 @@
 <script>
 import Globe from 'globe.gl';
 import countryData from '/json/countryData.json';
-import axios from 'axios'; // Add this import
+import axios from 'axios';
 
 export default {
   name: "EnhancedParcelDashboard",
@@ -252,7 +278,8 @@ export default {
       notifications: [],
       globe: null,
       arcsData: [],
-      pointsData: []
+      pointsData: [],
+      refreshInterval: null
     };
   },
   computed: {
@@ -317,11 +344,20 @@ export default {
     this.checkAuthentication();
     if (this.isAuthenticated) {
       this.initializeDashboard();
+      // Refresh every 30 seconds for real-time updates
+      this.refreshInterval = setInterval(() => {
+        if (this.isAuthenticated) {
+          this.fetchUserShipments();
+        }
+      }, 30000);
     }
 
     window.addEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   beforeUnmount() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
@@ -349,6 +385,11 @@ export default {
       this.checkAuthentication();
       if (this.isAuthenticated) {
         this.initializeDashboard();
+      } else {
+        // Clear data when logging out
+        this.parcels = [];
+        this.notifications = [];
+        this.stats = { inProgress: 0, delivered: 0, pending: 0 };
       }
     },
 
@@ -364,6 +405,7 @@ export default {
 
     async fetchUserShipments() {
       this.loading = true;
+      this.errorMessage = "";
       try {
         console.log('Fetching shipments for:', this.user.email);
 
@@ -381,12 +423,14 @@ export default {
           console.log('Successfully loaded', this.parcels.length, 'shipments');
         } else {
           console.error('Failed to fetch shipments:', response.data.error);
-          // Fallback to sample data
-          this.loadSampleData();
+          this.errorMessage = response.data.error || 'Failed to load shipments';
         }
       } catch (error) {
         console.error('Error fetching shipments:', error);
-        this.loadSampleData();
+        this.errorMessage = 'Failed to load shipments. Please try again.';
+        if (error.response) {
+          console.error('Response error:', error.response.data);
+        }
       } finally {
         this.loading = false;
       }
@@ -399,7 +443,7 @@ export default {
       }
 
       return shipments.map(shipment => {
-        // Get coordinates from address data
+        // Get coordinates from address data - using existing countryData
         const senderCountry = shipment.senderAddress?.countryCode || 'SG';
         const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
 
@@ -420,17 +464,28 @@ export default {
           currentLocation = recipientCoords;
         }
 
+        // Create tracking ID from available data
+        let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
+        if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
+          trackingId = `TRK-${shipment.trackingNumber}`;
+        }
+
         return {
           id: shipment.mailId,
           mailId: shipment.mailId,
-          trackingId: `TRK-${shipment.mailId.toString().padStart(6, '0')}`,
-          customer: shipment.senderAddress?.name || 'Customer',
+          trackingId: trackingId,
+          customer: shipment.senderAddress?.name || this.user.displayName,
           status: this.mapApiStatus(shipment.status),
           expectedDelivery: shipment.expectedDelivery,
           location: senderCoords,
           currentLocation: currentLocation,
           destination: recipientCoords,
           progress: progress,
+          service: shipment.service,
+          totalWeight: shipment.totalWeight,
+          totalValue: shipment.totalValue,
+          hasBeenPaid: shipment.hasBeenPaid,
+          createdDate: shipment.createdDate,
           rawData: shipment
         };
       });
@@ -472,73 +527,61 @@ export default {
     },
 
     generateNotifications() {
-      this.notifications = this.parcels.slice(0, 4).map((parcel, index) => {
-        const statusConfig = {
-          'In Progress': {
-            type: 'info',
-            icon: 'fas fa-shipping-fast',
-            message: `Shipment ${parcel.trackingId} is in transit`
-          },
-          'Delivered': {
-            type: 'success',
-            icon: 'fas fa-check-circle',
-            message: `Shipment ${parcel.trackingId} has been delivered`
-          },
-          'Pending': {
-            type: 'warning',
-            icon: 'fas fa-clock',
-            message: `Shipment ${parcel.trackingId} is awaiting processing`
-          }
-        };
+      // Create notifications from recent shipments
+      this.notifications = this.parcels
+        .slice(0, 4)
+        .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+        .map((parcel, index) => {
+          const statusConfig = {
+            'In Progress': {
+              type: 'info',
+              icon: 'fas fa-shipping-fast',
+              message: `Shipment ${parcel.trackingId} is in transit to ${this.getLocationName(parcel.destination)}`
+            },
+            'Delivered': {
+              type: 'success',
+              icon: 'fas fa-check-circle',
+              message: `Shipment ${parcel.trackingId} has been delivered successfully`
+            },
+            'Pending': {
+              type: 'warning',
+              icon: 'fas fa-clock',
+              message: `Shipment ${parcel.trackingId} is awaiting processing`
+            }
+          };
 
-        const config = statusConfig[parcel.status] || statusConfig.Pending;
+          const config = statusConfig[parcel.status] || statusConfig.Pending;
 
-        return {
-          id: index + 1,
-          type: config.type,
-          icon: config.icon,
-          message: config.message,
-          time: this.formatRelativeTime(index)
-        };
-      });
+          return {
+            id: index + 1,
+            type: config.type,
+            icon: config.icon,
+            message: config.message,
+            time: this.formatRelativeTime(parcel.createdDate)
+          };
+        });
     },
 
-    formatRelativeTime(index) {
-      const times = ['2 hours ago', '5 hours ago', '1 day ago', '2 days ago'];
-      return times[index] || 'Recently';
+    formatRelativeTime(dateString) {
+      if (!dateString) return 'Recently';
+      try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} minutes ago`;
+        if (diffHours < 24) return `${diffHours} hours ago`;
+        if (diffDays === 1) return '1 day ago';
+        return `${diffDays} days ago`;
+      } catch (error) {
+        return 'Recently';
+      }
     },
 
-    loadSampleData() {
-      // Fallback sample data
-      this.parcels = [
-        {
-          id: 1,
-          trackingId: "TRK-784231",
-          customer: "Alice Johnson",
-          status: "In Progress",
-          expectedDelivery: "2025-10-18",
-          location: [1.28478, 103.776222], // Singapore
-          currentLocation: [3.153398, 101.697097], // Malaysia
-          destination: [35.687015, 139.764585], // Japan
-          progress: 50
-        },
-        {
-          id: 2,
-          trackingId: "TRK-784232",
-          customer: "Bob Smith",
-          status: "Delivered",
-          expectedDelivery: "2025-10-15",
-          location: [1.28478, 103.776222], // Singapore
-          currentLocation: [40.7128, -74.0060], // New York
-          destination: [40.7128, -74.0060], // New York
-          progress: 100
-        }
-      ];
-      this.updateStats();
-      this.generateNotifications();
-    },
-
-    // Rest of your existing methods remain the same
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -604,7 +647,6 @@ export default {
       } catch (error) {
         console.error('Error updating globe data:', error);
         this.globeError = true;
-        this.errorMessage = error.message;
       }
     },
 
@@ -720,7 +762,16 @@ export default {
     },
 
     formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString();
+      if (!dateString) return 'N/A';
+      try {
+        return new Date(dateString).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch (error) {
+        return 'Invalid Date';
+      }
     },
 
     forceReinit() {
@@ -764,6 +815,60 @@ export default {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-spinner-large {
+  width: 60px;
+  height: 60px;
+  border: 6px solid var(--light-pink);
+  border-top: 6px solid var(--hot-pink);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+/* Error Banner */
+.error-banner {
+  background: var(--dark-pink);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.btn-retry {
+  background: white;
+  color: var(--hot-pink);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-retry:hover {
+  background: var(--hot-pink);
+  color: white;
 }
 
 /* Header */
@@ -1121,21 +1226,6 @@ export default {
   margin-bottom: 1rem;
 }
 
-.btn-retry {
-  background: var(--hot-pink);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.btn-retry:hover {
-  background: var(--dark-pink);
-}
-
 /* Selected Parcel Info */
 .selected-parcel-info {
   background: var(--light-pink);
@@ -1329,6 +1419,30 @@ export default {
   font-weight: 600;
   color: var(--hot-pink);
   min-width: 35px;
+}
+
+/* Empty States */
+.empty-state, .empty-notifications {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--slate-blue);
+}
+
+.empty-state i, .empty-notifications i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  color: var(--pink);
+}
+
+.empty-state p, .empty-notifications p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.empty-subtext {
+  font-size: 0.9rem !important;
+  opacity: 0.7;
 }
 
 /* Status Badges */
@@ -1549,6 +1663,37 @@ export default {
 
   .btn {
     justify-content: center;
+  }
+
+  .parcel-item {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .parcel-icon {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-background {
+    padding: 1.5rem 1rem;
+  }
+
+  .title-main {
+    font-size: 2rem;
+  }
+
+  .title-sub {
+    font-size: 1.4rem;
+  }
+
+  .header-stats {
+    gap: 1rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
   }
 }
 </style>

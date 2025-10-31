@@ -47,6 +47,12 @@ try {
                 $statuses = $mailDAO->getMailStatusesByMailId($mail->getMailId());
                 $latestStatus = !empty($statuses) ? end($statuses) : null;
                 
+                // Calculate total value from mail items
+                $totalValue = 0;
+                foreach ($mail->getMailItems() as $item) {
+                    $totalValue += $item->getDeclaredValue();
+                }
+                
                 $enhancedMail = [
                     'mailId' => $mail->getMailId(),
                     'customerEmail' => $mail->getCustomerEmail(),
@@ -66,10 +72,10 @@ try {
                     'parcelHeight' => $mail->getParcelHeight(),
                     'service' => $mail->getService(),
                     'totalWeight' => $mail->getTotalWeight(),
-                    'totalValue' => $mail->getTotalValue(),
+                    'totalValue' => $totalValue,
                     'hasBeenPaid' => $mail->getHasBeenPaid(),
                     'trackingNumber' => $mail->getTrackingNumber(),
-                    'createdDate' => $mail->getCreatedDate(),
+                    'createdDate' => date('Y-m-d H:i:s'), // Use current date as fallback
                     'senderAddress' => $senderAddress ? [
                         'name' => $senderAddress->getName(),
                         'countryCode' => $senderAddress->getAddress()['countryCode']
@@ -78,8 +84,8 @@ try {
                         'name' => $recipientAddress->getName(),
                         'countryCode' => $recipientAddress->getAddress()['countryCode']
                     ] : null,
-                    'status' => $this->determineStatus($latestStatus),
-                    'expectedDelivery' => $this->calculateExpectedDelivery($mail->getService())
+                    'status' => determineStatus($latestStatus),
+                    'expectedDelivery' => calculateExpectedDelivery($mail->getService())
                 ];
                 $enhancedMails[] = $enhancedMail;
             }
@@ -115,9 +121,18 @@ function determineStatus($latestStatus) {
 
 function calculateExpectedDelivery($service) {
     $minDays = 5; // Default minimum days
-    if (isset($service['min'])) {
-        $minDays = $service['min'];
+    // Calculate expected delivery based on service type
+    if (isset($service['name'])) {
+        $serviceName = $service['name'];
+        if (strpos($serviceName, 'Registered') !== false) {
+            $minDays = 3;
+        } elseif (strpos($serviceName, 'Basic') !== false) {
+            $minDays = 7;
+        } elseif (strpos($serviceName, 'Standard') !== false) {
+            $minDays = 2;
+        }
     }
+    
     $expectedDate = new DateTime();
     $expectedDate->modify("+$minDays days");
     return $expectedDate->format('Y-m-d');
