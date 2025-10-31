@@ -302,6 +302,51 @@ if ($method === "POST") {
     }
     exit;
 }
+if ($method == "deleteAccount") {
+    try {
+        if (!isset($payload['accountId']) || !isset($payload['password'])) {
+            http_response_code(400);
+            echo json_encode(["message" => "Account ID and password are required."]);
+            exit;
+        }
+
+        $accountId = (int)$payload['accountId'];
+        $password = $payload['password'];
+
+        $accountDAO = new AccountDAO($useServer);
+        
+        // Get account to verify password and email
+        $account = $accountDAO->getAccountById($accountId);
+        if (!$account) {
+            http_response_code(404);
+            echo json_encode(["message" => "Account not found."]);
+            exit;
+        }
+
+        // Verify password
+        if (!$accountDAO->verifyPassword($account->getEmail(), $password)) {
+            http_response_code(401);
+            echo json_encode(["message" => "Invalid password."]);
+            exit;
+        }
+
+        // Delete account from database
+        $query = "DELETE FROM account WHERE account_id = $1";
+        $params = [$accountId];
+        $success = pg_query_params($this->conn, $query, $params);
+
+        if ($success) {
+            echo json_encode(["message" => "Account deleted successfully."]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["message" => "Failed to delete account."]);
+        }
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(["message" => "Error deleting account: " . $e->getMessage()]);
+    }
+    exit;
+}
   
 }
 ?>

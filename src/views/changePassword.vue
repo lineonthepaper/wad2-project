@@ -13,6 +13,9 @@ const isLoading = ref(false)
 const displayNameLoading = ref(false)
 const emailLoading = ref(false)
 const passwordLoading = ref(false)
+const showDeleteModal = ref(false)
+const deletePassword = ref('')
+const deleteLoading = ref(false)
 
 // Check authentication and load current user
 const checkAuth = () => {
@@ -244,6 +247,69 @@ const changePassword = async () => {
   }
 }
 
+// Handle account deletion
+const deleteAccount = async () => {
+  if (!deletePassword.value) {
+    alert('Please enter your password to confirm account deletion.')
+    return
+  }
+
+  const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
+
+  console.log('Attempting to delete account with accountId:', accountId)
+
+  if (!accountId) {
+    alert('Cannot find account ID. Please log in again.')
+    return
+  }
+
+  deleteLoading.value = true
+  try {
+    const response = await fetch('/api/accounts.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method: 'deleteAccount',
+        accountId: accountId,
+        password: deletePassword.value
+      })
+    })
+
+    const result = await response.json()
+    console.log('Delete account response:', result)
+
+    if (response.ok) {
+      alert('Account deleted successfully!')
+      // Clear session and redirect to home/login
+      sessionStorage.removeItem('currentUser')
+      currentUser.value = null
+      router.push('/')
+    } else {
+      alert(result.message || 'Failed to delete account')
+    }
+  } catch (error) {
+    console.error('Error deleting account:', error)
+    alert('Error deleting account')
+  } finally {
+    deleteLoading.value = false
+    showDeleteModal.value = false
+    deletePassword.value = ''
+  }
+}
+
+// Open delete confirmation modal
+const confirmDelete = () => {
+  showDeleteModal.value = true
+}
+
+// Close delete modal
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  deletePassword.value = ''
+}
+
 // Logout function
 const logout = () => {
   sessionStorage.removeItem('currentUser')
@@ -315,7 +381,7 @@ const logout = () => {
       <hr />
 
       <!-- Change Password -->
-      <div>
+      <div class="mb-4">
         <h5 class="fw-bold text-pink">Change Password</h5>
         <div class="form-group mb-2">
           <input
@@ -352,6 +418,73 @@ const logout = () => {
           <span v-if="passwordLoading" class="spinner-border spinner-border-sm me-2"></span>
           Change Password
         </button>
+      </div>
+
+      <hr />
+
+      <!-- Delete Account -->
+      <div class="mt-4">
+        <h5 class="fw-bold text-danger">Danger Zone</h5>
+        <p class="text-muted small mb-3">
+          Once you delete your account, there is no going back. Please be certain.
+        </p>
+        <button
+          class="btn btn-outline-danger"
+          @click="confirmDelete"
+          :disabled="isLoading"
+        >
+          Delete Account
+        </button>
+      </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div v-if="showDeleteModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-danger">Delete Account</h5>
+            <button
+              type="button"
+              class="btn-close"
+              @click="closeDeleteModal"
+              :disabled="deleteLoading"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-danger mb-3">
+              <strong>Warning:</strong> This action is permanent and cannot be undone. All your data will be lost.
+            </p>
+            <p>Please enter your password to confirm account deletion:</p>
+            <input
+              v-model="deletePassword"
+              type="password"
+              class="form-control"
+              placeholder="Enter your password"
+              :disabled="deleteLoading"
+              @keyup.enter="deleteAccount"
+            />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="closeDeleteModal"
+              :disabled="deleteLoading"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="deleteAccount"
+              :disabled="deleteLoading || !deletePassword"
+            >
+              <span v-if="deleteLoading" class="spinner-border spinner-border-sm me-2"></span>
+              Delete Account Permanently
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -391,7 +524,30 @@ const logout = () => {
   background-color: #ff4275;
   color: white;
 }
+.text-danger {
+  color: #dc3545;
+}
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+.btn-danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+.btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
 .account-settings {
   max-width: 600px;
+}
+.modal-content {
+  border: none;
+  border-radius: 12px;
 }
 </style>

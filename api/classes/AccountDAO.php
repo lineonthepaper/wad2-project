@@ -109,4 +109,13 @@ class AccountDAO
         
         return password_verify($password, $account->getPasswordHashed());
     }
+    public function deleteAccount(int $accountId): bool
+{
+    $query = "DELETE FROM account WHERE account_id = $1";
+    $params = [$accountId];
+
+    $success = pg_query_params($this->conn, $query, $params);
+
+    return $success !== false;
+}
 }
