@@ -120,19 +120,28 @@
           <div class="section-column parcels-column">
             <div class="section-card">
               <div class="card-header">
-                <h3><i class="fas fa-boxes"></i> Recent Shipments</h3>
+                <h3><i class="fas fa-boxes"></i> Your Shipments</h3>
                 <div class="card-actions">
                   <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search shipments..." v-model="searchQuery">
                   </div>
-                  <button class="btn-icon" title="Filter">
-                    <i class="fas fa-filter"></i>
+                  <button class="btn-icon" @click="refreshShipments" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
                   </button>
                 </div>
               </div>
               <div class="card-body">
-                <div class="parcels-list">
+                <div v-if="loading" class="loading-state">
+                  <div class="loading-spinner"></div>
+                  <p>Loading your shipments...</p>
+                </div>
+                <div v-else-if="parcels.length === 0" class="empty-state">
+                  <i class="fas fa-box-open"></i>
+                  <p>No shipments found</p>
+                  <p class="empty-subtext">Create your first shipment to get started!</p>
+                </div>
+                <div v-else class="parcels-list">
                   <div
                     v-for="parcel in filteredParcels"
                     :key="parcel.id"
@@ -152,19 +161,19 @@
                       </div>
                       <div class="parcel-info">
                         <div class="info-item">
-                          <i class="fas fa-user"></i>
-                          <span>{{ parcel.customer }}</span>
+                          <i class="fas fa-route"></i>
+                          <span>{{ getLocationName(parcel.location) }} → {{ getLocationName(parcel.destination) }}</span>
                         </div>
                         <div class="info-item">
-                          <i class="fas fa-map-marker-alt"></i>
-                          <span>{{ getLocationName(parcel.currentLocation || parcel.location) }}</span>
+                          <i class="fas fa-weight-hanging"></i>
+                          <span>{{ parcel.weight }} kg</span>
                         </div>
                         <div class="info-item">
                           <i class="fas fa-calendar-alt"></i>
-                          <span>{{ formatDate(parcel.expectedDelivery) }}</span>
+                          <span>Created: {{ formatDate(parcel.createdDate) }}</span>
                         </div>
                       </div>
-                      <div v-if="parcel.status === 'In Progress'" class="parcel-progress">
+                      <div class="parcel-progress">
                         <div class="progress-mini">
                           <div class="progress-fill-mini" :style="{ width: calculateProgress(parcel) + '%' }"></div>
                         </div>
@@ -178,22 +187,62 @@
           </div>
         </section>
 
-        <!-- Notifications Section Only -->
-        <section class="notifications-section">
-          <div class="section-column notifications-column">
-            <div class="section-card">
-              <div class="card-header">
-                <h3><i class="fas fa-bell"></i> Recent Activity</h3>
+        <!-- Shipment Details Section -->
+        <section class="details-section" v-if="selectedParcel">
+          <div class="section-card">
+            <div class="card-header">
+              <h3><i class="fas fa-info-circle"></i> Shipment Details: {{ selectedParcel.trackingId }}</h3>
+            </div>
+            <div class="card-body">
+              <div class="shipment-details-grid">
+                <div class="detail-group">
+                  <h4>Service Information</h4>
+                  <div class="detail-item">
+                    <label>Service Type:</label>
+                    <span>{{ selectedParcel.serviceType }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Service Name:</label>
+                    <span>{{ selectedParcel.serviceName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Total Weight:</label>
+                    <span>{{ selectedParcel.weight }} kg</span>
+                  </div>
+                </div>
+
+                <div class="detail-group">
+                  <h4>Route Information</h4>
+                  <div class="detail-item">
+                    <label>From:</label>
+                    <span>{{ getLocationName(selectedParcel.location) }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>To:</label>
+                    <span>{{ getLocationName(selectedParcel.destination) }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <label>Current Status:</label>
+                    <span class="status-text" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
+                      {{ selectedParcel.status }}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div class="card-body">
-                <div class="notifications-list">
-                  <div class="notification-item" v-for="notification in notifications" :key="notification.id">
-                    <div class="notification-icon" :class="notification.type">
-                      <i :class="notification.icon"></i>
-                    </div>
-                    <div class="notification-content">
-                      <p class="notification-text">{{ notification.message }}</p>
-                      <span class="notification-time">{{ notification.time }}</span>
+
+              <!-- Tracking History -->
+              <div class="tracking-history" v-if="selectedParcel.history && selectedParcel.history.length > 0">
+                <h4>Tracking History</h4>
+                <div class="timeline">
+                  <div v-for="event in selectedParcel.history" :key="event.timestamp" class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <span class="event-status">{{ event.status }}</span>
+                        <span class="event-time">{{ formatDateTime(event.timestamp) }}</span>
+                      </div>
+                      <p class="event-description">{{ event.description }}</p>
+                      <span class="event-location" v-if="event.location">{{ event.location }}</span>
                     </div>
                   </div>
                 </div>
@@ -240,13 +289,14 @@ export default {
       selectedParcel: null,
       globeInitialized: false,
       globeError: false,
+      loading: false,
       errorMessage: "",
       stats: {
         inProgress: 0,
         delivered: 0,
         pending: 0,
       },
-      parcels: [], // Will be populated from API
+      parcels: [],
       notifications: [],
       globe: null,
       arcsData: [],
@@ -262,8 +312,8 @@ export default {
       const query = this.searchQuery.toLowerCase();
       return this.parcels.filter(parcel =>
         parcel.trackingId.toLowerCase().includes(query) ||
-        (parcel.customer && parcel.customer.toLowerCase().includes(query)) ||
-        this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query)
+        this.getLocationName(parcel.location).toLowerCase().includes(query) ||
+        this.getLocationName(parcel.destination).toLowerCase().includes(query)
       );
     },
     enhancedStats() {
@@ -361,61 +411,125 @@ export default {
     },
 
     async fetchUserShipments() {
+      this.loading = true;
       try {
-        // Fetch shipments from your API
+        // Use the correct API endpoint based on your MailDAO
         const response = await axios.post('/api/mail.php', {
           method: 'getAllMailByCustomerEmail',
-          email: this.user.email
+          customerEmail: this.user.email
         });
 
-        if (response.data.success) {
-          this.parcels = this.transformShipmentData(response.data.shipments);
+        if (response.data.success && response.data.mails) {
+          this.parcels = this.transformShipmentData(response.data.mails);
           this.updateStats();
           this.generateNotifications();
         } else {
           console.error('Failed to fetch shipments:', response.data.error);
-          // Fallback to sample data
+          // Fallback to sample data for demonstration
           this.loadSampleData();
         }
       } catch (error) {
         console.error('Error fetching shipments:', error);
         this.loadSampleData();
+      } finally {
+        this.loading = false;
       }
+    },
+
+    async refreshShipments() {
+      await this.fetchUserShipments();
+      this.updateGlobeData();
     },
 
     transformShipmentData(shipments) {
       return shipments.map(shipment => {
-        // Get coordinates from country data
-        const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-        const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
-
-        const senderCoords = this.getCountryCoordinates(senderCountry);
-        const recipientCoords = this.getCountryCoordinates(recipientCountry);
+        // Get sender and recipient addresses to determine coordinates
+        const senderCoords = this.getCountryCoordinates(shipment.senderCountry || 'SG');
+        const recipientCoords = this.getCountryCoordinates(shipment.recipientCountry || 'US');
 
         // Determine current location based on status
         let currentLocation = senderCoords;
-        if (shipment.status === 'In Progress') {
-          // For demo, show midpoint
-          currentLocation = [
-            (senderCoords[0] + recipientCoords[0]) / 2,
-            (senderCoords[1] + recipientCoords[1]) / 2
-          ];
-        } else if (shipment.status === 'Delivered') {
-          currentLocation = recipientCoords;
+        let status = 'Pending';
+
+        // Check if mail has been paid and has tracking to determine status
+        if (shipment.hasBeenPaid) {
+          if (shipment.trackingNumber && shipment.trackingNumber > 0) {
+            status = 'In Progress';
+            // For demo, show midpoint for in-progress shipments
+            currentLocation = [
+              (senderCoords[0] + recipientCoords[0]) / 2,
+              (senderCoords[1] + recipientCoords[1]) / 2
+            ];
+          } else {
+            status = 'Processing';
+          }
         }
+
+        // Get tracking history
+        const history = this.generateTrackingHistory(shipment, status);
 
         return {
           id: shipment.mailId,
-          trackingId: `TRK-${shipment.mailId.toString().padStart(6, '0')}`,
-          customer: shipment.senderAddress?.name || 'Customer',
-          status: this.mapStatus(shipment),
-          expectedDelivery: this.calculateExpectedDelivery(shipment),
+          trackingId: shipment.trackingNumber > 0 ? `TRK${shipment.trackingNumber.toString().padStart(8, '0')}` : `MAIL${shipment.mailId.toString().padStart(6, '0')}`,
+          status: status,
+          weight: shipment.totalWeight || this.calculateTotalWeight(shipment.mailItems),
           location: senderCoords,
           currentLocation: currentLocation,
           destination: recipientCoords,
-          rawData: shipment // Keep original data for reference
+          serviceType: shipment.serviceType,
+          serviceName: shipment.serviceName,
+          createdDate: new Date().toISOString().split('T')[0], // You might want to add created_date to your mail table
+          history: history,
+          rawData: shipment
         };
       });
+    },
+
+    calculateTotalWeight(mailItems) {
+      if (!mailItems) return 0;
+      return mailItems.reduce((total, item) => total + (item.itemWeight * item.itemQuantity), 0);
+    },
+
+    generateTrackingHistory(shipment, status) {
+      const history = [];
+      const now = new Date();
+
+      // Initial creation
+      history.push({
+        status: 'Shipment Created',
+        timestamp: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        description: 'Shipment registered in system',
+        location: this.getLocationName(this.getCountryCoordinates(shipment.senderCountry || 'SG'))
+      });
+
+      if (shipment.hasBeenPaid) {
+        history.push({
+          status: 'Payment Confirmed',
+          timestamp: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          description: 'Payment processed successfully',
+          location: 'Payment Gateway'
+        });
+      }
+
+      if (status === 'In Progress') {
+        history.push({
+          status: 'In Transit',
+          timestamp: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString(),
+          description: 'Package departed from origin facility',
+          location: this.getLocationName(this.getCountryCoordinates(shipment.senderCountry || 'SG'))
+        });
+      }
+
+      if (status === 'Delivered') {
+        history.push({
+          status: 'Delivered',
+          timestamp: now.toISOString(),
+          description: 'Package delivered to recipient',
+          location: this.getLocationName(this.getCountryCoordinates(shipment.recipientCountry || 'US'))
+        });
+      }
+
+      return history.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     },
 
     getCountryCoordinates(countryCode) {
@@ -427,30 +541,11 @@ export default {
       return [1.28478, 103.776222];
     },
 
-    mapStatus(shipment) {
-      // Map your shipment status to dashboard status
-      const statusMap = {
-        'pending': 'Pending',
-        'in_transit': 'In Progress',
-        'delivered': 'Delivered'
-      };
-      return statusMap[shipment.status] || 'Pending';
-    },
-
-    calculateExpectedDelivery(shipment) {
-      // Calculate expected delivery based on service times
-      const createdDate = new Date(shipment.createdAt || new Date());
-      const minDays = shipment.service?.minDays || 5;
-      const expectedDate = new Date(createdDate);
-      expectedDate.setDate(expectedDate.getDate() + minDays);
-      return expectedDate.toISOString().split('T')[0];
-    },
-
     updateStats() {
       this.stats = {
         inProgress: this.parcels.filter(p => p.status === 'In Progress').length,
         delivered: this.parcels.filter(p => p.status === 'Delivered').length,
-        pending: this.parcels.filter(p => p.status === 'Pending').length,
+        pending: this.parcels.filter(p => p.status === 'Pending' || p.status === 'Processing').length,
       };
     },
 
@@ -459,19 +554,22 @@ export default {
         const messages = {
           'In Progress': `Package ${parcel.trackingId} is in transit`,
           'Delivered': `Package ${parcel.trackingId} delivered successfully`,
-          'Pending': `Package ${parcel.trackingId} is awaiting pickup`
+          'Pending': `Package ${parcel.trackingId} is awaiting processing`,
+          'Processing': `Package ${parcel.trackingId} is being processed`
         };
 
         const types = {
           'In Progress': 'info',
           'Delivered': 'success',
-          'Pending': 'warning'
+          'Pending': 'warning',
+          'Processing': 'info'
         };
 
         const icons = {
           'In Progress': 'fas fa-shipping-fast',
           'Delivered': 'fas fa-check-circle',
-          'Pending': 'fas fa-clock'
+          'Pending': 'fas fa-clock',
+          'Processing': 'fas fa-cog'
         };
 
         return {
@@ -479,7 +577,7 @@ export default {
           type: types[parcel.status],
           icon: icons[parcel.status],
           message: messages[parcel.status],
-          time: this.formatRelativeTime(index) // Just for demo
+          time: this.formatRelativeTime(index)
         };
       });
     },
@@ -490,25 +588,27 @@ export default {
     },
 
     loadSampleData() {
-      // Your existing sample data as fallback
+      // Sample data for demonstration
       this.parcels = [
         {
           id: 1,
-          trackingId: "TRK-784231",
-          customer: "Alice Johnson",
+          trackingId: "TRK00012345",
           status: "In Progress",
-          expectedDelivery: "2025-10-18",
-          location: [37.7749, -122.4194],
-          currentLocation: [39.8283, -98.5795],
-          destination: [40.7128, -74.0060]
-        },
-        // ... rest of sample data
+          weight: 1.5,
+          location: [1.28478, 103.776222], // Singapore
+          currentLocation: [25.0330, 121.5654], // Taipei
+          destination: [35.6762, 139.6503], // Tokyo
+          serviceType: "Packets",
+          serviceName: "Registered Package",
+          createdDate: "2024-01-15",
+          history: this.generateTrackingHistory({}, 'In Progress')
+        }
       ];
       this.updateStats();
       this.generateNotifications();
     },
 
-    // Rest of your existing methods (initGlobe, showParcelRoute, etc.) remain the same
+    // Globe methods (same as before)
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -559,7 +659,7 @@ export default {
           .pointColor(d => this.getStatusColor(d.status))
           .pointAltitude(0.1)
           .pointRadius(0.4)
-          .pointLabel(d => `${d.trackingId}: ${d.customer} (${d.status})`);
+          .pointLabel(d => `${d.trackingId}: ${d.status}`);
 
         if (this.selectedParcel) {
           this.updateRouteForParcel(this.selectedParcel);
@@ -644,7 +744,7 @@ export default {
 
     calculateProgress(parcel) {
       if (parcel.status === 'Delivered') return 100;
-      if (parcel.status === 'Pending') return 0;
+      if (parcel.status === 'Pending' || parcel.status === 'Processing') return 0;
 
       const start = parcel.location;
       const current = parcel.currentLocation || parcel.location;
@@ -674,7 +774,6 @@ export default {
     },
 
     getLocationName(coords) {
-      // Find country by coordinates
       const country = countryData.find(c =>
         Math.abs(c.lat - coords[0]) < 5 && Math.abs(c.long - coords[1]) < 5
       );
@@ -685,13 +784,18 @@ export default {
       const colors = {
         'In Progress': '#ffa500',
         'Delivered': '#00ff00',
-        'Pending': '#ff4444'
+        'Pending': '#ff4444',
+        'Processing': '#ffa500'
       };
       return colors[status] || '#cccccc';
     },
 
     formatDate(dateString) {
       return new Date(dateString).toLocaleDateString();
+    },
+
+    formatDateTime(dateString) {
+      return new Date(dateString).toLocaleString();
     },
 
     forceReinit() {
@@ -716,6 +820,151 @@ export default {
 </script>
 
 <style scoped>
+
+
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--slate-blue);
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  color: var(--pink);
+}
+
+.empty-subtext {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+
+.details-section {
+  margin-bottom: 2rem;
+}
+
+.shipment-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.detail-group h4 {
+  color: var(--dark-slate-blue);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  border-bottom: 2px solid var(--light-pink);
+  padding-bottom: 0.5rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--pink-grey);
+}
+
+.detail-item label {
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+}
+
+.detail-item span {
+  color: var(--slate-blue);
+}
+
+.status-text {
+  padding: 0.2rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tracking-history h4 {
+  color: var(--dark-slate-blue);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  border-bottom: 2px solid var(--light-pink);
+  padding-bottom: 0.5rem;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--pink);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -2rem;
+  top: 0.5rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--hot-pink);
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px var(--hot-pink);
+}
+
+.timeline-content {
+  background: var(--light-pink);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--hot-pink);
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.event-status {
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+}
+
+.event-time {
+  font-size: 0.8rem;
+  color: var(--slate-blue);
+}
+
+.event-description {
+  margin: 0 0 0.5rem;
+  color: var(--dark-slate-blue);
+}
+
+.event-location {
+  font-size: 0.8rem;
+  color: var(--slate-blue);
+  font-style: italic;
+}
+
+/* Rest of your existing CSS remains the same */
+
 /* Import Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
