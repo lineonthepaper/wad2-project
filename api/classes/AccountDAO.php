@@ -30,7 +30,6 @@ class AccountDAO
 
     public function getAccountById(int $accountId): ?Account
     {
-
         $query = "select account_id, display_name, pw_hashed, is_staff, email from account
         where account_id = $1";
         $params = [$accountId];
@@ -52,7 +51,6 @@ class AccountDAO
 
     public function getAccountByEmail(string $email): ?Account
     {
-
         $query = "select account_id, display_name, pw_hashed, is_staff, email from account
         where email = $1";
         $params = [$email];
@@ -74,7 +72,6 @@ class AccountDAO
 
     public function updatePassword(int $accountId, string $newPasswordHashed): bool
     {
-
         $query = "update account set pw_hashed = $1 where account_id = $2";
         $params = [$newPasswordHashed, $accountId];
 
@@ -93,10 +90,8 @@ class AccountDAO
         return $success !== false;
     }
 
-    
     public function updateEmail(int $accountId, string $newEmail): bool
     {
-
         $query = "update account set email = $1 where account_id = $2";
         $params = [$newEmail, $accountId];
 
@@ -104,13 +99,14 @@ class AccountDAO
 
         return $success !== false;
     }
+
     public function verifyPassword(string $email, string $password): bool
-{
-    $account = $this->getAccountByEmail($email);
-    if (!$account) {
-        return false;
+    {
+        $account = $this->getAccountByEmail($email);
+        if (!$account) {
+            return false;
+        }
+        
+        return password_verify($password, $account->getPasswordHashed());
     }
-    
-    return password_verify($password, $account->getPasswordHashed());
-}
 }

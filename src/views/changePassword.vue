@@ -22,7 +22,8 @@ const checkAuth = () => {
 
   try {
     currentUser.value = JSON.parse(stored)
-    displayName.value = currentUser.value.display_name || currentUser.value.displayName || ''
+    console.log('Current user from sessionStorage:', currentUser.value) // Debug line
+    displayName.value = currentUser.value.displayName || currentUser.value.display_name || ''
     return true
   } catch (e) {
     console.error('Error parsing user data:', e)
@@ -50,8 +51,19 @@ const changeDisplayName = async () => {
     return
   }
 
-  if (displayName.value.trim() === (currentUser.value.display_name || currentUser.value.displayName)) {
+  if (displayName.value.trim() === (currentUser.value.displayName || currentUser.value.display_name)) {
     alert('Display name is the same as current name.')
+    return
+  }
+
+  // Get accountId - try all possible property names
+  const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
+
+  console.log('Attempting to update display name with accountId:', accountId) // Debug line
+  console.log('Available user properties:', Object.keys(currentUser.value)) // Debug line
+
+  if (!accountId) {
+    alert('Cannot find account ID. Please log in again.')
     return
   }
 
@@ -64,17 +76,18 @@ const changeDisplayName = async () => {
       },
       body: JSON.stringify({
         method: 'updateDisplayName',
-        accountId: currentUser.value.account_id || currentUser.value.id,
+        accountId: accountId,
         newDisplayName: displayName.value.trim()
       })
     })
 
     const result = await response.json()
+    console.log('Update display name response:', result) // Debug line
 
     if (response.ok) {
       // Update both possible property names
-      currentUser.value.display_name = displayName.value.trim()
       currentUser.value.displayName = displayName.value.trim()
+      currentUser.value.display_name = displayName.value.trim()
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
       alert('Display name updated successfully!')
     } else {
@@ -105,6 +118,16 @@ const changePassword = async () => {
     return
   }
 
+  // Get accountId - try all possible property names
+  const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
+
+  console.log('Attempting to change password with accountId:', accountId) // Debug line
+
+  if (!accountId) {
+    alert('Cannot find account ID. Please log in again.')
+    return
+  }
+
   passwordLoading.value = true
   try {
     // Step 1: Verify old password
@@ -121,6 +144,7 @@ const changePassword = async () => {
     })
 
     const verifyResult = await verifyResponse.json()
+    console.log('Verify password response:', verifyResult) // Debug line
 
     if (!verifyResponse.ok || !verifyResult.valid) {
       alert('Current password is incorrect.')
@@ -135,12 +159,13 @@ const changePassword = async () => {
       },
       body: JSON.stringify({
         method: 'updatePassword',
-        accountId: currentUser.value.account_id || currentUser.value.id,
+        accountId: accountId,
         newPassword: newPassword.value
       })
     })
 
     const updateResult = await updateResponse.json()
+    console.log('Update password response:', updateResult) // Debug line
 
     if (updateResponse.ok) {
       alert('Password changed successfully!')
@@ -172,7 +197,7 @@ const logout = () => {
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
-        <span class="me-3">Welcome, {{ currentUser.display_name || currentUser.displayName || currentUser.email }}!</span>
+        <span class="me-3">Welcome, {{ currentUser.displayName || currentUser.display_name || currentUser.email }}!</span>
         <button class="btn btn-outline-pink btn-sm" @click="logout">
           Logout
         </button>

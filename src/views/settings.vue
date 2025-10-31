@@ -13,7 +13,7 @@
               <i class="fas fa-times"></i>
             </button>
             <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-            <p v-if="user.email">Welcome, {{ user.email }}</p>
+            <p v-if="user.email">Welcome, {{ user.displayName }}</p>
           </div>
 
           <div class="card-body">
@@ -30,7 +30,7 @@
                 <i class="fas fa-life-ring"></i>
                 <span>Customer Dashboard</span>
               </button>
-              <button class="action-btn" @click="navigateTo('/changepw')">
+              <button class="action-btn" @click="navigateTo('/changePassword')">
                 <i class="fas fa-key"></i>
                 <span>Change Password</span>
               </button>
@@ -47,7 +47,7 @@
           <i class="fas fa-lock"></i>
         </div>
         <h2>Authentication Required</h2>
-        <p>Please log in to access Quick Actions</p>
+        <p>Please log in to access Account Settings</p>
         <div class="center-button action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i>
