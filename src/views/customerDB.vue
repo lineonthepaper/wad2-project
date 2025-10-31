@@ -226,6 +226,7 @@
 <script>
 import Globe from 'globe.gl';
 import countryData from '/json/countryData.json';
+import axios from 'axios'; // Add this import
 
 export default {
   name: "EnhancedParcelDashboard",
@@ -241,12 +242,13 @@ export default {
       globeInitialized: false,
       globeError: false,
       errorMessage: "",
+      loading: false,
       stats: {
         inProgress: 0,
         delivered: 0,
         pending: 0,
       },
-      parcels: [], // Will be populated from API
+      parcels: [],
       notifications: [],
       globe: null,
       arcsData: [],
@@ -361,17 +363,22 @@ export default {
     },
 
     async fetchUserShipments() {
+      this.loading = true;
       try {
-        // Fetch shipments from your API
-        const response = await axios.post('/api/mail.php', {
+        console.log('Fetching shipments for:', this.user.email);
+
+        const response = await axios.post('/api/dashboard.php', {
           method: 'getAllMailByCustomerEmail',
           email: this.user.email
         });
+
+        console.log('API Response:', response.data);
 
         if (response.data.success) {
           this.parcels = this.transformShipmentData(response.data.shipments);
           this.updateStats();
           this.generateNotifications();
+          console.log('Successfully loaded', this.parcels.length, 'shipments');
         } else {
           console.error('Failed to fetch shipments:', response.data.error);
           // Fallback to sample data
@@ -380,12 +387,19 @@ export default {
       } catch (error) {
         console.error('Error fetching shipments:', error);
         this.loadSampleData();
+      } finally {
+        this.loading = false;
       }
     },
 
     transformShipmentData(shipments) {
+      if (!shipments || !Array.isArray(shipments)) {
+        console.log('No shipments data found');
+        return [];
+      }
+
       return shipments.map(shipment => {
-        // Get coordinates from country data
+        // Get coordinates from address data
         const senderCountry = shipment.senderAddress?.countryCode || 'SG';
         const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
 
@@ -394,28 +408,41 @@ export default {
 
         // Determine current location based on status
         let currentLocation = senderCoords;
-        if (shipment.status === 'In Progress') {
-          // For demo, show midpoint
+        const progress = this.calculateProgressFromStatus(shipment.status);
+
+        if (progress > 0 && progress < 100) {
+          // For in-progress shipments, interpolate between start and end
           currentLocation = [
-            (senderCoords[0] + recipientCoords[0]) / 2,
-            (senderCoords[1] + recipientCoords[1]) / 2
+            senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
+            senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
           ];
-        } else if (shipment.status === 'Delivered') {
+        } else if (progress >= 100) {
           currentLocation = recipientCoords;
         }
 
         return {
           id: shipment.mailId,
+          mailId: shipment.mailId,
           trackingId: `TRK-${shipment.mailId.toString().padStart(6, '0')}`,
           customer: shipment.senderAddress?.name || 'Customer',
-          status: this.mapStatus(shipment),
-          expectedDelivery: this.calculateExpectedDelivery(shipment),
+          status: this.mapApiStatus(shipment.status),
+          expectedDelivery: shipment.expectedDelivery,
           location: senderCoords,
           currentLocation: currentLocation,
           destination: recipientCoords,
-          rawData: shipment // Keep original data for reference
+          progress: progress,
+          rawData: shipment
         };
       });
+    },
+
+    calculateProgressFromStatus(status) {
+      const progressMap = {
+        'pending': 0,
+        'in_transit': 50,
+        'delivered': 100
+      };
+      return progressMap[status] || 0;
     },
 
     getCountryCoordinates(countryCode) {
@@ -427,23 +454,13 @@ export default {
       return [1.28478, 103.776222];
     },
 
-    mapStatus(shipment) {
-      // Map your shipment status to dashboard status
+    mapApiStatus(apiStatus) {
       const statusMap = {
         'pending': 'Pending',
         'in_transit': 'In Progress',
         'delivered': 'Delivered'
       };
-      return statusMap[shipment.status] || 'Pending';
-    },
-
-    calculateExpectedDelivery(shipment) {
-      // Calculate expected delivery based on service times
-      const createdDate = new Date(shipment.createdAt || new Date());
-      const minDays = shipment.service?.minDays || 5;
-      const expectedDate = new Date(createdDate);
-      expectedDate.setDate(expectedDate.getDate() + minDays);
-      return expectedDate.toISOString().split('T')[0];
+      return statusMap[apiStatus] || 'Pending';
     },
 
     updateStats() {
@@ -456,30 +473,32 @@ export default {
 
     generateNotifications() {
       this.notifications = this.parcels.slice(0, 4).map((parcel, index) => {
-        const messages = {
-          'In Progress': `Package ${parcel.trackingId} is in transit`,
-          'Delivered': `Package ${parcel.trackingId} delivered successfully`,
-          'Pending': `Package ${parcel.trackingId} is awaiting pickup`
+        const statusConfig = {
+          'In Progress': {
+            type: 'info',
+            icon: 'fas fa-shipping-fast',
+            message: `Shipment ${parcel.trackingId} is in transit`
+          },
+          'Delivered': {
+            type: 'success',
+            icon: 'fas fa-check-circle',
+            message: `Shipment ${parcel.trackingId} has been delivered`
+          },
+          'Pending': {
+            type: 'warning',
+            icon: 'fas fa-clock',
+            message: `Shipment ${parcel.trackingId} is awaiting processing`
+          }
         };
 
-        const types = {
-          'In Progress': 'info',
-          'Delivered': 'success',
-          'Pending': 'warning'
-        };
-
-        const icons = {
-          'In Progress': 'fas fa-shipping-fast',
-          'Delivered': 'fas fa-check-circle',
-          'Pending': 'fas fa-clock'
-        };
+        const config = statusConfig[parcel.status] || statusConfig.Pending;
 
         return {
           id: index + 1,
-          type: types[parcel.status],
-          icon: icons[parcel.status],
-          message: messages[parcel.status],
-          time: this.formatRelativeTime(index) // Just for demo
+          type: config.type,
+          icon: config.icon,
+          message: config.message,
+          time: this.formatRelativeTime(index)
         };
       });
     },
@@ -490,7 +509,7 @@ export default {
     },
 
     loadSampleData() {
-      // Your existing sample data as fallback
+      // Fallback sample data
       this.parcels = [
         {
           id: 1,
@@ -498,17 +517,28 @@ export default {
           customer: "Alice Johnson",
           status: "In Progress",
           expectedDelivery: "2025-10-18",
-          location: [37.7749, -122.4194],
-          currentLocation: [39.8283, -98.5795],
-          destination: [40.7128, -74.0060]
+          location: [1.28478, 103.776222], // Singapore
+          currentLocation: [3.153398, 101.697097], // Malaysia
+          destination: [35.687015, 139.764585], // Japan
+          progress: 50
         },
-        // ... rest of sample data
+        {
+          id: 2,
+          trackingId: "TRK-784232",
+          customer: "Bob Smith",
+          status: "Delivered",
+          expectedDelivery: "2025-10-15",
+          location: [1.28478, 103.776222], // Singapore
+          currentLocation: [40.7128, -74.0060], // New York
+          destination: [40.7128, -74.0060], // New York
+          progress: 100
+        }
       ];
       this.updateStats();
       this.generateNotifications();
     },
 
-    // Rest of your existing methods (initGlobe, showParcelRoute, etc.) remain the same
+    // Rest of your existing methods remain the same
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -549,17 +579,21 @@ export default {
       try {
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
-          displayLocation: parcel.currentLocation || parcel.location
+          lat: parcel.currentLocation[0],
+          lng: parcel.currentLocation[1],
+          color: this.getStatusColor(parcel.status),
+          size: 0.4,
+          label: `${parcel.trackingId}: ${parcel.customer} (${parcel.status})`
         }));
 
         this.globe
           .pointsData(this.pointsData)
-          .pointLat(d => d.displayLocation[0])
-          .pointLng(d => d.displayLocation[1])
-          .pointColor(d => this.getStatusColor(d.status))
+          .pointLat('lat')
+          .pointLng('lng')
+          .pointColor('color')
           .pointAltitude(0.1)
-          .pointRadius(0.4)
-          .pointLabel(d => `${d.trackingId}: ${d.customer} (${d.status})`);
+          .pointRadius('size')
+          .pointLabel('label');
 
         if (this.selectedParcel) {
           this.updateRouteForParcel(this.selectedParcel);
@@ -587,33 +621,23 @@ export default {
     updateRouteForParcel(parcel) {
       if (!this.globe) return;
 
-      this.arcsData = [
-        {
-          start: parcel.location,
-          end: parcel.currentLocation || parcel.location,
-          color: '#00ff00',
-          stroke: 1.5
-        },
-        {
-          start: parcel.currentLocation || parcel.location,
-          end: parcel.destination,
-          color: '#ffa500',
-          stroke: 1.5
-        }
-      ];
+      this.arcsData = [{
+        startLat: parcel.location[0],
+        startLng: parcel.location[1],
+        endLat: parcel.currentLocation[0],
+        endLng: parcel.currentLocation[1],
+        color: '#00ff00'
+      }];
 
       this.globe
         .arcsData(this.arcsData)
-        .arcStartLat(d => d.start[0])
-        .arcStartLng(d => d.start[1])
-        .arcEndLat(d => d.end[0])
-        .arcEndLng(d => d.end[1])
+        .arcStartLat(d => d.startLat)
+        .arcStartLng(d => d.startLng)
+        .arcEndLat(d => d.endLat)
+        .arcEndLng(d => d.endLng)
         .arcColor(d => d.color)
-        .arcStroke(d => d.stroke)
-        .arcAltitude(0.05)
-        .arcDashLength(0.3)
-        .arcDashGap(0.1)
-        .arcDashAnimateTime(4000);
+        .arcStroke(1.5)
+        .arcAltitude(0.05);
 
       this.focusOnRoute(parcel.location, parcel.destination);
     },
@@ -643,6 +667,11 @@ export default {
     },
 
     calculateProgress(parcel) {
+      // Use the stored progress if available
+      if (parcel.progress !== undefined) {
+        return parcel.progress;
+      }
+
       if (parcel.status === 'Delivered') return 100;
       if (parcel.status === 'Pending') return 0;
 
