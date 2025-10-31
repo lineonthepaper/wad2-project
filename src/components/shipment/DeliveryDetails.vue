@@ -275,6 +275,10 @@ export default {
       return ''
     },
     emissions() {
+      if (this.shipment.recipient.country === null || this.shipment.sender.country === null) {
+        return null
+      }
+
       let fromLatLong = this.getLatLong(this.shipment.sender.country)
       let toLatLong = this.getLatLong(this.shipment.recipient.country)
 
