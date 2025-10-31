@@ -230,11 +230,20 @@ export default {
   padding: 2rem;
 }
 
+
+/* Center the Go to Login button */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* 2x2 Grid Layout */
 .actions-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  justify-items: center;
 }
 
 .action-btn {
@@ -375,6 +384,8 @@ export default {
     font-size: 1rem;
   }
 }
+
+
 
 @media (max-width: 480px) {
   .actions-grid {

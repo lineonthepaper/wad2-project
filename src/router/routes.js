@@ -27,7 +27,7 @@ export const routes = [
   { path: '/CDB',name: 'dashboard', title: 'Dashboard', component: customerDB },
   { path: '/confirmation', name: 'confirmation', title: 'Confirmed!', component: ConfirmationView },
   {path: '/settings',name: 'settings', title: 'settings', component: settings},
-  {path: '/changePassword',name: 'changepw', title: 'chaneePassword', component: changePassword}
+  {path: '/changePassword',name: 'changepw', title: 'changePassword', component: changePassword}
 ]
 
 const router = createRouter({
