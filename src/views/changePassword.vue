@@ -424,7 +424,7 @@ const logout = () => {
 
       <!-- Delete Account -->
       <div class="mt-4">
-        <h5 class="fw-bold text-danger">Danger Zone</h5>
+        <h5 class="fw-bold text-danger">Danger!</h5>
         <p class="text-muted small mb-3">
           Once you delete your account, there is no going back. Please be certain.
         </p>

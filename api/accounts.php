@@ -330,10 +330,8 @@ if ($method == "deleteAccount") {
             exit;
         }
 
-        // Delete account from database
-        $query = "DELETE FROM account WHERE account_id = $1";
-        $params = [$accountId];
-        $success = pg_query_params($this->conn, $query, $params);
+        // Delete account from database using AccountDAO method
+        $success = $accountDAO->deleteAccount($accountId);
 
         if ($success) {
             echo json_encode(["message" => "Account deleted successfully."]);
