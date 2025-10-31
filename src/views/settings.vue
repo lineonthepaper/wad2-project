@@ -44,11 +44,13 @@
           <i class="fas fa-lock"></i>
         </div>
         <h2>Authentication Required</h2>
-        <p>Please log in to access settings</p>
-        <button @click="redirectToLogin" class="btn btn-primary">
-          <i class="fas fa-sign-in-alt"></i>
-          Go to Login
-        </button>
+        <p>Please log in to access your Settings</p>
+        <div class="action-buttons">
+          <button @click="redirectToLogin" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i>
+            Go to Login
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -228,6 +230,7 @@ export default {
   font-size: 1rem;
   font-weight: 500;
 }
+
 
 /* Login Required Styles */
 .login-required {
