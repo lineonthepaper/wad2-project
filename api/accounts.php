@@ -262,85 +262,46 @@ if ($method === "POST") {
         }
         exit;
     }
-
-    if ($method == "changeEmail") {
-        try {
-            if (!isset($payload['accountId']) || !isset($payload['newEmail']) || !isset($payload['currentEmail'])) {
-                http_response_code(400);
-                echo json_encode(["message" => "Account ID, current email, and new email are required."]);
-                exit;
-            }
-
-            $accountId = (int)$payload['accountId'];
-            $newEmail = trim($payload['newEmail']);
-            $currentEmail = trim($payload['currentEmail']);
-
-            // Validate email format
-            if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-                http_response_code(400);
-                echo json_encode(["message" => "Invalid email format."]);
-                exit;
-            }
-
-            // Check if new email already exists
-            $accountDAO = new AccountDAO($useServer);
-            $existingAccount = $accountDAO->getAccountByEmail($newEmail);
-            if ($existingAccount) {
-                http_response_code(400);
-                echo json_encode(["message" => "Email already exists."]);
-                exit;
-            }
-
-            // Generate confirmation token
-            $confirmationToken = bin2hex(random_bytes(32));
-            
-            // Store token in session (valid for 1 hour)
-            session_start();
-            $_SESSION['email_confirmation'] = [
-                'token' => $confirmationToken,
-                'accountId' => $accountId,
-                'newEmail' => $newEmail,
-                'expires' => time() + 3600 // 1 hour
-            ];
-            
-            // Create confirmation link
-            $confirmationLink = "https://yourdomain.com/confirmemail.php?token=" . $confirmationToken;
-            
-            // Prepare email content
-            $subject = "Confirm Your Email Change";
-            $message = "
-            Hello,
-
-            You have requested to change your email address from $currentEmail to $newEmail.
-
-            Please click the following link to confirm this change:
-            $confirmationLink
-
-            This link will expire in 1 hour.
-
-            If you did not request this change, please ignore this email.
-
-            Best regards,
-            Your App Team
-            ";
-
-            // Send email using the API
-            $emailSent = sendEmailViaAPI($newEmail, $subject, $message);
-
-            if ($emailSent) {
-                echo json_encode([
-                    "message" => "Confirmation email sent successfully. Please check your new email address.",
-                    "requiresConfirmation" => true
-                ]);
-            } else {
-                http_response_code(500);
-                echo json_encode(["message" => "Failed to send confirmation email."]);
-            }
-        } catch (Exception $e) {
+    if ($method == "updateEmail") {
+    try {
+        if (!isset($payload['accountId']) || !isset($payload['newEmail'])) {
             http_response_code(400);
-            echo json_encode(["message" => "Error changing email: " . $e->getMessage()]);
+            echo json_encode(["message" => "Account ID and new email are required."]);
+            exit;
         }
-        exit;
+
+        $accountId = (int)$payload['accountId'];
+        $newEmail = trim($payload['newEmail']);
+
+        if (empty($newEmail) || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Please provide a valid email address."]);
+            exit;
+        }
+
+        // Check if email already exists
+        $accountDAO = new AccountDAO($useServer);
+        $existingAccount = $accountDAO->getAccountByEmail($newEmail);
+        if ($existingAccount && $existingAccount->getAccountId() !== $accountId) {
+            http_response_code(400);
+            echo json_encode(["message" => "Email already exists."]);
+            exit;
+        }
+
+        $success = $accountDAO->updateEmail($accountId, $newEmail);
+
+        if ($success) {
+            echo json_encode(["message" => "Email updated successfully."]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["message" => "Failed to update email."]);
+        }
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(["message" => "Error updating email: " . $e->getMessage()]);
     }
+    exit;
+}
+  
 }
 ?>

@@ -5,15 +5,14 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const currentUser = ref(null)
 const displayName = ref('')
+const email = ref('')
 const oldPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-const newEmail = ref('')
-const confirmEmail = ref('')
 const isLoading = ref(false)
 const displayNameLoading = ref(false)
-const passwordLoading = ref(false)
 const emailLoading = ref(false)
+const passwordLoading = ref(false)
 
 // Check authentication and load current user
 const checkAuth = () => {
@@ -27,7 +26,7 @@ const checkAuth = () => {
     currentUser.value = JSON.parse(stored)
     console.log('Current user from sessionStorage:', currentUser.value)
     displayName.value = currentUser.value.displayName || currentUser.value.display_name || ''
-    newEmail.value = currentUser.value.email || ''
+    email.value = currentUser.value.email || ''
     return true
   } catch (e) {
     console.error('Error parsing user data:', e)
@@ -62,6 +61,8 @@ const changeDisplayName = async () => {
 
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
 
+  console.log('Attempting to update display name with accountId:', accountId)
+
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
     return
@@ -85,6 +86,7 @@ const changeDisplayName = async () => {
     console.log('Update display name response:', result)
 
     if (response.ok) {
+      // Update both possible property names
       currentUser.value.displayName = displayName.value.trim()
       currentUser.value.display_name = displayName.value.trim()
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
@@ -102,30 +104,26 @@ const changeDisplayName = async () => {
 
 // Handle email change
 const changeEmail = async () => {
-  if (newEmail.value !== confirmEmail.value) {
-    alert('Email addresses do not match.')
+  if (!email.value.trim()) {
+    alert('Email cannot be empty.')
     return
   }
 
-  if (!newEmail.value.trim() || !confirmEmail.value.trim()) {
-    alert('Please fill in all fields.')
+  if (email.value.trim() === currentUser.value.email) {
+    alert('Email is the same as current email.')
     return
   }
 
   // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(newEmail.value)) {
+  if (!emailRegex.test(email.value.trim())) {
     alert('Please enter a valid email address.')
     return
   }
 
-  if (newEmail.value === currentUser.value.email) {
-    alert('New email is the same as current email.')
-    return
-  }
-
-  // Get accountId
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
+
+  console.log('Attempting to update email with accountId:', accountId)
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -140,26 +138,26 @@ const changeEmail = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        method: 'changeEmail',
+        method: 'updateEmail',
         accountId: accountId,
-        newEmail: newEmail.value.trim(),
-        currentEmail: currentUser.value.email
+        newEmail: email.value.trim()
       })
     })
 
     const result = await response.json()
-    console.log('Change email response:', result)
+    console.log('Update email response:', result)
 
     if (response.ok) {
-      alert('Confirmation email sent! Please check your new email address and click the link to confirm the change.')
-      newEmail.value = ''
-      confirmEmail.value = ''
+      // Update email in current user data
+      currentUser.value.email = email.value.trim()
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+      alert('Email updated successfully!')
     } else {
-      alert(result.message || 'Failed to send confirmation email')
+      alert(result.message || 'Failed to update email')
     }
   } catch (error) {
-    console.error('Error changing email:', error)
-    alert('Error changing email')
+    console.error('Error updating email:', error)
+    alert('Error updating email')
   } finally {
     emailLoading.value = false
   }
@@ -183,6 +181,8 @@ const changePassword = async () => {
   }
 
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
+
+  console.log('Attempting to change password with accountId:', accountId)
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -292,36 +292,24 @@ const logout = () => {
 
       <!-- Change Email -->
       <div class="mb-4">
-        <h5 class="fw-bold text-pink">Change Email Address</h5>
-        <div class="form-group mb-2">
+        <h5 class="fw-bold text-pink">Change Email</h5>
+        <div class="input-group">
           <input
-            v-model="newEmail"
+            v-model="email"
             type="email"
             class="form-control"
-            placeholder="New Email Address"
+            placeholder="Enter new email"
             :disabled="emailLoading"
           />
+          <button
+            class="btn btn-pink"
+            @click="changeEmail"
+            :disabled="emailLoading || !email.trim()"
+          >
+            <span v-if="emailLoading" class="spinner-border spinner-border-sm me-2"></span>
+            Update
+          </button>
         </div>
-        <div class="form-group mb-3">
-          <input
-            v-model="confirmEmail"
-            type="email"
-            class="form-control"
-            placeholder="Confirm New Email Address"
-            :disabled="emailLoading"
-          />
-        </div>
-        <button
-          class="btn btn-pink"
-          @click="changeEmail"
-          :disabled="emailLoading || !newEmail || !confirmEmail"
-        >
-          <span v-if="emailLoading" class="spinner-border spinner-border-sm me-2"></span>
-          Change Email
-        </button>
-        <small class="form-text text-muted d-block mt-2">
-          A confirmation link will be sent to your new email address. Click the link to complete the change.
-        </small>
       </div>
 
       <hr />
