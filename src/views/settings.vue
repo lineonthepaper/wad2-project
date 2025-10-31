@@ -48,7 +48,7 @@
         </div>
         <h2>Authentication Required</h2>
         <p>Please log in to access Quick Actions</p>
-        <div class="action-buttons">
+        <div class="center-button action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i>
             Go to Login
@@ -323,6 +323,13 @@ export default {
   align-items: center;
   gap: 0.5rem;
   justify-content: center;
+}
+
+
+.center-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .btn-primary {

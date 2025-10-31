@@ -8,8 +8,6 @@ const displayName = ref('')
 const oldPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-const profilePicture = ref(null)
-const profilePreview = ref('')
 const isLoading = ref(false)
 const displayNameLoading = ref(false)
 const passwordLoading = ref(false)
@@ -25,7 +23,6 @@ const checkAuth = () => {
   try {
     currentUser.value = JSON.parse(stored)
     displayName.value = currentUser.value.display_name || currentUser.value.displayName || ''
-    profilePreview.value = currentUser.value.profilePicture || '/default-avatar.png'
     return true
   } catch (e) {
     console.error('Error parsing user data:', e)
@@ -161,32 +158,6 @@ const changePassword = async () => {
   }
 }
 
-// Handle profile picture upload
-const handleFileUpload = (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-
-  // Validate file type
-  if (!file.type.startsWith('image/')) {
-    alert('Please select an image file.')
-    return
-  }
-
-  // Validate file size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('Please select an image smaller than 5MB.')
-    return
-  }
-
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    profilePreview.value = event.target.result
-    currentUser.value.profilePicture = event.target.result
-    sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-  }
-  reader.readAsDataURL(file)
-}
-
 // Logout function
 const logout = () => {
   sessionStorage.removeItem('currentUser')
@@ -209,25 +180,6 @@ const logout = () => {
     </div>
 
     <div class="card shadow-lg p-4 rounded-4 border-0">
-      <!-- Profile Picture -->
-      <div class="text-center mb-4">
-        <img
-          :src="profilePreview"
-          alt="Profile Picture"
-          class="rounded-circle mb-3 border"
-          style="width: 150px; height: 150px; object-fit: cover;"
-        />
-        <div>
-          <input
-            type="file"
-            @change="handleFileUpload"
-            accept="image/*"
-            class="form-control"
-            style="max-width: 250px; margin: 0 auto;"
-          />
-        </div>
-      </div>
-
       <!-- Change Display Name -->
       <div class="mb-4">
         <h5 class="fw-bold text-pink">Change Display Name</h5>
