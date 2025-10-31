@@ -820,7 +820,7 @@ export default {
 </script>
 
 <style scoped>
-
+/* Add these new styles to your existing CSS */
 
 .loading-state, .empty-state {
   display: flex;

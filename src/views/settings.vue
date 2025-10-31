@@ -32,7 +32,7 @@
               </button>
               <button class="action-btn" @click="navigateTo('/changePassword')">
                 <i class="fas fa-key"></i>
-                <span>Change Password</span>
+                <span>Accounts</span>
               </button>
             </div>
           </div>

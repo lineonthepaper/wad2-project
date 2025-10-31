@@ -1,10 +1,11 @@
 <?php
-require_once __DIR__ . "/../common.php";
-require_once __DIR__ . "/../model/Account.php";
-require_once __DIR__ . "/../model/AccountDAO.php";
-require_once __DIR__ . "/../model/Mail.php";
-require_once __DIR__ . "/../model/MailDAO.php";
-require_once __DIR__ . "/../model/Address.php";
+require_once __DIR__ . "/common.php";
+require_once __DIR__ . "/classes/Account.php";
+require_once __DIR__ . "/classes/AccountDAO.php";
+require_once __DIR__ . "/classes/Mail.php";
+require_once __DIR__ . "/classes/MailDAO.php";
+require_once __DIR__ . "/classes/Address.php";
+
 
 header('Content-Type: application/json');
 
