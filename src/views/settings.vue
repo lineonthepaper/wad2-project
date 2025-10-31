@@ -9,7 +9,10 @@
       <div class="settings-center">
         <div class="settings-card">
           <div class="card-header">
-            <h2><i class="fas fa-cog"></i> Settings</h2>
+            <button class="close-btn" @click="goToHomepage" title="Close Settings">
+              <i class="fas fa-times"></i>
+            </button>
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
             <p v-if="user.email">Welcome, {{ user.email }}</p>
           </div>
 
@@ -44,7 +47,7 @@
           <i class="fas fa-lock"></i>
         </div>
         <h2>Authentication Required</h2>
-        <p>Please log in to access your Settings</p>
+        <p>Please log in to access Quick Actions</p>
         <div class="action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i>
@@ -103,6 +106,15 @@ export default {
       }
     },
 
+    // Go back to homepage
+    goToHomepage() {
+      if (this.$router) {
+        this.$router.push('/');
+      } else {
+        window.location.href = '/';
+      }
+    },
+
     redirectToLogin() {
       if (this.$router) {
         this.$router.push('/login');
@@ -115,7 +127,6 @@ export default {
 </script>
 
 <style scoped>
-/* Your existing CSS remains the same */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
 :root {
@@ -165,6 +176,7 @@ export default {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   overflow: hidden;
+  position: relative;
 }
 
 .card-header {
@@ -172,6 +184,30 @@ export default {
   color: white;
   padding: 2rem;
   text-align: center;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
 .card-header h2 {
@@ -187,31 +223,35 @@ export default {
 .card-header p {
   margin: 0;
   opacity: 0.9;
+  font-size: 1rem;
 }
 
 .card-body {
   padding: 2rem;
 }
 
+/* 2x2 Grid Layout */
 .actions-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
 .action-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
   border: 1px solid var(--pink-grey);
   border-radius: 12px;
   background: white;
   color: var(--slate-blue);
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 100%;
-  text-align: left;
+  text-align: center;
+  min-height: 100px;
+  justify-content: center;
 }
 
 .action-btn:hover {
@@ -222,15 +262,15 @@ export default {
 }
 
 .action-btn i {
-  font-size: 1.5rem;
-  width: 24px;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
 }
 
 .action-btn span {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
+  line-height: 1.2;
 }
-
 
 /* Login Required Styles */
 .login-required {
@@ -313,8 +353,44 @@ export default {
     padding: 1.5rem;
   }
 
+  .actions-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
   .action-btn {
-    padding: 1.25rem;
+    padding: 1.25rem 1rem;
+    min-height: 80px;
+  }
+
+  .action-btn i {
+    font-size: 1.5rem;
+  }
+
+  .close-btn {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-btn {
+    min-height: 70px;
+  }
+
+  .action-btn i {
+    font-size: 1.3rem;
+  }
+
+  .action-btn span {
+    font-size: 0.85rem;
   }
 }
 </style>
