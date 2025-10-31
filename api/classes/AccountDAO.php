@@ -20,7 +20,7 @@ class AccountDAO
             $newAccount->getDisplayName(),
             $newAccount->getEmail(),
             $newAccount->getPasswordHashed(),
-            $newAccount->isStaff()
+            $newAccount->isStaff() ? 't' : 'f'  
         ];
 
         $success = pg_query_params($this->conn, $query, $params);

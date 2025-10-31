@@ -8,92 +8,75 @@ $method = $_SERVER["REQUEST_METHOD"];
 
 $useServer = true;
 
-// Email API function (using Resend.com as example)
-function sendEmailViaAPI($to, $subject, $message) {
-    $apiKey = 're_AVBpML63_GvyWAJ8rH3YSZXPxDnEB4q4Q';
-    
-    $data = [
-        'from' => 'Your App <noreply@yourdomain.com>',
-        'to' => [$to],
-        'subject' => $subject,
-        'text' => $message
-    ];
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://api.resend.com/emails');
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Authorization: Bearer ' . $apiKey
-    ]);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    return $httpCode === 200;
-}
-
 if ($method === "POST") {
     $payload = json_decode(file_get_contents('php://input'), true);
     if (!is_array($payload)) $payload = [];
 
     $method = $payload['method'] ?? '';
 
-    if ($method == "addAccount") {
-        try {
-            // Server-side password validation
-            if (!isset($payload['password']) || !isset($payload['confirmPassword'])) {
-                http_response_code(400);
-                echo json_encode(["message" => "Password and confirmation are required."]);
-                exit;
-            }
+   if ($method == "addAccount") {
+    try {
+        // Server-side password validation
+        if (!isset($payload['password']) || !isset($payload['confirmPassword'])) {
+            http_response_code(400);
+            echo json_encode(["message" => "Password and confirmation are required."]);
+            exit;
+        }
 
-            if ($payload['password'] !== $payload['confirmPassword']) {
-                http_response_code(400);
-                echo json_encode(["message" => "Passwords do not match."]);
-                exit;
-            }
+        if ($payload['password'] !== $payload['confirmPassword']) {
+            http_response_code(400);
+            echo json_encode(["message" => "Passwords do not match."]);
+            exit;
+        }
 
-            if (strlen($payload['password']) < 6) {
-                http_response_code(400);
-                echo json_encode(["message" => "Password must be at least 6 characters long."]);
-                exit;
-            }
+        if (strlen($payload['password']) < 6) {
+            http_response_code(400);
+            echo json_encode(["message" => "Password must be at least 6 characters long."]);
+            exit;
+        }
 
-            // Check if email already exists
-            $accountDAO = new AccountDAO($useServer);
-            $existingAccount = $accountDAO->getAccountByEmail($payload['email']);
-            if ($existingAccount) {
-                http_response_code(400);
-                echo json_encode(["message" => "Email already exists."]);
-                exit;
-            }
+        // Check if email already exists
+        $accountDAO = new AccountDAO($useServer);
+        $existingAccount = $accountDAO->getAccountByEmail($payload['email']);
+        if ($existingAccount) {
+            http_response_code(400);
+            echo json_encode(["message" => "Email already exists."]);
+            exit;
+        }
 
-            $success = $accountDAO->addAccount(
-                new Account(
-                    null,
-                    $payload['displayName'],
-                    $payload['email'],
-                    Account::hashPassword($payload['password']),
-                    (bool)($payload['isStaff'] ?? false)
-                )
-            );
-            if ($success) {
-                echo json_encode(["message" => "Account created successfully."]);
-                exit;
-            } else {
-                http_response_code(500);
-                echo json_encode(["message" => "Error in account creation."]);
-                exit;
-            }
+        // Handle isStaff value properly for PostgreSQL
+        $isStaff = $payload['isStaff'] ?? false;
+
+        // Convert to proper PostgreSQL boolean format
+        if (is_string($isStaff)) {
+            $isStaff = ($isStaff === 'true' || $isStaff === '1');
+        } else {
+            $isStaff = (bool)$isStaff;
+        }
+
+        $success = $accountDAO->addAccount(
+            new Account(
+                null,
+                $payload['displayName'],
+                $payload['email'],
+                Account::hashPassword($payload['password']),
+                $isStaff
+            )
+        );
+        if ($success) {
+            echo json_encode(["message" => "Account created successfully."]);
+            exit;
+        } else {
+            http_response_code(500);
+            echo json_encode(["message" => "Error in account creation."]);
+            exit;
+        }
         } catch (Exception $e) {
             http_response_code(400);
             echo json_encode(["message" => "Caught exception: " . $e->getMessage()]);
             exit;
         }
+
     }
 
     if ($method == "getAccountById") {
@@ -262,89 +245,90 @@ if ($method === "POST") {
         }
         exit;
     }
+
     if ($method == "updateEmail") {
-    try {
-        if (!isset($payload['accountId']) || !isset($payload['newEmail'])) {
+        try {
+            if (!isset($payload['accountId']) || !isset($payload['newEmail'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "Account ID and new email are required."]);
+                exit;
+            }
+
+            $accountId = (int)$payload['accountId'];
+            $newEmail = trim($payload['newEmail']);
+
+            if (empty($newEmail) || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                http_response_code(400);
+                echo json_encode(["message" => "Please provide a valid email address."]);
+                exit;
+            }
+
+            // Check if email already exists
+            $accountDAO = new AccountDAO($useServer);
+            $existingAccount = $accountDAO->getAccountByEmail($newEmail);
+            if ($existingAccount && $existingAccount->getAccountId() !== $accountId) {
+                http_response_code(400);
+                echo json_encode(["message" => "Email already exists."]);
+                exit;
+            }
+
+            $success = $accountDAO->updateEmail($accountId, $newEmail);
+
+            if ($success) {
+                echo json_encode(["message" => "Email updated successfully."]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["message" => "Failed to update email."]);
+            }
+        } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Account ID and new email are required."]);
-            exit;
+            echo json_encode(["message" => "Error updating email: " . $e->getMessage()]);
         }
-
-        $accountId = (int)$payload['accountId'];
-        $newEmail = trim($payload['newEmail']);
-
-        if (empty($newEmail) || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Please provide a valid email address."]);
-            exit;
-        }
-
-        // Check if email already exists
-        $accountDAO = new AccountDAO($useServer);
-        $existingAccount = $accountDAO->getAccountByEmail($newEmail);
-        if ($existingAccount && $existingAccount->getAccountId() !== $accountId) {
-            http_response_code(400);
-            echo json_encode(["message" => "Email already exists."]);
-            exit;
-        }
-
-        $success = $accountDAO->updateEmail($accountId, $newEmail);
-
-        if ($success) {
-            echo json_encode(["message" => "Email updated successfully."]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["message" => "Failed to update email."]);
-        }
-    } catch (Exception $e) {
-        http_response_code(400);
-        echo json_encode(["message" => "Error updating email: " . $e->getMessage()]);
+        exit;
     }
-    exit;
-}
-if ($method == "deleteAccount") {
-    try {
-        if (!isset($payload['accountId']) || !isset($payload['password'])) {
+
+    if ($method == "deleteAccount") {
+        try {
+            if (!isset($payload['accountId']) || !isset($payload['password'])) {
+                http_response_code(400);
+                echo json_encode(["message" => "Account ID and password are required."]);
+                exit;
+            }
+
+            $accountId = (int)$payload['accountId'];
+            $password = $payload['password'];
+
+            $accountDAO = new AccountDAO($useServer);
+            
+            // Get account to verify password and email
+            $account = $accountDAO->getAccountById($accountId);
+            if (!$account) {
+                http_response_code(404);
+                echo json_encode(["message" => "Account not found."]);
+                exit;
+            }
+
+            // Verify password
+            if (!$accountDAO->verifyPassword($account->getEmail(), $password)) {
+                http_response_code(401);
+                echo json_encode(["message" => "Invalid password."]);
+                exit;
+            }
+
+            // Delete account from database using AccountDAO method
+            $success = $accountDAO->deleteAccount($accountId);
+
+            if ($success) {
+                echo json_encode(["message" => "Account deleted successfully."]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["message" => "Failed to delete account."]);
+            }
+        } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["message" => "Account ID and password are required."]);
-            exit;
+            echo json_encode(["message" => "Error deleting account: " . $e->getMessage()]);
         }
-
-        $accountId = (int)$payload['accountId'];
-        $password = $payload['password'];
-
-        $accountDAO = new AccountDAO($useServer);
-        
-        // Get account to verify password and email
-        $account = $accountDAO->getAccountById($accountId);
-        if (!$account) {
-            http_response_code(404);
-            echo json_encode(["message" => "Account not found."]);
-            exit;
-        }
-
-        // Verify password
-        if (!$accountDAO->verifyPassword($account->getEmail(), $password)) {
-            http_response_code(401);
-            echo json_encode(["message" => "Invalid password."]);
-            exit;
-        }
-
-        // Delete account from database using AccountDAO method
-        $success = $accountDAO->deleteAccount($accountId);
-
-        if ($success) {
-            echo json_encode(["message" => "Account deleted successfully."]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["message" => "Failed to delete account."]);
-        }
-    } catch (Exception $e) {
-        http_response_code(400);
-        echo json_encode(["message" => "Error deleting account: " . $e->getMessage()]);
+        exit;
     }
-    exit;
-}
-  
 }
 ?>

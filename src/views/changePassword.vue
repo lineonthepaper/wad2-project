@@ -390,6 +390,7 @@ const logout = () => {
             class="form-control"
             placeholder="Current Password"
             :disabled="passwordLoading"
+            autocomplete="off"
           />
         </div>
         <div class="form-group mb-2">
