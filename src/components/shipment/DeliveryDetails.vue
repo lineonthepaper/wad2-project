@@ -145,7 +145,8 @@
         <a href="https://www.singpost.com/locate-us">SingPost Posting Box.</a>
       </div>
       <div :class="{ 'd-none': emissions === null }">
-        Your emissions from this shipment: {{ emissions.toFixed(4) }} kgCO<sub>2</sub>e/tonne-km
+        Your emissions from this shipment:
+        {{ emissions !== null ? emissions.toFixed(4) : null }} kgCO<sub>2</sub>e/tonne-km
       </div>
     </div>
   </div>
