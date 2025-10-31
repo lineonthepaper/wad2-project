@@ -15,12 +15,6 @@ const displayNameLoading = ref(false)
 const passwordLoading = ref(false)
 const emailLoading = ref(false)
 
-// Confirmation modal refs
-const showConfirmationModal = ref(false)
-const pendingNewEmail = ref('')
-const confirmationCode = ref('')
-const pendingAccountId = ref(null)
-
 // Check authentication and load current user
 const checkAuth = () => {
   const stored = sessionStorage.getItem('currentUser')
@@ -53,55 +47,6 @@ watch(currentUser, (newVal) => {
     router.push('/login')
   }
 })
-
-// Confirmation Modal Functions
-const openConfirmationModal = (email, accountId) => {
-  pendingNewEmail.value = email
-  pendingAccountId.value = accountId
-  showConfirmationModal.value = true
-  confirmationCode.value = ''
-}
-
-const closeConfirmationModal = () => {
-  showConfirmationModal.value = false
-  pendingNewEmail.value = ''
-  pendingAccountId.value = null
-  confirmationCode.value = ''
-}
-
-const confirmEmailChange = async () => {
-  try {
-    const response = await fetch('/api/accounts.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        method: 'confirmEmailChange',
-        accountId: pendingAccountId.value,
-        newEmail: pendingNewEmail.value,
-        confirmationCode: confirmationCode.value
-      })
-    })
-
-    const result = await response.json()
-
-    if (response.ok) {
-      alert('Email updated successfully!')
-      // Update current user email in session storage
-      currentUser.value.email = pendingNewEmail.value
-      sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-      newEmail.value = pendingNewEmail.value
-      confirmEmail.value = ''
-      closeConfirmationModal()
-    } else {
-      alert(result.message || 'Failed to confirm email change')
-    }
-  } catch (error) {
-    console.error('Error confirming email change:', error)
-    alert('Error confirming email change')
-  }
-}
 
 // Handle display name change
 const changeDisplayName = async () => {
@@ -206,20 +151,11 @@ const changeEmail = async () => {
     console.log('Change email response:', result)
 
     if (response.ok) {
-      if (result.requiresConfirmation) {
-        // Show confirmation modal with the code (for demo) or just inform user
-        alert('Confirmation email sent! Please check your new email address for the confirmation code.')
-        // For demo purposes, we'll show the modal with the code
-        openConfirmationModal(newEmail.value.trim(), accountId)
-      } else {
-        // Direct update (no confirmation required)
-        currentUser.value.email = newEmail.value.trim()
-        sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-        alert('Email updated successfully!')
-        confirmEmail.value = ''
-      }
+      alert('Confirmation email sent! Please check your new email address and click the link to confirm the change.')
+      newEmail.value = ''
+      confirmEmail.value = ''
     } else {
-      alert(result.message || 'Failed to change email')
+      alert(result.message || 'Failed to send confirmation email')
     }
   } catch (error) {
     console.error('Error changing email:', error)
@@ -384,7 +320,7 @@ const logout = () => {
           Change Email
         </button>
         <small class="form-text text-muted d-block mt-2">
-          A confirmation email will be sent to your new email address.
+          A confirmation link will be sent to your new email address. Click the link to complete the change.
         </small>
       </div>
 
@@ -430,43 +366,6 @@ const logout = () => {
         </button>
       </div>
     </div>
-
-    <!-- Confirmation Modal -->
-    <div v-if="showConfirmationModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Confirm Email Change</h5>
-            <button type="button" class="btn-close" @click="closeConfirmationModal"></button>
-          </div>
-          <div class="modal-body">
-            <p>We've sent a confirmation code to <strong>{{ pendingNewEmail }}</strong></p>
-            <div class="form-group">
-              <label for="confirmationCode" class="form-label">Confirmation Code</label>
-              <input
-                v-model="confirmationCode"
-                type="text"
-                class="form-control"
-                placeholder="Enter 6-digit code"
-                maxlength="6"
-                @keyup.enter="confirmEmailChange"
-              />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeConfirmationModal">Cancel</button>
-            <button
-              type="button"
-              class="btn btn-pink"
-              @click="confirmEmailChange"
-              :disabled="!confirmationCode || confirmationCode.length !== 6"
-            >
-              Confirm Change
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Loading/Unauthorized state -->
@@ -506,10 +405,5 @@ const logout = () => {
 }
 .account-settings {
   max-width: 600px;
-}
-
-/* Modal styles */
-.modal-backdrop {
-  opacity: 0.5;
 }
 </style>
