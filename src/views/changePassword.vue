@@ -8,9 +8,18 @@ const displayName = ref('')
 const oldPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
+const newEmail = ref('')
+const confirmEmail = ref('')
 const isLoading = ref(false)
 const displayNameLoading = ref(false)
 const passwordLoading = ref(false)
+const emailLoading = ref(false)
+
+// Confirmation modal refs
+const showConfirmationModal = ref(false)
+const pendingNewEmail = ref('')
+const confirmationCode = ref('')
+const pendingAccountId = ref(null)
 
 // Check authentication and load current user
 const checkAuth = () => {
@@ -22,8 +31,9 @@ const checkAuth = () => {
 
   try {
     currentUser.value = JSON.parse(stored)
-    console.log('Current user from sessionStorage:', currentUser.value) // Debug line
+    console.log('Current user from sessionStorage:', currentUser.value)
     displayName.value = currentUser.value.displayName || currentUser.value.display_name || ''
+    newEmail.value = currentUser.value.email || ''
     return true
   } catch (e) {
     console.error('Error parsing user data:', e)
@@ -44,6 +54,55 @@ watch(currentUser, (newVal) => {
   }
 })
 
+// Confirmation Modal Functions
+const openConfirmationModal = (email, accountId) => {
+  pendingNewEmail.value = email
+  pendingAccountId.value = accountId
+  showConfirmationModal.value = true
+  confirmationCode.value = ''
+}
+
+const closeConfirmationModal = () => {
+  showConfirmationModal.value = false
+  pendingNewEmail.value = ''
+  pendingAccountId.value = null
+  confirmationCode.value = ''
+}
+
+const confirmEmailChange = async () => {
+  try {
+    const response = await fetch('/api/accounts.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method: 'confirmEmailChange',
+        accountId: pendingAccountId.value,
+        newEmail: pendingNewEmail.value,
+        confirmationCode: confirmationCode.value
+      })
+    })
+
+    const result = await response.json()
+
+    if (response.ok) {
+      alert('Email updated successfully!')
+      // Update current user email in session storage
+      currentUser.value.email = pendingNewEmail.value
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+      newEmail.value = pendingNewEmail.value
+      confirmEmail.value = ''
+      closeConfirmationModal()
+    } else {
+      alert(result.message || 'Failed to confirm email change')
+    }
+  } catch (error) {
+    console.error('Error confirming email change:', error)
+    alert('Error confirming email change')
+  }
+}
+
 // Handle display name change
 const changeDisplayName = async () => {
   if (!displayName.value.trim()) {
@@ -56,11 +115,7 @@ const changeDisplayName = async () => {
     return
   }
 
-  // Get accountId - try all possible property names
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
-
-  console.log('Attempting to update display name with accountId:', accountId) // Debug line
-  console.log('Available user properties:', Object.keys(currentUser.value)) // Debug line
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -82,10 +137,9 @@ const changeDisplayName = async () => {
     })
 
     const result = await response.json()
-    console.log('Update display name response:', result) // Debug line
+    console.log('Update display name response:', result)
 
     if (response.ok) {
-      // Update both possible property names
       currentUser.value.displayName = displayName.value.trim()
       currentUser.value.display_name = displayName.value.trim()
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
@@ -98,6 +152,80 @@ const changeDisplayName = async () => {
     alert('Error updating display name')
   } finally {
     displayNameLoading.value = false
+  }
+}
+
+// Handle email change
+const changeEmail = async () => {
+  if (newEmail.value !== confirmEmail.value) {
+    alert('Email addresses do not match.')
+    return
+  }
+
+  if (!newEmail.value.trim() || !confirmEmail.value.trim()) {
+    alert('Please fill in all fields.')
+    return
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(newEmail.value)) {
+    alert('Please enter a valid email address.')
+    return
+  }
+
+  if (newEmail.value === currentUser.value.email) {
+    alert('New email is the same as current email.')
+    return
+  }
+
+  // Get accountId
+  const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
+
+  if (!accountId) {
+    alert('Cannot find account ID. Please log in again.')
+    return
+  }
+
+  emailLoading.value = true
+  try {
+    const response = await fetch('/api/accounts.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method: 'changeEmail',
+        accountId: accountId,
+        newEmail: newEmail.value.trim(),
+        currentEmail: currentUser.value.email
+      })
+    })
+
+    const result = await response.json()
+    console.log('Change email response:', result)
+
+    if (response.ok) {
+      if (result.requiresConfirmation) {
+        // Show confirmation modal with the code (for demo) or just inform user
+        alert('Confirmation email sent! Please check your new email address for the confirmation code.')
+        // For demo purposes, we'll show the modal with the code
+        openConfirmationModal(newEmail.value.trim(), accountId)
+      } else {
+        // Direct update (no confirmation required)
+        currentUser.value.email = newEmail.value.trim()
+        sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+        alert('Email updated successfully!')
+        confirmEmail.value = ''
+      }
+    } else {
+      alert(result.message || 'Failed to change email')
+    }
+  } catch (error) {
+    console.error('Error changing email:', error)
+    alert('Error changing email')
+  } finally {
+    emailLoading.value = false
   }
 }
 
@@ -118,10 +246,7 @@ const changePassword = async () => {
     return
   }
 
-  // Get accountId - try all possible property names
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
-
-  console.log('Attempting to change password with accountId:', accountId) // Debug line
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -144,7 +269,7 @@ const changePassword = async () => {
     })
 
     const verifyResult = await verifyResponse.json()
-    console.log('Verify password response:', verifyResult) // Debug line
+    console.log('Verify password response:', verifyResult)
 
     if (!verifyResponse.ok || !verifyResult.valid) {
       alert('Current password is incorrect.')
@@ -165,7 +290,7 @@ const changePassword = async () => {
     })
 
     const updateResult = await updateResponse.json()
-    console.log('Update password response:', updateResult) // Debug line
+    console.log('Update password response:', updateResult)
 
     if (updateResponse.ok) {
       alert('Password changed successfully!')
@@ -229,6 +354,42 @@ const logout = () => {
 
       <hr />
 
+      <!-- Change Email -->
+      <div class="mb-4">
+        <h5 class="fw-bold text-pink">Change Email Address</h5>
+        <div class="form-group mb-2">
+          <input
+            v-model="newEmail"
+            type="email"
+            class="form-control"
+            placeholder="New Email Address"
+            :disabled="emailLoading"
+          />
+        </div>
+        <div class="form-group mb-3">
+          <input
+            v-model="confirmEmail"
+            type="email"
+            class="form-control"
+            placeholder="Confirm New Email Address"
+            :disabled="emailLoading"
+          />
+        </div>
+        <button
+          class="btn btn-pink"
+          @click="changeEmail"
+          :disabled="emailLoading || !newEmail || !confirmEmail"
+        >
+          <span v-if="emailLoading" class="spinner-border spinner-border-sm me-2"></span>
+          Change Email
+        </button>
+        <small class="form-text text-muted d-block mt-2">
+          A confirmation email will be sent to your new email address.
+        </small>
+      </div>
+
+      <hr />
+
       <!-- Change Password -->
       <div>
         <h5 class="fw-bold text-pink">Change Password</h5>
@@ -267,6 +428,43 @@ const logout = () => {
           <span v-if="passwordLoading" class="spinner-border spinner-border-sm me-2"></span>
           Change Password
         </button>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div v-if="showConfirmationModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Email Change</h5>
+            <button type="button" class="btn-close" @click="closeConfirmationModal"></button>
+          </div>
+          <div class="modal-body">
+            <p>We've sent a confirmation code to <strong>{{ pendingNewEmail }}</strong></p>
+            <div class="form-group">
+              <label for="confirmationCode" class="form-label">Confirmation Code</label>
+              <input
+                v-model="confirmationCode"
+                type="text"
+                class="form-control"
+                placeholder="Enter 6-digit code"
+                maxlength="6"
+                @keyup.enter="confirmEmailChange"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeConfirmationModal">Cancel</button>
+            <button
+              type="button"
+              class="btn btn-pink"
+              @click="confirmEmailChange"
+              :disabled="!confirmationCode || confirmationCode.length !== 6"
+            >
+              Confirm Change
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -308,5 +506,10 @@ const logout = () => {
 }
 .account-settings {
   max-width: 600px;
+}
+
+/* Modal styles */
+.modal-backdrop {
+  opacity: 0.5;
 }
 </style>

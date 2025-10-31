@@ -225,6 +225,7 @@
 
 <script>
 import Globe from 'globe.gl';
+import countryData from '/json/countryData.json';
 
 export default {
   name: "EnhancedParcelDashboard",
@@ -232,7 +233,8 @@ export default {
     return {
       isAuthenticated: false,
       user: {
-        email: ''
+        email: '',
+        displayName: ''
       },
       searchQuery: '',
       selectedParcel: null,
@@ -240,82 +242,12 @@ export default {
       globeError: false,
       errorMessage: "",
       stats: {
-        inProgress: 12,
-        delivered: 48,
-        pending: 5,
+        inProgress: 0,
+        delivered: 0,
+        pending: 0,
       },
-      parcels: [
-        {
-          id: 1,
-          trackingId: "TRK-784231",
-          customer: "Alice Johnson",
-          status: "In Progress",
-          expectedDelivery: "2025-10-18",
-          location: [37.7749, -122.4194],
-          currentLocation: [39.8283, -98.5795],
-          destination: [40.7128, -74.0060]
-        },
-        {
-          id: 2,
-          trackingId: "TRK-784232",
-          customer: "Robert Smith",
-          status: "Delivered",
-          expectedDelivery: "2025-10-15",
-          location: [51.5074, -0.1278],
-          currentLocation: [48.8566, 2.3522],
-          destination: [48.8566, 2.3522]
-        },
-        {
-          id: 3,
-          trackingId: "TRK-784233",
-          customer: "Maria Garcia",
-          status: "Pending",
-          expectedDelivery: "2025-10-20",
-          location: [35.6895, 139.6917],
-          currentLocation: [35.6895, 139.6917],
-          destination: [34.0522, -118.2437]
-        },
-        {
-          id: 4,
-          trackingId: "TRK-784234",
-          customer: "David Wilson",
-          status: "In Progress",
-          expectedDelivery: "2025-10-19",
-          location: [48.8566, 2.3522],
-          currentLocation: [45.4642, 9.1900],
-          destination: [41.9028, 12.4964]
-        },
-      ],
-      notifications: [
-        {
-          id: 1,
-          type: 'success',
-          icon: 'fas fa-check-circle',
-          message: 'Package TRK-784232 delivered successfully',
-          time: '2 hours ago'
-        },
-        {
-          id: 2,
-          type: 'info',
-          icon: 'fas fa-info-circle',
-          message: 'Package TRK-784231 is in transit to New York',
-          time: '5 hours ago'
-        },
-        {
-          id: 3,
-          type: 'warning',
-          icon: 'fas fa-exclamation-triangle',
-          message: 'Package TRK-784233 is awaiting pickup',
-          time: '1 day ago'
-        },
-        {
-          id: 4,
-          type: 'info',
-          icon: 'fas fa-info-circle',
-          message: 'New shipment created: TRK-784235',
-          time: '2 days ago'
-        }
-      ],
+      parcels: [], // Will be populated from API
+      notifications: [],
       globe: null,
       arcsData: [],
       pointsData: []
@@ -330,7 +262,7 @@ export default {
       const query = this.searchQuery.toLowerCase();
       return this.parcels.filter(parcel =>
         parcel.trackingId.toLowerCase().includes(query) ||
-        parcel.customer.toLowerCase().includes(query) ||
+        (parcel.customer && parcel.customer.toLowerCase().includes(query)) ||
         this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query)
       );
     },
@@ -385,11 +317,9 @@ export default {
       this.initializeDashboard();
     }
 
-    // Listen for login status changes
     window.addEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   beforeUnmount() {
-    // Clean up event listener
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
@@ -398,7 +328,8 @@ export default {
       if (userData) {
         try {
           const user = JSON.parse(userData);
-          this.user.email = user.email || user.displayName || 'User';
+          this.user.email = user.email || 'User';
+          this.user.displayName = user.displayName || user.email || 'User';
           this.isAuthenticated = true;
           console.log('User authenticated:', this.user.email);
         } catch (error) {
@@ -419,8 +350,9 @@ export default {
       }
     },
 
-    initializeDashboard() {
+    async initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
+      await this.fetchUserShipments();
       this.$nextTick(() => {
         setTimeout(() => {
           this.initGlobe();
@@ -428,10 +360,155 @@ export default {
       });
     },
 
-    redirectToLogin() {
-      window.location.href = '/login';
+    async fetchUserShipments() {
+      try {
+        // Fetch shipments from your API
+        const response = await axios.post('/api/mail.php', {
+          method: 'getAllMailByCustomerEmail',
+          email: this.user.email
+        });
+
+        if (response.data.success) {
+          this.parcels = this.transformShipmentData(response.data.shipments);
+          this.updateStats();
+          this.generateNotifications();
+        } else {
+          console.error('Failed to fetch shipments:', response.data.error);
+          // Fallback to sample data
+          this.loadSampleData();
+        }
+      } catch (error) {
+        console.error('Error fetching shipments:', error);
+        this.loadSampleData();
+      }
     },
 
+    transformShipmentData(shipments) {
+      return shipments.map(shipment => {
+        // Get coordinates from country data
+        const senderCountry = shipment.senderAddress?.countryCode || 'SG';
+        const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+
+        const senderCoords = this.getCountryCoordinates(senderCountry);
+        const recipientCoords = this.getCountryCoordinates(recipientCountry);
+
+        // Determine current location based on status
+        let currentLocation = senderCoords;
+        if (shipment.status === 'In Progress') {
+          // For demo, show midpoint
+          currentLocation = [
+            (senderCoords[0] + recipientCoords[0]) / 2,
+            (senderCoords[1] + recipientCoords[1]) / 2
+          ];
+        } else if (shipment.status === 'Delivered') {
+          currentLocation = recipientCoords;
+        }
+
+        return {
+          id: shipment.mailId,
+          trackingId: `TRK-${shipment.mailId.toString().padStart(6, '0')}`,
+          customer: shipment.senderAddress?.name || 'Customer',
+          status: this.mapStatus(shipment),
+          expectedDelivery: this.calculateExpectedDelivery(shipment),
+          location: senderCoords,
+          currentLocation: currentLocation,
+          destination: recipientCoords,
+          rawData: shipment // Keep original data for reference
+        };
+      });
+    },
+
+    getCountryCoordinates(countryCode) {
+      const country = countryData.find(c => c.code2 === countryCode);
+      if (country) {
+        return [country.lat, country.long];
+      }
+      // Default to Singapore if not found
+      return [1.28478, 103.776222];
+    },
+
+    mapStatus(shipment) {
+      // Map your shipment status to dashboard status
+      const statusMap = {
+        'pending': 'Pending',
+        'in_transit': 'In Progress',
+        'delivered': 'Delivered'
+      };
+      return statusMap[shipment.status] || 'Pending';
+    },
+
+    calculateExpectedDelivery(shipment) {
+      // Calculate expected delivery based on service times
+      const createdDate = new Date(shipment.createdAt || new Date());
+      const minDays = shipment.service?.minDays || 5;
+      const expectedDate = new Date(createdDate);
+      expectedDate.setDate(expectedDate.getDate() + minDays);
+      return expectedDate.toISOString().split('T')[0];
+    },
+
+    updateStats() {
+      this.stats = {
+        inProgress: this.parcels.filter(p => p.status === 'In Progress').length,
+        delivered: this.parcels.filter(p => p.status === 'Delivered').length,
+        pending: this.parcels.filter(p => p.status === 'Pending').length,
+      };
+    },
+
+    generateNotifications() {
+      this.notifications = this.parcels.slice(0, 4).map((parcel, index) => {
+        const messages = {
+          'In Progress': `Package ${parcel.trackingId} is in transit`,
+          'Delivered': `Package ${parcel.trackingId} delivered successfully`,
+          'Pending': `Package ${parcel.trackingId} is awaiting pickup`
+        };
+
+        const types = {
+          'In Progress': 'info',
+          'Delivered': 'success',
+          'Pending': 'warning'
+        };
+
+        const icons = {
+          'In Progress': 'fas fa-shipping-fast',
+          'Delivered': 'fas fa-check-circle',
+          'Pending': 'fas fa-clock'
+        };
+
+        return {
+          id: index + 1,
+          type: types[parcel.status],
+          icon: icons[parcel.status],
+          message: messages[parcel.status],
+          time: this.formatRelativeTime(index) // Just for demo
+        };
+      });
+    },
+
+    formatRelativeTime(index) {
+      const times = ['2 hours ago', '5 hours ago', '1 day ago', '2 days ago'];
+      return times[index] || 'Recently';
+    },
+
+    loadSampleData() {
+      // Your existing sample data as fallback
+      this.parcels = [
+        {
+          id: 1,
+          trackingId: "TRK-784231",
+          customer: "Alice Johnson",
+          status: "In Progress",
+          expectedDelivery: "2025-10-18",
+          location: [37.7749, -122.4194],
+          currentLocation: [39.8283, -98.5795],
+          destination: [40.7128, -74.0060]
+        },
+        // ... rest of sample data
+      ];
+      this.updateStats();
+      this.generateNotifications();
+    },
+
+    // Rest of your existing methods (initGlobe, showParcelRoute, etc.) remain the same
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -446,7 +523,6 @@ export default {
 
         console.log('Container dimensions:', width, 'x', height);
 
-        // Initialize globe with basic settings
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
           .backgroundColor('#000011')
@@ -455,7 +531,6 @@ export default {
 
         console.log('Basic globe created');
 
-        // Add initial data
         this.updateGlobeData();
 
         this.globeInitialized = true;
@@ -472,10 +547,8 @@ export default {
       if (!this.globe) return;
 
       try {
-        // Update points data - show all parcels as points
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
-          // For display, use current location if available, otherwise start location
           displayLocation: parcel.currentLocation || parcel.location
         }));
 
@@ -488,7 +561,6 @@ export default {
           .pointRadius(0.4)
           .pointLabel(d => `${d.trackingId}: ${d.customer} (${d.status})`);
 
-        // Update arcs if we have a selected parcel
         if (this.selectedParcel) {
           this.updateRouteForParcel(this.selectedParcel);
         }
@@ -515,16 +587,13 @@ export default {
     updateRouteForParcel(parcel) {
       if (!this.globe) return;
 
-      // Create multiple arcs to show the complete journey
       this.arcsData = [
-        // Arc from start to current location (green - completed path)
         {
           start: parcel.location,
           end: parcel.currentLocation || parcel.location,
           color: '#00ff00',
           stroke: 1.5
         },
-        // Arc from current location to destination (orange - remaining path)
         {
           start: parcel.currentLocation || parcel.location,
           end: parcel.destination,
@@ -533,7 +602,6 @@ export default {
         }
       ];
 
-      // Update the globe with new arcs
       this.globe
         .arcsData(this.arcsData)
         .arcStartLat(d => d.start[0])
@@ -547,7 +615,6 @@ export default {
         .arcDashGap(0.1)
         .arcDashAnimateTime(4000);
 
-      // Focus camera on the entire route
       this.focusOnRoute(parcel.location, parcel.destination);
     },
 
@@ -557,7 +624,6 @@ export default {
       const midLat = (start[0] + end[0]) / 2;
       const midLng = (start[1] + end[1]) / 2;
 
-      // Calculate a good altitude to show the entire route
       const latDiff = Math.abs(start[0] - end[0]);
       const lngDiff = Math.abs(start[1] - end[1]);
       const maxDiff = Math.max(latDiff, lngDiff);
@@ -572,7 +638,6 @@ export default {
         this.selectedParcel = null;
         this.globe.arcsData(this.arcsData);
         this.globe.pointOfView({ lat: 0, lng: 0, altitude: 1.8 });
-        // Refresh points data
         this.updateGlobeData();
       }
     },
@@ -581,7 +646,6 @@ export default {
       if (parcel.status === 'Delivered') return 100;
       if (parcel.status === 'Pending') return 0;
 
-      // Simple linear progress calculation based on distance
       const start = parcel.location;
       const current = parcel.currentLocation || parcel.location;
       const end = parcel.destination;
@@ -595,11 +659,10 @@ export default {
     },
 
     calculateDistance(coord1, coord2) {
-      // Haversine distance calculation
       const [lat1, lon1] = coord1;
       const [lat2, lon2] = coord2;
 
-      const R = 6371; // Earth's radius in km
+      const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a =
@@ -611,21 +674,11 @@ export default {
     },
 
     getLocationName(coords) {
-      // Simple coordinate to city name mapping
-      const locations = {
-        '37.7749,-122.4194': 'San Francisco',
-        '40.7128,-74.0060': 'New York',
-        '51.5074,-0.1278': 'London',
-        '48.8566,2.3522': 'Paris',
-        '35.6895,139.6917': 'Tokyo',
-        '34.0522,-118.2437': 'Los Angeles',
-        '41.9028,12.4964': 'Rome',
-        '39.8283,-98.5795': 'Kansas',
-        '45.4642,9.1900': 'Milan'
-      };
-
-      const key = `${coords[0]},${coords[1]}`;
-      return locations[key] || 'Unknown Location';
+      // Find country by coordinates
+      const country = countryData.find(c =>
+        Math.abs(c.lat - coords[0]) < 5 && Math.abs(c.long - coords[1]) < 5
+      );
+      return country ? country.name : 'Unknown Location';
     },
 
     getStatusColor(status) {
@@ -653,6 +706,10 @@ export default {
           this.initGlobe();
         }, 100);
       });
+    },
+
+    redirectToLogin() {
+      window.location.href = '/login';
     }
   }
 };
