@@ -402,42 +402,30 @@ export default {
     },
 
     async fetchUserShipments() {
-      this.loading = true;
-      this.errorMessage = "";
-      try {
-        console.log('Fetching shipments for:', this.user.email);
+  this.loading = true;
+  this.errorMessage = "";
+  try {
+     // Add logging to debug the request
+    console.log('Fetching shipments for user:', this.user.email);
+    const response = await axios.post('/api/dashboard.php', {
+      method: 'getAllMailByCustomerEmail',
+      customerEmail: this.user.email
+    });
 
-        const response = await axios.post('/api/dashboard.php', {
-          method: 'getAllMailByCustomerEmail',
-          email: this.user.email
-        });
-
-        console.log('API Response:', response.data);
-
-        if (response.data.success) {
-          this.parcels = this.transformShipmentData(response.data.shipments);
-          this.updateStats();
-          this.generateNotifications();
-          console.log('Successfully loaded', this.parcels.length, 'shipments');
-
-          // If using example data, show a note
-          if (response.data.note) {
-            console.log('Note from backend:', response.data.note);
-          }
-        } else {
-          console.error('Failed to fetch shipments:', response.data.error);
-          this.errorMessage = response.data.error || 'Failed to load shipments';
-        }
-      } catch (error) {
-        console.error('Error fetching shipments:', error);
-        this.errorMessage = 'Failed to load shipments. Please try again.';
-        if (error.response) {
-          console.error('Response error:', error.response.data);
-        }
-      } finally {
-        this.loading = false;
-      }
-    },
+    if (response.data.success) {
+      this.parcels = this.transformShipmentData(response.data.shipments);
+      this.updateStats();
+      this.generateNotifications();
+    } else {
+      this.errorMessage = response.data.error || "Failed to fetch shipments";
+    }
+  } catch (error) {
+    console.error('Dashboard API Error:', error);
+    this.errorMessage = "Failed to connect to server. Please try again later.";
+  } finally {
+    this.loading = false;
+  }
+},
 
     transformShipmentData(shipments) {
       if (!shipments || !Array.isArray(shipments)) {
