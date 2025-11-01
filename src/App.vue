@@ -2,6 +2,8 @@
 import HeadLoader from './components/HeadLoader.vue'
 import NavBar from './components/NavBar.vue'
 import FooterBar from './components/FooterBar.vue'
+import { useRoute } from 'vue-router'
+const route = useRoute()
 </script>
 
 <template>
@@ -9,7 +11,7 @@ import FooterBar from './components/FooterBar.vue'
 
   <div class="flex-column justify-content-between d-flex flex-grow-1 flex-shrink-0 min-vh-100">
     <NavBar />
-    <footer><FooterBar /></footer>
+    <footer v-if="route.path != '/'"><FooterBar /></footer>
   </div>
 </template>
 

@@ -46,7 +46,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="z-3">
     <nav class="navbar navbar-expand-md">
       <div class="container-fluid">
         <div class="row align-items-center text-center w-100">
@@ -123,7 +123,7 @@ onUnmounted(() => {
 <style scoped>
 nav {
   width: 100vw;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.75);
   height: fit-content;
 }
 li a {
@@ -149,7 +149,7 @@ button a {
   color: white;
 }
 .navbar-toggler-icon {
-  background-image: url('../assets/fluffy_shipping_logo.png');
+  background-image: url('/fluffy_shipping_logo.png');
   height: 3em;
   width: 3em;
 }
