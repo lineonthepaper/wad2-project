@@ -362,22 +362,24 @@ export default {
   },
   methods: {
     checkAuthentication() {
-      const userData = sessionStorage.getItem('currentUser');
-      if (userData) {
-        try {
-          const user = JSON.parse(userData);
-          this.user.email = user.email || 'User';
-          this.user.displayName = user.displayName || user.email || 'User';
-          this.isAuthenticated = true;
-          console.log('User authenticated:', this.user.email);
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          this.isAuthenticated = false;
+        const userData = sessionStorage.getItem('currentUser');
+        console.log('Session storage user data:', userData);
+
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                this.user.email = user.email || 'User';
+                this.user.displayName = user.displayName || user.email || 'User';
+                this.isAuthenticated = true;
+                console.log('User authenticated:', this.user.email);
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                this.isAuthenticated = false;
+            }
+        } else {
+            this.isAuthenticated = false;
+            console.log('No user data found in sessionStorage');
         }
-      } else {
-        this.isAuthenticated = false;
-        console.log('No user data found in sessionStorage');
-      }
     },
 
     handleLoginStatusChange() {
@@ -404,91 +406,120 @@ export default {
     },
 
     async fetchUserShipments() {
-      this.loading = true;
-      this.errorMessage = "";
-      try {
-        console.log('Fetching shipments for:', this.user.email);
+        this.loading = true;
+        this.errorMessage = "";
+        try {
+            console.log('Fetching shipments for:', this.user.email);
 
-        const response = await axios.post('/api/dashboard.php', {
-          method: 'getAllMailByCustomerEmail',
-          email: this.user.email
-        });
+            const response = await axios.post('/api/dashboard.php', {
+                method: 'getAllMailByCustomerEmail',
+                email: this.user.email
+            });
 
-        console.log('API Response:', response.data);
+            console.log('API Response:', response.data);
 
-        if (response.data.success) {
-          this.parcels = this.transformShipmentData(response.data.shipments);
-          this.updateStats();
-          this.generateNotifications();
-          console.log('Successfully loaded', this.parcels.length, 'shipments');
-        } else {
-          console.error('Failed to fetch shipments:', response.data.error);
-          this.errorMessage = response.data.error || 'Failed to load shipments';
+            if (response.data.success) {
+                this.parcels = this.transformShipmentData(response.data.shipments);
+                this.updateStats();
+                this.generateNotifications();
+                console.log('Successfully loaded', this.parcels.length, 'shipments');
+
+                // If using example data, show a warning
+                if (response.data.note) {
+                    console.warn('API Note:', response.data.note);
+                }
+            } else {
+                console.error('Failed to fetch shipments:', response.data.error);
+                this.errorMessage = response.data.error || 'Failed to load shipments';
+            }
+        } catch (error) {
+            console.error('Error fetching shipments:', error);
+            this.errorMessage = 'Failed to load shipments. Please try again.';
+            if (error.response) {
+                console.error('Response error:', error.response.data);
+            }
+        } finally {
+            this.loading = false;
         }
-      } catch (error) {
-        console.error('Error fetching shipments:', error);
-        this.errorMessage = 'Failed to load shipments. Please try again.';
-        if (error.response) {
-          console.error('Response error:', error.response.data);
-        }
-      } finally {
-        this.loading = false;
-      }
     },
 
     transformShipmentData(shipments) {
-      if (!shipments || !Array.isArray(shipments)) {
-        console.log('No shipments data found');
-        return [];
-      }
-
-      return shipments.map(shipment => {
-        // Get coordinates from address data - using existing countryData
-        const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-        const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
-
-        const senderCoords = this.getCountryCoordinates(senderCountry);
-        const recipientCoords = this.getCountryCoordinates(recipientCountry);
-
-        // Determine current location based on status
-        let currentLocation = senderCoords;
-        const progress = this.calculateProgressFromStatus(shipment.status);
-
-        if (progress > 0 && progress < 100) {
-          // For in-progress shipments, interpolate between start and end
-          currentLocation = [
-            senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
-            senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
-          ];
-        } else if (progress >= 100) {
-          currentLocation = recipientCoords;
+        if (!shipments || !Array.isArray(shipments)) {
+            console.log('No shipments data found');
+            return [];
         }
 
-        // Create tracking ID from available data
-        let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
-        if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
-          trackingId = `TRK-${shipment.trackingNumber}`;
-        }
+        console.log('Transforming', shipments.length, 'shipments');
 
-        return {
-          id: shipment.mailId,
-          mailId: shipment.mailId,
-          trackingId: trackingId,
-          customer: shipment.senderAddress?.name || this.user.displayName,
-          status: this.mapApiStatus(shipment.status),
-          expectedDelivery: shipment.expectedDelivery,
-          location: senderCoords,
-          currentLocation: currentLocation,
-          destination: recipientCoords,
-          progress: progress,
-          service: shipment.service,
-          totalWeight: shipment.totalWeight,
-          totalValue: shipment.totalValue,
-          hasBeenPaid: shipment.hasBeenPaid,
-          createdDate: shipment.createdDate,
-          rawData: shipment
-        };
-      });
+        return shipments.map(shipment => {
+            try {
+                // Get coordinates from address data
+                const senderCountry = shipment.senderAddress?.countryCode || 'SG';
+                const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+
+                console.log('Sender country:', senderCountry, 'Recipient country:', recipientCountry);
+
+                const senderCoords = this.getCountryCoordinates(senderCountry);
+                const recipientCoords = this.getCountryCoordinates(recipientCountry);
+
+                // Determine current location based on status
+                let currentLocation = senderCoords;
+                const progress = this.calculateProgressFromStatus(shipment.status);
+
+                if (progress > 0 && progress < 100) {
+                    // For in-progress shipments, interpolate between start and end
+                    currentLocation = [
+                        senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
+                        senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
+                    ];
+                } else if (progress >= 100) {
+                    currentLocation = recipientCoords;
+                }
+
+                // Create tracking ID from available data
+                let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
+                if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
+                    trackingId = `TRK-${shipment.trackingNumber}`;
+                }
+
+                const transformedParcel = {
+                    id: shipment.mailId,
+                    mailId: shipment.mailId,
+                    trackingId: trackingId,
+                    customer: shipment.senderAddress?.name || this.user.displayName,
+                    status: this.mapApiStatus(shipment.status),
+                    expectedDelivery: shipment.expectedDelivery,
+                    location: senderCoords,
+                    currentLocation: currentLocation,
+                    destination: recipientCoords,
+                    progress: progress,
+                    service: shipment.service,
+                    totalWeight: shipment.totalWeight,
+                    totalValue: shipment.totalValue,
+                    hasBeenPaid: shipment.hasBeenPaid,
+                    createdDate: shipment.createdDate,
+                    rawData: shipment
+                };
+
+                console.log('Transformed parcel:', transformedParcel);
+                return transformedParcel;
+
+            } catch (error) {
+                console.error('Error transforming shipment:', shipment, error);
+                return null;
+            }
+        }).filter(parcel => parcel !== null); // Remove any null entries
+    },
+
+    getCountryCoordinates(countryCode) {
+        const country = countryData.find(c => c.code2 === countryCode);
+        if (country) {
+            console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
+            return [country.lat, country.long];
+        }
+        // Default to Singapore if not found
+        console.warn(`Country code ${countryCode} not found, using Singapore as default`);
+        return [1.28478, 103.776222];
     },
 
     calculateProgressFromStatus(status) {
@@ -498,15 +529,6 @@ export default {
         'delivered': 100
       };
       return progressMap[status] || 0;
-    },
-
-    getCountryCoordinates(countryCode) {
-      const country = countryData.find(c => c.code2 === countryCode);
-      if (country) {
-        return [country.lat, country.long];
-      }
-      // Default to Singapore if not found
-      return [1.28478, 103.776222];
     },
 
     mapApiStatus(apiStatus) {

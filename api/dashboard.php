@@ -5,6 +5,8 @@ require_once __DIR__ . "/classes/AccountDAO.php";
 require_once __DIR__ . "/classes/Mail.php";
 require_once __DIR__ . "/classes/MailDAO.php";
 require_once __DIR__ . "/classes/Address.php";
+require_once __DIR__ . "/classes/MailItem.php";
+require_once __DIR__ . "/classes/MailStatus.php";
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -23,11 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $input = json_decode(file_get_contents('php://input'), true);
 $method = $input['method'] ?? '';
 
+// Log the request for debugging
+error_log("Dashboard API Request: " . print_r($input, true));
+
 try {
     switch ($method) {
         case 'getAllMailByCustomerEmail':
             // Support both 'email' and 'customerEmail' parameters
             $customerEmail = $input['customerEmail'] ?? $input['email'] ?? '';
+            error_log("Fetching shipments for email: " . $customerEmail);
+            
             if (empty($customerEmail)) {
                 echo json_encode(['success' => false, 'error' => 'Customer email is required']);
                 exit;
@@ -36,83 +43,105 @@ try {
             $mailDAO = new MailDAO();
             $mails = $mailDAO->getAllMailByCustomerEmail($customerEmail);
             
+            error_log("Found " . count($mails) . " shipments for " . $customerEmail);
+            
             // If no shipments found, provide example data
             if (empty($mails)) {
+                error_log("No shipments found, using example data");
                 $enhancedMails = getExampleShipments($customerEmail);
-                echo json_encode(['success' => true, 'shipments' => $enhancedMails, 'note' => 'Using example data - no real shipments found']);
+                echo json_encode([
+                    'success' => true, 
+                    'shipments' => $enhancedMails, 
+                    'note' => 'Using example data - no real shipments found',
+                    'count' => count($enhancedMails)
+                ]);
                 exit;
             }
             
             // Enhance the mail data with address information
             $enhancedMails = [];
             foreach ($mails as $mail) {
-                // Get addresses for coordinates
-                $senderAddress = $mailDAO->getAddressById($mail->getSenderAddressId());
-                $recipientAddress = $mailDAO->getAddressById($mail->getRecipientAddressId());
-                
-                // Get latest status
-                $statuses = $mailDAO->getMailStatusesByMailId($mail->getMailId());
-                $latestStatus = !empty($statuses) ? end($statuses) : null;
-                
-                // Calculate total value from mail items
-                $totalValue = 0;
-                foreach ($mail->getMailItems() as $item) {
-                    $totalValue += $item->getDeclaredValue();
+                try {
+                    // Get addresses for coordinates
+                    $senderAddress = $mailDAO->getAddressById($mail->getSenderAddressId());
+                    $recipientAddress = $mailDAO->getAddressById($mail->getRecipientAddressId());
+                    
+                    // Get latest status
+                    $statuses = $mailDAO->getMailStatusesByMailId($mail->getMailId());
+                    $latestStatus = !empty($statuses) ? end($statuses) : null;
+                    
+                    // Calculate total value from mail items
+                    $totalValue = 0;
+                    foreach ($mail->getMailItems() as $item) {
+                        $totalValue += $item->getDeclaredValue();
+                    }
+                    
+                    // Get payment status and tracking number
+                    $isPaid = $mailDAO->isMailPaid($mail->getMailId());
+                    $trackingNum = $mailDAO->getMailTrackingNum($mail->getMailId());
+                    
+                    $enhancedMail = [
+                        'mailId' => $mail->getMailId(),
+                        'customerEmail' => $mail->getCustomerEmail(),
+                        'senderAddressId' => $mail->getSenderAddressId(),
+                        'recipientAddressId' => $mail->getRecipientAddressId(),
+                        'mailItems' => array_map(function($item) {
+                            return [
+                                'itemId' => $item->getItemId(),
+                                'itemDescription' => $item->getItemDescription(),
+                                'declaredValue' => $item->getDeclaredValue(),
+                                'itemWeight' => $item->getItemWeight(),
+                                'itemQuantity' => $item->getItemQuantity()
+                            ];
+                        }, $mail->getMailItems()),
+                        'parcelLength' => $mail->getParcelLength(),
+                        'parcelWidth' => $mail->getParcelWidth(),
+                        'parcelHeight' => $mail->getParcelHeight(),
+                        'service' => $mail->getService(),
+                        'totalWeight' => $mail->getTotalWeight(),
+                        'totalValue' => $totalValue,
+                        'hasBeenPaid' => $isPaid,
+                        'trackingNumber' => $trackingNum,
+                        'createdDate' => date('Y-m-d H:i:s'), // Use current date as fallback
+                        'senderAddress' => $senderAddress ? [
+                            'name' => $senderAddress->getName(),
+                            'countryCode' => $senderAddress->getAddress()['countryCode']
+                        ] : null,
+                        'recipientAddress' => $recipientAddress ? [
+                            'name' => $recipientAddress->getName(),
+                            'countryCode' => $recipientAddress->getAddress()['countryCode']
+                        ] : null,
+                        'status' => determineStatus($latestStatus),
+                        'expectedDelivery' => calculateExpectedDelivery($mail->getService())
+                    ];
+                    $enhancedMails[] = $enhancedMail;
+                } catch (Exception $e) {
+                    error_log("Error processing mail ID " . $mail->getMailId() . ": " . $e->getMessage());
+                    continue; // Skip this mail and continue with others
                 }
-                
-                $enhancedMail = [
-                    'mailId' => $mail->getMailId(),
-                    'customerEmail' => $mail->getCustomerEmail(),
-                    'senderAddressId' => $mail->getSenderAddressId(),
-                    'recipientAddressId' => $mail->getRecipientAddressId(),
-                    'mailItems' => array_map(function($item) {
-                        return [
-                            'itemId' => $item->getItemId(),
-                            'itemDescription' => $item->getItemDescription(),
-                            'declaredValue' => $item->getDeclaredValue(),
-                            'itemWeight' => $item->getItemWeight(),
-                            'itemQuantity' => $item->getItemQuantity()
-                        ];
-                    }, $mail->getMailItems()),
-                    'parcelLength' => $mail->getParcelLength(),
-                    'parcelWidth' => $mail->getParcelWidth(),
-                    'parcelHeight' => $mail->getParcelHeight(),
-                    'service' => $mail->getService(),
-                    'totalWeight' => $mail->getTotalWeight(),
-                    'totalValue' => $totalValue,
-                    'hasBeenPaid' => $mail->getHasBeenPaid(),
-                    'trackingNumber' => $mail->getTrackingNumber(),
-                    'createdDate' => date('Y-m-d H:i:s'), // Use current date as fallback
-                    'senderAddress' => $senderAddress ? [
-                        'name' => $senderAddress->getName(),
-                        'countryCode' => $senderAddress->getAddress()['countryCode']
-                    ] : null,
-                    'recipientAddress' => $recipientAddress ? [
-                        'name' => $recipientAddress->getName(),
-                        'countryCode' => $recipientAddress->getAddress()['countryCode']
-                    ] : null,
-                    'status' => determineStatus($latestStatus),
-                    'expectedDelivery' => calculateExpectedDelivery($mail->getService())
-                ];
-                $enhancedMails[] = $enhancedMail;
             }
             
-            echo json_encode(['success' => true, 'shipments' => $enhancedMails]);
+            echo json_encode([
+                'success' => true, 
+                'shipments' => $enhancedMails,
+                'count' => count($enhancedMails)
+            ]);
             break;
             
         default:
-            echo json_encode(['success' => false, 'error' => 'Unknown method']);
+            echo json_encode(['success' => false, 'error' => 'Unknown method: ' . $method]);
     }
 } catch (Exception $e) {
     error_log("Customer Dashboard API Error: " . $e->getMessage());
     
     // If there's an error, return example data
-    $customerEmail = $input['customerEmail'] ?? $input['email'] ?? 'user@example.com';
+    $customerEmail = $input['customerEmail'] ?? $input['email'] ?? 'raksha@xx.com';
     $exampleData = getExampleShipments($customerEmail);
     echo json_encode([
         'success' => true, 
         'shipments' => $exampleData, 
-        'note' => 'Using example data due to server error: ' . $e->getMessage()
+        'note' => 'Using example data due to server error: ' . $e->getMessage(),
+        'count' => count($exampleData)
     ]);
 }
 
@@ -136,6 +165,7 @@ function determineStatus($latestStatus) {
 
 function calculateExpectedDelivery($service) {
     $minDays = 5; // Default minimum days
+    
     // Calculate expected delivery based on service type
     if (isset($service['name'])) {
         $serviceName = $service['name'];
@@ -230,127 +260,6 @@ function getExampleShipments($customerEmail) {
             ],
             'status' => 'delivered',
             'expectedDelivery' => date('Y-m-d', strtotime('-1 day'))
-        ],
-        [
-            'mailId' => 1003,
-            'customerEmail' => $customerEmail,
-            'senderAddressId' => 1,
-            'recipientAddressId' => 4,
-            'mailItems' => [
-                [
-                    'itemId' => 3,
-                    'itemDescription' => 'Clothing Items',
-                    'declaredValue' => 120.00,
-                    'itemWeight' => 0.8,
-                    'itemQuantity' => 3
-                ],
-                [
-                    'itemId' => 4,
-                    'itemDescription' => 'Accessories',
-                    'declaredValue' => 45.00,
-                    'itemWeight' => 0.3,
-                    'itemQuantity' => 2
-                ]
-            ],
-            'parcelLength' => 40.0,
-            'parcelWidth' => 30.0,
-            'parcelHeight' => 10.0,
-            'service' => [
-                'name' => 'Basic Package',
-                'type' => 'Packets',
-                'zone' => 3
-            ],
-            'totalWeight' => 1.1,
-            'totalValue' => 165.00,
-            'hasBeenPaid' => false,
-            'trackingNumber' => 'TRK784233',
-            'createdDate' => date('Y-m-d H:i:s', strtotime('-1 day')),
-            'senderAddress' => [
-                'name' => 'John Doe',
-                'countryCode' => 'SG'
-            ],
-            'recipientAddress' => [
-                'name' => 'Emma Thompson',
-                'countryCode' => 'UK'
-            ],
-            'status' => 'pending',
-            'expectedDelivery' => date('Y-m-d', strtotime('+6 days'))
-        ],
-        [
-            'mailId' => 1004,
-            'customerEmail' => $customerEmail,
-            'senderAddressId' => 1,
-            'recipientAddressId' => 5,
-            'mailItems' => [
-                [
-                    'itemId' => 5,
-                    'itemDescription' => 'Books Collection',
-                    'declaredValue' => 85.00,
-                    'itemWeight' => 2.0,
-                    'itemQuantity' => 5
-                ]
-            ],
-            'parcelLength' => 45.0,
-            'parcelWidth' => 35.0,
-            'parcelHeight' => 12.0,
-            'service' => [
-                'name' => 'Tracked Letterbox',
-                'type' => 'Packets',
-                'zone' => 0
-            ],
-            'totalWeight' => 2.0,
-            'totalValue' => 85.00,
-            'hasBeenPaid' => true,
-            'trackingNumber' => 'TRK784234',
-            'createdDate' => date('Y-m-d H:i:s', strtotime('-3 days')),
-            'senderAddress' => [
-                'name' => 'John Doe',
-                'countryCode' => 'SG'
-            ],
-            'recipientAddress' => [
-                'name' => 'David Lee',
-                'countryCode' => 'AU'
-            ],
-            'status' => 'in_transit',
-            'expectedDelivery' => date('Y-m-d', strtotime('+4 days'))
-        ],
-        [
-            'mailId' => 1005,
-            'customerEmail' => $customerEmail,
-            'senderAddressId' => 1,
-            'recipientAddressId' => 6,
-            'mailItems' => [
-                [
-                    'itemId' => 6,
-                    'itemDescription' => 'Important Documents',
-                    'declaredValue' => 200.00,
-                    'itemWeight' => 0.3,
-                    'itemQuantity' => 1
-                ]
-            ],
-            'parcelLength' => 32.0,
-            'parcelWidth' => 23.0,
-            'parcelHeight' => 1.5,
-            'service' => [
-                'name' => 'Standard Regular',
-                'type' => 'Documents',
-                'zone' => 0
-            ],
-            'totalWeight' => 0.3,
-            'totalValue' => 200.00,
-            'hasBeenPaid' => true,
-            'trackingNumber' => 'TRK784235',
-            'createdDate' => date('Y-m-d H:i:s', strtotime('-7 days')),
-            'senderAddress' => [
-                'name' => 'John Doe',
-                'countryCode' => 'SG'
-            ],
-            'recipientAddress' => [
-                'name' => 'Lisa Wong',
-                'countryCode' => 'HK'
-            ],
-            'status' => 'delivered',
-            'expectedDelivery' => date('Y-m-d', strtotime('-2 days'))
         ]
     ];
 }
