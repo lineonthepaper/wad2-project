@@ -1,5 +1,5 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import gsap from 'gsap'
 
@@ -69,8 +69,10 @@ onMounted(() => {
         <h4 class="text-dark-slate-blue">
           {{ currentSectionData.subtitle }}
         </h4>
-        <RouterLink :to="{ name: currentSectionData.link }" v-if="currentSection != 'main'">
-          <button type="button" class="btn btn-pink next-btn py-2 my-2">Take me there!</button>
+        <RouterLink :to="{ name: currentSectionData.link }">
+          <button type="button" class="btn btn-pink next-btn py-2 my-2">
+            {{ currentSection != 'main' ? 'Take me there!' : 'Start shipping today!' }}
+          </button>
         </RouterLink>
       </div>
     </div>
