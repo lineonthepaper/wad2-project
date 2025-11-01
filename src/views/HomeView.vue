@@ -41,7 +41,7 @@ onMounted(() => {
       class="p-1"
       v-for="section in sections"
       :key="section.name"
-      @click="changeSection(section.name)"
+      @click="manualChangeSection(section.name)"
       :class="{ 'selected-img': currentSection === section.name }"
     />
   </div>
@@ -191,6 +191,7 @@ export default {
       sections,
       currentSection: 'main',
       mobileView,
+      carouselInterval: null,
     }
   },
   computed: {
@@ -248,16 +249,24 @@ export default {
     },
 
     carousel() {
-      setInterval(() => {
+      return setInterval(() => {
         let newSectionNumber = (this.currentSectionNumber + 1) % 4
         let newSection = this.sections[newSectionNumber]
         this.changeSection(newSection.name)
       }, 6000)
     },
+
+    manualChangeSection(sectionName) {
+      this.changeSection(sectionName)
+
+      clearInterval(this.carouselInterval)
+
+      this.carouselInterval = this.carousel()
+    },
   },
   created() {
     window.addEventListener('resize', this.updateMobileView)
-    this.carousel()
+    this.carouselInterval = this.carousel()
   },
   unmounted() {
     window.removeEventListener('resize', this.updateMobileView)
