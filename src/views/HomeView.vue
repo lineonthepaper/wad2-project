@@ -127,7 +127,7 @@ onMounted(() => {
 
 .icon-nav img {
   cursor: pointer;
-  filter: opacity(60%);
+  filter: opacity(50%);
   transition: filter 0.5s;
 }
 
