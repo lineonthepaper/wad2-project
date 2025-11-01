@@ -176,6 +176,10 @@
                           <i class="fas fa-calendar-alt"></i>
                           <span>{{ formatDate(parcel.expectedDelivery) }}</span>
                         </div>
+                        <div class="info-item" v-if="parcel.itemDescription">
+                          <i class="fas fa-tag"></i>
+                          <span>{{ parcel.itemDescription }}</span>
+                        </div>
                       </div>
                       <div v-if="parcel.status === 'In Progress'" class="parcel-progress">
                         <div class="progress-mini">
@@ -260,7 +264,8 @@ export default {
     return {
       isAuthenticated: false,
       user: {
-        email: ''
+        email: '',
+        account_id: null
       },
       searchQuery: '',
       selectedParcel: null,
@@ -291,7 +296,8 @@ export default {
       return this.parcels.filter(parcel =>
         parcel.trackingId.toLowerCase().includes(query) ||
         (parcel.customer && parcel.customer.toLowerCase().includes(query)) ||
-        this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query)
+        this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query) ||
+        (parcel.itemDescription && parcel.itemDescription.toLowerCase().includes(query))
       );
     },
     enhancedStats() {
@@ -366,8 +372,9 @@ export default {
         try {
           const user = JSON.parse(userData);
           this.user.email = user.email || user.display_name || 'User';
+          this.user.account_id = user.account_id || null;
           this.isAuthenticated = true;
-          console.log('User authenticated:', this.user.email);
+          console.log('User authenticated:', this.user.email, 'Account ID:', this.user.account_id);
         } catch (error) {
           console.error('Error parsing user data:', error);
           this.isAuthenticated = false;
@@ -405,12 +412,14 @@ export default {
       this.loading = true;
       this.errorMessage = "";
       try {
-        console.log('Fetching shipments for:', this.user.email);
+        console.log('Fetching shipments for:', this.user.email, 'Account ID:', this.user.account_id);
 
-        const response = await axios.post('/api/dashboard.php', {
-          method: 'getAllMailByCustomerEmail',
-          email: this.user.email
-        });
+        // Use account_id if available, otherwise fall back to email
+        const requestData = this.user.account_id 
+          ? { method: 'getAllMailByAccountId', account_id: this.user.account_id }
+          : { method: 'getAllMailByCustomerEmail', email: this.user.email };
+
+        const response = await axios.post('/api/dashboard.php', requestData);
 
         console.log('API Response:', response.data);
 
@@ -450,8 +459,8 @@ export default {
       return shipments.map(shipment => {
         try {
           // Get coordinates from address data
-          const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-          const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+          const senderCountry = shipment.senderAddress?.country_code || shipment.sender_country_code || 'SG';
+          const recipientCountry = shipment.recipientAddress?.country_code || shipment.recipient_country_code || 'US';
 
           console.log('Sender country:', senderCountry, 'Recipient country:', recipientCountry);
 
@@ -460,7 +469,7 @@ export default {
 
           // Determine current location based on status
           let currentLocation = senderCoords;
-          const progress = this.calculateProgressFromStatus(shipment.status);
+          const progress = this.calculateProgressFromStatus(shipment.status || shipment.mail_status);
 
           if (progress > 0 && progress < 100) {
             // For in-progress shipments, interpolate between start and end
@@ -473,27 +482,38 @@ export default {
           }
 
           // Create tracking ID from available data
-          let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
-          if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
-            trackingId = `TRK-${shipment.trackingNumber}`;
+          let trackingId = `TRK-${shipment.mail_id.toString().padStart(6, '0')}`;
+          if (shipment.tracking_number && shipment.tracking_number !== 0) {
+            trackingId = `TRK-${shipment.tracking_number}`;
           }
 
+          // Get customer name from address data
+          const customerName = shipment.senderAddress?.name || 
+                              shipment.sender_name || 
+                              this.user.email.split('@')[0];
+
+          // Get item description from mail_item data
+          const itemDescription = shipment.item_description || 
+                                 shipment.items?.[0]?.description || 
+                                 'Package';
+
           const transformedParcel = {
-            id: shipment.mailId,
-            mailId: shipment.mailId,
+            id: shipment.mail_id,
+            mailId: shipment.mail_id,
             trackingId: trackingId,
-            customer: shipment.senderAddress?.name || this.user.email,
-            status: this.mapApiStatus(shipment.status),
-            expectedDelivery: shipment.expectedDelivery,
+            customer: customerName,
+            status: this.mapApiStatus(shipment.status || shipment.mail_status),
+            expectedDelivery: shipment.expected_delivery || shipment.created_date,
             location: senderCoords,
             currentLocation: currentLocation,
             destination: recipientCoords,
             progress: progress,
-            service: shipment.service,
-            totalWeight: shipment.totalWeight,
-            totalValue: shipment.totalValue,
-            hasBeenPaid: shipment.hasBeenPaid,
-            createdDate: shipment.createdDate,
+            service: shipment.service || 'Basic Mail',
+            totalWeight: shipment.total_weight || shipment.parcel_weight || 0,
+            totalValue: shipment.total_value || shipment.declared_value || 0,
+            hasBeenPaid: shipment.has_been_paid || false,
+            createdDate: shipment.created_date,
+            itemDescription: itemDescription,
             rawData: shipment
           };
 
@@ -522,7 +542,9 @@ export default {
       const progressMap = {
         'pending': 0,
         'in_transit': 50,
-        'delivered': 100
+        'in_progress': 50,
+        'delivered': 100,
+        'completed': 100
       };
       return progressMap[status] || 0;
     },
@@ -531,7 +553,9 @@ export default {
       const statusMap = {
         'pending': 'Pending',
         'in_transit': 'In Progress',
-        'delivered': 'Delivered'
+        'in_progress': 'In Progress',
+        'delivered': 'Delivered',
+        'completed': 'Delivered'
       };
       return statusMap[apiStatus] || 'Pending';
     },
@@ -600,7 +624,6 @@ export default {
       }
     },
 
-    // ALL YOUR EXISTING FUNCTIONS REMAIN UNCHANGED
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -1041,7 +1064,7 @@ export default {
 }
 
 .stat-pending .stat-icon {
-  background: linear-gradient(135deg, var(--dark-pink), var(--hot-pink));
+  background: linear-gradient(135deg, var(--dark-pink), var(--slate-blue));
 }
 
 .stat-total .stat-icon {
@@ -1055,7 +1078,8 @@ export default {
 .stat-title {
   font-size: 0.9rem;
   color: var(--dark-slate-blue);
-  margin: 0 0 0.3rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1063,24 +1087,25 @@ export default {
 .stat-number {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0 0 0.3rem;
   color: var(--dark-slate-blue);
+  margin: 0 0 0.5rem 0;
+  line-height: 1;
 }
 
 .stat-trend {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
   font-size: 0.8rem;
   font-weight: 600;
 }
 
 .stat-trend.up {
-  color: var(--hot-pink);
+  color: #10b981;
 }
 
 .stat-trend.down {
-  color: var(--dark-pink);
+  color: #ef4444;
 }
 
 .stat-chart {
@@ -1096,17 +1121,17 @@ export default {
 
 .chart-bar {
   flex: 1;
-  background: linear-gradient(to top, var(--hot-pink), var(--dark-pink));
-  border-radius: 2px;
+  background: linear-gradient(to top, var(--light-pink), var(--pink));
+  border-radius: 2px 2px 0 0;
   min-height: 2px;
 }
 
 /* Tracking Section */
 .tracking-section {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
 .section-column {
@@ -1118,55 +1143,37 @@ export default {
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--light-pink);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1.5rem 0;
-  margin-bottom: 1rem;
-  background: var(--light-pink);
-  border-bottom: 1px solid var(--pink-grey);
 }
 
 .card-header h3 {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
   color: var(--dark-slate-blue);
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.card-header h3 i {
+  color: var(--hot-pink);
 }
 
 .card-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-icon {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 8px;
-  background: white;
-  color: var(--hot-pink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-icon:hover {
-  background: var(--hot-pink);
-  color: white;
-  transform: scale(1.05);
+  gap: 1rem;
 }
 
 .search-box {
@@ -1177,18 +1184,17 @@ export default {
 
 .search-box i {
   position: absolute;
-  left: 10px;
+  left: 0.75rem;
   color: var(--slate-blue);
 }
 
 .search-box input {
-  padding: 0.5rem 0.5rem 0.5rem 2rem;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   border: 1px solid var(--pink-grey);
   border-radius: 8px;
   font-size: 0.9rem;
-  width: 180px;
+  width: 200px;
   transition: border-color 0.3s ease;
-  background: var(--light-pink);
 }
 
 .search-box input:focus {
@@ -1196,61 +1202,78 @@ export default {
   border-color: var(--hot-pink);
 }
 
+.btn-icon {
+  background: var(--light-pink);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark-slate-blue);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+  background: var(--hot-pink);
+  color: white;
+}
+
 .card-body {
-  padding: 0 1.5rem 1.5rem;
+  padding: 1.5rem;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* Globe Container */
+/* Globe Styles */
 .globe-container {
-  width: 100%;
-  height: 400px;
+  flex: 1;
+  min-height: 400px;
+  background: #000011;
   border-radius: 12px;
-  background: var(--dark-slate-blue);
-  position: relative;
   overflow: hidden;
+  position: relative;
+}
+
+.globe-error,
+.globe-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  background: rgba(0, 0, 17, 0.8);
+}
+
+.error-icon {
+  font-size: 3rem;
+  color: var(--hot-pink);
   margin-bottom: 1rem;
 }
 
-.globe-loading, .globe-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: white;
-  font-size: 1.1rem;
-}
-
-.loading-spinner {
+.globe-loading .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--light-pink);
-  border-top: 4px solid var(--hot-pink);
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
-.globe-error {
-  color: white;
-  background: var(--dark-pink);
-  padding: 2rem;
-  text-align: center;
-}
-
-.error-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-/* Selected Parcel Info */
 .selected-parcel-info {
   background: var(--light-pink);
   border-radius: 12px;
   padding: 1.5rem;
+  margin-top: 1rem;
 }
 
 .parcel-header {
@@ -1262,8 +1285,31 @@ export default {
 
 .parcel-header h4 {
   margin: 0;
-  font-size: 1.1rem;
   color: var(--dark-slate-blue);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-in-progress {
+  background: var(--hot-pink);
+  color: white;
+}
+
+.status-delivered {
+  background: var(--pink);
+  color: white;
+}
+
+.status-pending {
+  background: var(--dark-pink);
+  color: white;
 }
 
 .route-progress {
@@ -1273,9 +1319,10 @@ export default {
 .progress-labels {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
-  color: var(--slate-blue);
+  color: var(--dark-slate-blue);
 }
 
 .progress-percent {
@@ -1285,26 +1332,29 @@ export default {
 
 .progress-track {
   position: relative;
+  height: 6px;
+  background: var(--pink-grey);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
 .progress-bar {
-  height: 8px;
-  background: var(--pink-grey);
-  border-radius: 4px;
-  overflow: hidden;
   position: relative;
+  height: 100%;
+  width: 100%;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--pink), var(--dark-pink));
+  background: linear-gradient(90deg, var(--hot-pink), var(--dark-pink));
+  border-radius: 3px;
   transition: width 0.5s ease;
 }
 
 .progress-marker {
   position: absolute;
-  top: -6px;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: 20px;
   height: 20px;
   background: white;
@@ -1313,13 +1363,13 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   color: var(--hot-pink);
 }
 
 .no-selection {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: 2rem;
   color: var(--slate-blue);
 }
 
@@ -1327,19 +1377,13 @@ export default {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
-  color: var(--pink);
-}
-
-.no-selection p {
-  margin: 0;
-  font-size: 1rem;
 }
 
 /* Parcels List */
 .parcels-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   max-height: 600px;
   overflow-y: auto;
 }
@@ -1348,20 +1392,24 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--pink-grey);
+  background: var(--light-pink);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
 .parcel-item:hover {
+  background: white;
   border-color: var(--hot-pink);
-  transform: translateX(5px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.2);
 }
 
 .parcel-item.active {
+  background: white;
   border-color: var(--hot-pink);
-  background: var(--light-pink);
+  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.3);
 }
 
 .parcel-icon {
@@ -1383,21 +1431,21 @@ export default {
 .parcel-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 0.5rem;
 }
 
 .tracking-id {
-  font-size: 1rem;
+  margin: 0;
   font-weight: 600;
   color: var(--dark-slate-blue);
-  margin: 0;
+  font-size: 1rem;
 }
 
 .parcel-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
@@ -1410,14 +1458,15 @@ export default {
 }
 
 .info-item i {
-  width: 12px;
+  width: 14px;
   color: var(--hot-pink);
 }
 
 .parcel-progress {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .progress-mini {
@@ -1430,7 +1479,8 @@ export default {
 
 .progress-fill-mini {
   height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
+  background: linear-gradient(90deg, var(--hot-pink), var(--dark-pink));
+  border-radius: 2px;
   transition: width 0.5s ease;
 }
 
@@ -1438,56 +1488,25 @@ export default {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--hot-pink);
-  min-width: 35px;
+  min-width: 40px;
 }
 
-/* Empty States */
-.empty-state, .empty-notifications {
+.empty-state {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: 3rem 2rem;
   color: var(--slate-blue);
 }
 
-.empty-state i, .empty-notifications i {
-  font-size: 3rem;
+.empty-state i {
+  font-size: 4rem;
   margin-bottom: 1rem;
-  opacity: 0.5;
-  color: var(--pink);
-}
-
-.empty-state p, .empty-notifications p {
-  margin: 0;
-  font-size: 1rem;
+  opacity: 0.3;
 }
 
 .empty-subtext {
-  font-size: 0.9rem !important;
+  font-size: 0.9rem;
   opacity: 0.7;
-}
-
-/* Status Badges */
-.status-badge {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-in-progress {
-  background: var(--light-pink);
-  color: var(--hot-pink);
-}
-
-.status-delivered {
-  background: var(--pink-grey);
-  color: var(--pink);
-}
-
-.status-pending {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
+  margin-top: 0.5rem;
 }
 
 /* Notifications Section */
@@ -1509,13 +1528,13 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--pink-grey);
+  background: var(--light-pink);
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .notification-item:hover {
-  border-color: var(--hot-pink);
+  background: white;
   transform: translateX(5px);
 }
 
@@ -1526,22 +1545,20 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-}
-
-.notification-icon.success {
-  background: var(--light-pink);
-  color: var(--hot-pink);
+  font-size: 1rem;
+  color: white;
 }
 
 .notification-icon.info {
-  background: var(--pink-grey);
-  color: var(--pink);
+  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
+}
+
+.notification-icon.success {
+  background: linear-gradient(135deg, var(--pink), var(--dark-pink));
 }
 
 .notification-icon.warning {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
+  background: linear-gradient(135deg, var(--dark-pink), var(--slate-blue));
 }
 
 .notification-content {
@@ -1549,9 +1566,9 @@ export default {
 }
 
 .notification-text {
-  margin: 0 0 0.3rem;
-  font-size: 0.9rem;
+  margin: 0 0 0.25rem 0;
   color: var(--dark-slate-blue);
+  font-weight: 500;
 }
 
 .notification-time {
@@ -1559,14 +1576,25 @@ export default {
   color: var(--slate-blue);
 }
 
-/* Login Required Styles */
+.empty-notifications {
+  text-align: center;
+  padding: 2rem;
+  color: var(--slate-blue);
+}
+
+.empty-notifications i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+/* Login Required */
 .login-required {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 60vh;
+  padding: 2rem;
 }
 
 .login-message {
@@ -1574,76 +1602,77 @@ export default {
   background: white;
   padding: 3rem;
   border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(255, 66, 117, 0.2);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
   max-width: 400px;
-  width: 90%;
+  width: 100%;
 }
 
 .message-icon {
-  font-size: 4rem;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--light-pink), var(--pink));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
   color: var(--hot-pink);
-  margin-bottom: 1.5rem;
 }
 
 .login-message h2 {
   color: var(--dark-slate-blue);
   margin-bottom: 1rem;
-  font-size: 1.8rem;
 }
 
 .login-message p {
   color: var(--slate-blue);
   margin-bottom: 2rem;
-  font-size: 1.1rem;
-  line-height: 1.5;
 }
 
 .action-buttons {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  flex-wrap: wrap;
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
 }
 
 .btn-primary {
-  background: var(--hot-pink);
+  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
   color: white;
 }
 
 .btn-primary:hover {
-  background: var(--dark-pink);
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 66, 117, 0.4);
 }
 
 /* Animations */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 1024px) {
   .tracking-section {
     grid-template-columns: 1fr;
+  }
+  
+  .parcels-column {
+    order: -1;
   }
 }
 
@@ -1653,67 +1682,57 @@ export default {
     text-align: center;
     gap: 1.5rem;
   }
-
+  
   .header-stats {
     justify-content: center;
   }
-
+  
   .stats-grid {
     grid-template-columns: 1fr;
   }
-
+  
+  .tracking-section {
+    gap: 1rem;
+  }
+  
   .card-header {
     flex-direction: column;
     gap: 1rem;
-    align-items: flex-start;
+    align-items: stretch;
   }
-
+  
+  .card-actions {
+    justify-content: space-between;
+  }
+  
   .search-box input {
     width: 100%;
-  }
-
-  .login-message {
-    padding: 2rem 1.5rem;
-    margin: 1rem;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .btn {
-    justify-content: center;
-  }
-
-  .parcel-item {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .parcel-icon {
-    align-self: flex-start;
   }
 }
 
 @media (max-width: 480px) {
+  .main-content {
+    padding: 0 0.5rem 1rem;
+  }
+  
   .header-background {
     padding: 1.5rem 1rem;
   }
-
+  
   .title-main {
     font-size: 2rem;
   }
-
+  
   .title-sub {
     font-size: 1.4rem;
   }
-
-  .header-stats {
-    gap: 1rem;
+  
+  .stat-card {
+    padding: 1rem;
   }
-
-  .stat-value {
-    font-size: 2rem;
+  
+  .parcel-info {
+    grid-template-columns: 1fr;
   }
 }
 </style>
