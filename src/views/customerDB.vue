@@ -365,7 +365,7 @@ export default {
       if (userData) {
         try {
           const user = JSON.parse(userData);
-          this.user.email = user.email || user.display_name || 'User';
+          this.user.email = user.email || user.displayName || 'User';
           this.isAuthenticated = true;
           console.log('User authenticated:', this.user.email);
         } catch (error) {
