@@ -247,13 +247,12 @@ onMounted(() => {
               @click="goToDetail(service.id)"
               style="cursor: pointer; transition: transform 0.2s;"
             >
-            
-              <div class="card-img-container" style="height: 200px; overflow: hidden; position: relative;">
+
+              <div class="card-img-container">
                 <img
                   :src="service.img_url"
                   class="card-img-top service-image"
                   :alt="service.service_name"
-                  style="height: 100%; width: 100%; object-fit: cover; transition: opacity 0.3s ease;"
                   @error="(event) => handleImageError(event, service.id)"
                   @load="(event) => handleImageLoad(event, service.id)"
                   :class="{ 'image-loaded': loadedImages.has(service.id) }"
@@ -349,15 +348,25 @@ onMounted(() => {
   min-width: 120px;
 }
 
-/* Improved image styles */
+/* UPDATED IMAGE STYLES - White background, no gray */
 .card-img-container {
-  background-color: #f8f9fa;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  background-color: white; /* Changed from #f8f9fa to white */
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px; /* Increased padding for more white space */
+  border-bottom: 1px solid #e9ecef; /* Optional: subtle border separation */
 }
 
 .service-image {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -375,7 +384,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8f9fa;
+  background-color: white; /* Changed to match container */
 }
 
 .image-failed {
@@ -390,6 +399,11 @@ onMounted(() => {
 
   .d-flex.gap-2 {
     gap: 0.5rem !important;
+  }
+
+  .card-img-container {
+    height: 180px;
+    padding: 15px; /* Adjusted for mobile */
   }
 }
 </style>
