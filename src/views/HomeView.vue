@@ -88,7 +88,7 @@ onMounted(() => {
 }
 
 .home-left {
-  background-image: url('airplane.png');
+  background-image: url('/airplane.png');
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
