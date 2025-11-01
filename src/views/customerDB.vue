@@ -2,19 +2,6 @@
   <div>
     <!-- Show dashboard only when authenticated -->
     <div class="dashboard-wrapper" v-if="isAuthenticated">
-      <!-- Loading Overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner-large"></div>
-        <p>Loading your shipments...</p>
-      </div>
-
-      <!-- Error Banner -->
-      <div v-if="errorMessage" class="error-banner">
-        <i class="fas fa-exclamation-circle"></i>
-        {{ errorMessage }}
-        <button @click="fetchUserShipments" class="btn-retry">Retry</button>
-      </div>
-
       <!-- Header -->
       <div class="dashboard-header">
         <div class="header-background">
@@ -24,7 +11,7 @@
                 <span class="title-main">Parcel Tracking</span>
                 <span class="title-sub">Dashboard</span>
               </h1>
-              <p class="welcome-message">Welcome back, <strong>{{user.displayName}}</strong>! Track your shipments in real-time.</p>
+              <p class="welcome-message">Welcome back, <strong>{{user.email}}</strong>! Track your shipments in real-time.</p>
             </div>
             <div class="header-stats">
               <div class="header-stat">
@@ -41,7 +28,7 @@
       </div>
 
       <!-- Main Content -->
-      <div class="main-content" v-if="!loading">
+      <div class="main-content">
         <!-- Stats Overview -->
         <section class="stats-overview">
           <div class="stats-grid">
@@ -185,21 +172,42 @@
                       </div>
                     </div>
                   </div>
-
-                  <!-- Empty state -->
-                  <div v-if="filteredParcels.length === 0" class="empty-state">
-                    <i class="fas fa-box-open"></i>
-                    <p>No shipments found</p>
-                    <p class="empty-subtext" v-if="searchQuery">Try adjusting your search terms</p>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- Notifications Section Only -->
-        <section class="notifications-section">
+        <!-- Quick Actions & Notifications -->
+        <section class="bottom-section">
+          <div class="section-column actions-column">
+            <div class="section-card">
+              <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+              </div>
+              <div class="card-body">
+                <div class="actions-grid">
+                  <button class="action-btn" @click="navigateToCreateShipment">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>New Shipment</span>
+                  </button>
+                  <button class="action-btn" @click="navigateToFAQ">
+                    <i class="fas fa-question-circle"></i>
+                    <span>FAQ</span>
+                  </button>
+                  <button class="action-btn" @click="navigateToHelp">
+                    <i class="fas fa-life-ring"></i>
+                    <span>Help</span>
+                  </button>
+                  <button class="action-btn" @click="navigateToSettings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="section-column notifications-column">
             <div class="section-card">
               <div class="card-header">
@@ -215,12 +223,6 @@
                       <p class="notification-text">{{ notification.message }}</p>
                       <span class="notification-time">{{ notification.time }}</span>
                     </div>
-                  </div>
-
-                  <!-- Empty notifications -->
-                  <div v-if="notifications.length === 0" class="empty-notifications">
-                    <i class="fas fa-bell-slash"></i>
-                    <p>No recent activity</p>
                   </div>
                 </div>
               </div>
@@ -243,6 +245,7 @@
             <i class="fas fa-sign-in-alt"></i>
             Go to Login
           </button>
+
         </div>
       </div>
     </div>
@@ -251,8 +254,6 @@
 
 <script>
 import Globe from 'globe.gl';
-import countryData from '/json/countryData.json';
-import axios from 'axios';
 
 export default {
   name: "EnhancedParcelDashboard",
@@ -260,26 +261,93 @@ export default {
     return {
       isAuthenticated: false,
       user: {
-        email: '',
-        displayName: ''
+        email: ''
       },
       searchQuery: '',
       selectedParcel: null,
       globeInitialized: false,
       globeError: false,
       errorMessage: "",
-      loading: false,
       stats: {
-        inProgress: 0,
-        delivered: 0,
-        pending: 0,
+        inProgress: 12,
+        delivered: 48,
+        pending: 5,
       },
-      parcels: [],
-      notifications: [],
+      parcels: [
+        {
+          id: 1,
+          trackingId: "TRK-784231",
+          customer: "Alice Johnson",
+          status: "In Progress",
+          expectedDelivery: "2025-10-18",
+          location: [37.7749, -122.4194],
+          currentLocation: [39.8283, -98.5795],
+          destination: [40.7128, -74.0060]
+        },
+        {
+          id: 2,
+          trackingId: "TRK-784232",
+          customer: "Robert Smith",
+          status: "Delivered",
+          expectedDelivery: "2025-10-15",
+          location: [51.5074, -0.1278],
+          currentLocation: [48.8566, 2.3522],
+          destination: [48.8566, 2.3522]
+        },
+        {
+          id: 3,
+          trackingId: "TRK-784233",
+          customer: "Maria Garcia",
+          status: "Pending",
+          expectedDelivery: "2025-10-20",
+          location: [35.6895, 139.6917],
+          currentLocation: [35.6895, 139.6917],
+          destination: [34.0522, -118.2437]
+        },
+        {
+          id: 4,
+          trackingId: "TRK-784234",
+          customer: "David Wilson",
+          status: "In Progress",
+          expectedDelivery: "2025-10-19",
+          location: [48.8566, 2.3522],
+          currentLocation: [45.4642, 9.1900],
+          destination: [41.9028, 12.4964]
+        },
+      ],
+      notifications: [
+        {
+          id: 1,
+          type: 'success',
+          icon: 'fas fa-check-circle',
+          message: 'Package TRK-784232 delivered successfully',
+          time: '2 hours ago'
+        },
+        {
+          id: 2,
+          type: 'info',
+          icon: 'fas fa-info-circle',
+          message: 'Package TRK-784231 is in transit to New York',
+          time: '5 hours ago'
+        },
+        {
+          id: 3,
+          type: 'warning',
+          icon: 'fas fa-exclamation-triangle',
+          message: 'Package TRK-784233 is awaiting pickup',
+          time: '1 day ago'
+        },
+        {
+          id: 4,
+          type: 'info',
+          icon: 'fas fa-info-circle',
+          message: 'New shipment created: TRK-784235',
+          time: '2 days ago'
+        }
+      ],
       globe: null,
       arcsData: [],
-      pointsData: [],
-      refreshInterval: null
+      pointsData: []
     };
   },
   computed: {
@@ -291,7 +359,7 @@ export default {
       const query = this.searchQuery.toLowerCase();
       return this.parcels.filter(parcel =>
         parcel.trackingId.toLowerCase().includes(query) ||
-        (parcel.customer && parcel.customer.toLowerCase().includes(query)) ||
+        parcel.customer.toLowerCase().includes(query) ||
         this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query)
       );
     },
@@ -344,42 +412,32 @@ export default {
     this.checkAuthentication();
     if (this.isAuthenticated) {
       this.initializeDashboard();
-      // Refresh every 30 seconds for real-time updates
-      this.refreshInterval = setInterval(() => {
-        if (this.isAuthenticated) {
-          this.fetchUserShipments();
-        }
-      }, 30000);
     }
 
+    // Listen for login status changes
     window.addEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   beforeUnmount() {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
-    }
+    // Clean up event listener
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
     checkAuthentication() {
-        const userData = sessionStorage.getItem('currentUser');
-        console.log('Session storage user data:', userData);
-
-        if (userData) {
-            try {
-                const user = JSON.parse(userData);
-                this.user.email = user.email || 'User';
-                this.user.displayName = user.displayName || user.email || 'User';
-                this.isAuthenticated = true;
-                console.log('User authenticated:', this.user.email);
-            } catch (error) {
-                console.error('Error parsing user data:', error);
-                this.isAuthenticated = false;
-            }
-        } else {
-            this.isAuthenticated = false;
-            console.log('No user data found in sessionStorage');
+      const userData = sessionStorage.getItem('currentUser');
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          this.user.email = user.email || user.display_name || 'User';
+          this.isAuthenticated = true;
+          console.log('User authenticated:', this.user.email);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          this.isAuthenticated = false;
         }
+      } else {
+        this.isAuthenticated = false;
+        console.log('No user data found in sessionStorage');
+      }
     },
 
     handleLoginStatusChange() {
@@ -387,17 +445,11 @@ export default {
       this.checkAuthentication();
       if (this.isAuthenticated) {
         this.initializeDashboard();
-      } else {
-        // Clear data when logging out
-        this.parcels = [];
-        this.notifications = [];
-        this.stats = { inProgress: 0, delivered: 0, pending: 0 };
       }
     },
 
-    async initializeDashboard() {
+    initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
-      await this.fetchUserShipments();
       this.$nextTick(() => {
         setTimeout(() => {
           this.initGlobe();
@@ -405,203 +457,45 @@ export default {
       });
     },
 
-    async fetchUserShipments() {
-        this.loading = true;
-        this.errorMessage = "";
-        try {
-            console.log('Fetching shipments for:', this.user.email);
-
-            const response = await axios.post('/api/dashboard.php', {
-                method: 'getAllMailByCustomerEmail',
-                email: this.user.email
-            });
-
-            console.log('API Response:', response.data);
-
-            if (response.data.success) {
-                this.parcels = this.transformShipmentData(response.data.shipments);
-                this.updateStats();
-                this.generateNotifications();
-                console.log('Successfully loaded', this.parcels.length, 'shipments');
-
-                // If using example data, show a warning
-                if (response.data.note) {
-                    console.warn('API Note:', response.data.note);
-                }
-            } else {
-                console.error('Failed to fetch shipments:', response.data.error);
-                this.errorMessage = response.data.error || 'Failed to load shipments';
-            }
-        } catch (error) {
-            console.error('Error fetching shipments:', error);
-            this.errorMessage = 'Failed to load shipments. Please try again.';
-            if (error.response) {
-                console.error('Response error:', error.response.data);
-            }
-        } finally {
-            this.loading = false;
-        }
+    redirectToLogin() {
+      // Redirect to login page
+      window.location.href = '/login';
     },
 
-    transformShipmentData(shipments) {
-        if (!shipments || !Array.isArray(shipments)) {
-            console.log('No shipments data found');
-            return [];
-        }
-
-        console.log('Transforming', shipments.length, 'shipments');
-
-        return shipments.map(shipment => {
-            try {
-                // Get coordinates from address data
-                const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-                const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
-
-                console.log('Sender country:', senderCountry, 'Recipient country:', recipientCountry);
-
-                const senderCoords = this.getCountryCoordinates(senderCountry);
-                const recipientCoords = this.getCountryCoordinates(recipientCountry);
-
-                // Determine current location based on status
-                let currentLocation = senderCoords;
-                const progress = this.calculateProgressFromStatus(shipment.status);
-
-                if (progress > 0 && progress < 100) {
-                    // For in-progress shipments, interpolate between start and end
-                    currentLocation = [
-                        senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
-                        senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
-                    ];
-                } else if (progress >= 100) {
-                    currentLocation = recipientCoords;
-                }
-
-                // Create tracking ID from available data
-                let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
-                if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
-                    trackingId = `TRK-${shipment.trackingNumber}`;
-                }
-
-                const transformedParcel = {
-                    id: shipment.mailId,
-                    mailId: shipment.mailId,
-                    trackingId: trackingId,
-                    customer: shipment.senderAddress?.name || this.user.displayName,
-                    status: this.mapApiStatus(shipment.status),
-                    expectedDelivery: shipment.expectedDelivery,
-                    location: senderCoords,
-                    currentLocation: currentLocation,
-                    destination: recipientCoords,
-                    progress: progress,
-                    service: shipment.service,
-                    totalWeight: shipment.totalWeight,
-                    totalValue: shipment.totalValue,
-                    hasBeenPaid: shipment.hasBeenPaid,
-                    createdDate: shipment.createdDate,
-                    rawData: shipment
-                };
-
-                console.log('Transformed parcel:', transformedParcel);
-                return transformedParcel;
-
-            } catch (error) {
-                console.error('Error transforming shipment:', shipment, error);
-                return null;
-            }
-        }).filter(parcel => parcel !== null); // Remove any null entries
-    },
-
-    getCountryCoordinates(countryCode) {
-        const country = countryData.find(c => c.code2 === countryCode);
-        if (country) {
-            console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
-            return [country.lat, country.long];
-        }
-        // Default to Singapore if not found
-        console.warn(`Country code ${countryCode} not found, using Singapore as default`);
-        return [1.28478, 103.776222];
-    },
-
-    calculateProgressFromStatus(status) {
-      const progressMap = {
-        'pending': 0,
-        'in_transit': 50,
-        'delivered': 100
-      };
-      return progressMap[status] || 0;
-    },
-
-    mapApiStatus(apiStatus) {
-      const statusMap = {
-        'pending': 'Pending',
-        'in_transit': 'In Progress',
-        'delivered': 'Delivered'
-      };
-      return statusMap[apiStatus] || 'Pending';
-    },
-
-    updateStats() {
-      this.stats = {
-        inProgress: this.parcels.filter(p => p.status === 'In Progress').length,
-        delivered: this.parcels.filter(p => p.status === 'Delivered').length,
-        pending: this.parcels.filter(p => p.status === 'Pending').length,
-      };
-    },
-
-    generateNotifications() {
-      // Create notifications from recent shipments
-      this.notifications = this.parcels
-        .slice(0, 4)
-        .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-        .map((parcel, index) => {
-          const statusConfig = {
-            'In Progress': {
-              type: 'info',
-              icon: 'fas fa-shipping-fast',
-              message: `Shipment ${parcel.trackingId} is in transit to ${this.getLocationName(parcel.destination)}`
-            },
-            'Delivered': {
-              type: 'success',
-              icon: 'fas fa-check-circle',
-              message: `Shipment ${parcel.trackingId} has been delivered successfully`
-            },
-            'Pending': {
-              type: 'warning',
-              icon: 'fas fa-clock',
-              message: `Shipment ${parcel.trackingId} is awaiting processing`
-            }
-          };
-
-          const config = statusConfig[parcel.status] || statusConfig.Pending;
-
-          return {
-            id: index + 1,
-            type: config.type,
-            icon: config.icon,
-            message: config.message,
-            time: this.formatRelativeTime(parcel.createdDate)
-          };
-        });
-    },
-
-    formatRelativeTime(dateString) {
-      if (!dateString) return 'Recently';
-      try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins} minutes ago`;
-        if (diffHours < 24) return `${diffHours} hours ago`;
-        if (diffDays === 1) return '1 day ago';
-        return `${diffDays} days ago`;
-      } catch (error) {
-        return 'Recently';
+    // Navigation Methods
+    navigateToCreateShipment() {
+      if (!this.isAuthenticated) {
+        alert('Please log in to create a shipment');
+        this.redirectToLogin();
+        return;
       }
+      // Redirect to shipment page
+      window.location.href = '/shipment';
+    },
+
+    navigateToFAQ() {
+      if (!this.isAuthenticated) {
+        this.redirectToLogin();
+        return;
+      }
+      window.location.href = '/faq';
+    },
+
+    navigateToHelp() {
+      if (!this.isAuthenticated) {
+        this.redirectToLogin();
+        return;
+      }
+      window.location.href = '/help';
+    },
+
+    navigateToSettings() {
+      if (!this.isAuthenticated) {
+        this.redirectToLogin();
+        return;
+      }
+      // You can implement settings navigation here
+      alert('Settings page would open here');
     },
 
     async initGlobe() {
@@ -618,6 +512,7 @@ export default {
 
         console.log('Container dimensions:', width, 'x', height);
 
+        // Initialize globe with basic settings
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
           .backgroundColor('#000011')
@@ -626,6 +521,7 @@ export default {
 
         console.log('Basic globe created');
 
+        // Add initial data
         this.updateGlobeData();
 
         this.globeInitialized = true;
@@ -642,24 +538,23 @@ export default {
       if (!this.globe) return;
 
       try {
+        // Update points data - show all parcels as points
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
-          lat: parcel.currentLocation[0],
-          lng: parcel.currentLocation[1],
-          color: this.getStatusColor(parcel.status),
-          size: 0.4,
-          label: `${parcel.trackingId}: ${parcel.customer} (${parcel.status})`
+          // For display, use current location if available, otherwise start location
+          displayLocation: parcel.currentLocation || parcel.location
         }));
 
         this.globe
           .pointsData(this.pointsData)
-          .pointLat('lat')
-          .pointLng('lng')
-          .pointColor('color')
+          .pointLat(d => d.displayLocation[0])
+          .pointLng(d => d.displayLocation[1])
+          .pointColor(d => this.getStatusColor(d.status))
           .pointAltitude(0.1)
-          .pointRadius('size')
-          .pointLabel('label');
+          .pointRadius(0.4)
+          .pointLabel(d => `${d.trackingId}: ${d.customer} (${d.status})`);
 
+        // Update arcs if we have a selected parcel
         if (this.selectedParcel) {
           this.updateRouteForParcel(this.selectedParcel);
         }
@@ -669,6 +564,7 @@ export default {
       } catch (error) {
         console.error('Error updating globe data:', error);
         this.globeError = true;
+        this.errorMessage = error.message;
       }
     },
 
@@ -685,24 +581,39 @@ export default {
     updateRouteForParcel(parcel) {
       if (!this.globe) return;
 
-      this.arcsData = [{
-        startLat: parcel.location[0],
-        startLng: parcel.location[1],
-        endLat: parcel.currentLocation[0],
-        endLng: parcel.currentLocation[1],
-        color: '#00ff00'
-      }];
+      // Create multiple arcs to show the complete journey
+      this.arcsData = [
+        // Arc from start to current location (green - completed path)
+        {
+          start: parcel.location,
+          end: parcel.currentLocation || parcel.location,
+          color: '#00ff00',
+          stroke: 1.5
+        },
+        // Arc from current location to destination (orange - remaining path)
+        {
+          start: parcel.currentLocation || parcel.location,
+          end: parcel.destination,
+          color: '#ffa500',
+          stroke: 1.5
+        }
+      ];
 
+      // Update the globe with new arcs
       this.globe
         .arcsData(this.arcsData)
-        .arcStartLat(d => d.startLat)
-        .arcStartLng(d => d.startLng)
-        .arcEndLat(d => d.endLat)
-        .arcEndLng(d => d.endLng)
+        .arcStartLat(d => d.start[0])
+        .arcStartLng(d => d.start[1])
+        .arcEndLat(d => d.end[0])
+        .arcEndLng(d => d.end[1])
         .arcColor(d => d.color)
-        .arcStroke(1.5)
-        .arcAltitude(0.05);
+        .arcStroke(d => d.stroke)
+        .arcAltitude(0.05)
+        .arcDashLength(0.3)
+        .arcDashGap(0.1)
+        .arcDashAnimateTime(4000);
 
+      // Focus camera on the entire route
       this.focusOnRoute(parcel.location, parcel.destination);
     },
 
@@ -712,6 +623,7 @@ export default {
       const midLat = (start[0] + end[0]) / 2;
       const midLng = (start[1] + end[1]) / 2;
 
+      // Calculate a good altitude to show the entire route
       const latDiff = Math.abs(start[0] - end[0]);
       const lngDiff = Math.abs(start[1] - end[1]);
       const maxDiff = Math.max(latDiff, lngDiff);
@@ -726,19 +638,16 @@ export default {
         this.selectedParcel = null;
         this.globe.arcsData(this.arcsData);
         this.globe.pointOfView({ lat: 0, lng: 0, altitude: 1.8 });
+        // Refresh points data
         this.updateGlobeData();
       }
     },
 
     calculateProgress(parcel) {
-      // Use the stored progress if available
-      if (parcel.progress !== undefined) {
-        return parcel.progress;
-      }
-
       if (parcel.status === 'Delivered') return 100;
       if (parcel.status === 'Pending') return 0;
 
+      // Simple linear progress calculation based on distance
       const start = parcel.location;
       const current = parcel.currentLocation || parcel.location;
       const end = parcel.destination;
@@ -752,10 +661,11 @@ export default {
     },
 
     calculateDistance(coord1, coord2) {
+      // Haversine distance calculation
       const [lat1, lon1] = coord1;
       const [lat2, lon2] = coord2;
 
-      const R = 6371;
+      const R = 6371; // Earth's radius in km
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a =
@@ -767,11 +677,21 @@ export default {
     },
 
     getLocationName(coords) {
-      // Find country by coordinates
-      const country = countryData.find(c =>
-        Math.abs(c.lat - coords[0]) < 5 && Math.abs(c.long - coords[1]) < 5
-      );
-      return country ? country.name : 'Unknown Location';
+      // Simple coordinate to city name mapping
+      const locations = {
+        '37.7749,-122.4194': 'San Francisco',
+        '40.7128,-74.0060': 'New York',
+        '51.5074,-0.1278': 'London',
+        '48.8566,2.3522': 'Paris',
+        '35.6895,139.6917': 'Tokyo',
+        '34.0522,-118.2437': 'Los Angeles',
+        '41.9028,12.4964': 'Rome',
+        '39.8283,-98.5795': 'Kansas',
+        '45.4642,9.1900': 'Milan'
+      };
+
+      const key = `${coords[0]},${coords[1]}`;
+      return locations[key] || 'Unknown Location';
     },
 
     getStatusColor(status) {
@@ -784,16 +704,7 @@ export default {
     },
 
     formatDate(dateString) {
-      if (!dateString) return 'N/A';
-      try {
-        return new Date(dateString).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
-      } catch (error) {
-        return 'Invalid Date';
-      }
+      return new Date(dateString).toLocaleDateString();
     },
 
     forceReinit() {
@@ -808,10 +719,6 @@ export default {
           this.initGlobe();
         }, 100);
       });
-    },
-
-    redirectToLogin() {
-      window.location.href = '/login';
     }
   }
 };
@@ -837,60 +744,6 @@ export default {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Loading Overlay */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.loading-spinner-large {
-  width: 60px;
-  height: 60px;
-  border: 6px solid var(--light-pink);
-  border-top: 6px solid var(--hot-pink);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-/* Error Banner */
-.error-banner {
-  background: var(--dark-pink);
-  color: white;
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  justify-content: space-between;
-}
-
-.btn-retry {
-  background: white;
-  color: var(--hot-pink);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.btn-retry:hover {
-  background: var(--hot-pink);
-  color: white;
 }
 
 /* Header */
@@ -1248,6 +1101,21 @@ export default {
   margin-bottom: 1rem;
 }
 
+.btn-retry {
+  background: var(--hot-pink);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-retry:hover {
+  background: var(--dark-pink);
+}
+
 /* Selected Parcel Info */
 .selected-parcel-info {
   background: var(--light-pink);
@@ -1443,30 +1311,6 @@ export default {
   min-width: 35px;
 }
 
-/* Empty States */
-.empty-state, .empty-notifications {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--slate-blue);
-}
-
-.empty-state i, .empty-notifications i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-  color: var(--pink);
-}
-
-.empty-state p, .empty-notifications p {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.empty-subtext {
-  font-size: 0.9rem !important;
-  opacity: 0.7;
-}
-
 /* Status Badges */
 .status-badge {
   padding: 0.3rem 0.8rem;
@@ -1492,15 +1336,50 @@ export default {
   color: var(--dark-pink);
 }
 
-/* Notifications Section */
-.notifications-section {
-  margin-bottom: 2rem;
+/* Bottom Section */
+.bottom-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
 }
 
-.notifications-column {
-  width: 100%;
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  border: 1px solid var(--pink-grey);
+  border-radius: 12px;
+  background: white;
+  color: var(--slate-blue);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  border-color: var(--hot-pink);
+  color: var(--hot-pink);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.2);
+}
+
+.action-btn i {
+  font-size: 1.5rem;
+}
+
+.action-btn span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Notifications */
 .notifications-list {
   display: flex;
   flex-direction: column;
@@ -1630,6 +1509,17 @@ export default {
   transform: translateY(-2px);
 }
 
+.btn-secondary {
+  background: var(--light-pink);
+  color: var(--hot-pink);
+  border: 1px solid var(--hot-pink);
+}
+
+.btn-secondary:hover {
+  background: var(--hot-pink);
+  color: white;
+}
+
 /* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
@@ -1645,6 +1535,10 @@ export default {
 /* Responsive */
 @media (max-width: 1024px) {
   .tracking-section {
+    grid-template-columns: 1fr;
+  }
+
+  .bottom-section {
     grid-template-columns: 1fr;
   }
 }
@@ -1664,6 +1558,10 @@ export default {
     grid-template-columns: 1fr;
   }
 
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
   .card-header {
     flex-direction: column;
     gap: 1rem;
@@ -1674,6 +1572,7 @@ export default {
     width: 100%;
   }
 
+  /* Responsive design for login message */
   .login-message {
     padding: 2rem 1.5rem;
     margin: 1rem;
@@ -1685,37 +1584,6 @@ export default {
 
   .btn {
     justify-content: center;
-  }
-
-  .parcel-item {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .parcel-icon {
-    align-self: flex-start;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-background {
-    padding: 1.5rem 1rem;
-  }
-
-  .title-main {
-    font-size: 2rem;
-  }
-
-  .title-sub {
-    font-size: 1.4rem;
-  }
-
-  .header-stats {
-    gap: 1rem;
-  }
-
-  .stat-value {
-    font-size: 2rem;
   }
 }
 </style>
