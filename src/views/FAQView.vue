@@ -1,4 +1,15 @@
 <template>
+  <!-- Add the toggle button - moved to bottom LEFT -->
+  <div class="mode-toggle-container">
+    <button 
+      class="btn mode-toggle-btn"
+      @click="cycleMode"
+      :title="`Current mode: ${modeLabels[currentMode]}. Click to switch to ${modeLabels[(currentMode + 1) % 3]}`"
+    >
+      <span class="mode-label">{{ modeLabels[currentMode] }}</span>
+    </button>
+  </div>
+
   <header>
       <hr />
       <div class="row bg-light-pink justify-content-center airplane-header">
@@ -8,7 +19,7 @@
       </div>
       <hr />
   </header>
-  <div class="faq-container">
+  <div class="faq-container" :class="`mode-${currentMode}`">
     <div class="container py-4">
       <div class="row">
         <div class="col-12">
@@ -130,6 +141,8 @@ export default {
       searchQuery: '',
       activeTab: 'gettingStarted',
       openItems: new Set(),
+      currentMode: 0, // 0: original, 1: dark, 2: light perception
+      modeLabels: ['Original', 'Dark Mode', 'Light Perception'],
       tabs: [
         { id: 'gettingStarted', name: 'Getting Started' },
         { id: 'payment', name: 'Payment' },
@@ -180,11 +193,9 @@ export default {
   },
   computed: {
     firstRowTabs() {
-      // First row: first 4 tabs
       return this.tabs.slice(0, 4);
     },
     secondRowTabs() {
-      // Second row: remaining 4 tabs
       return this.tabs.slice(4);
     }
   },
@@ -244,7 +255,14 @@ export default {
       if (maxMatches > 0 && bestTab !== this.activeTab) {
         this.setActiveTab(bestTab);
       }
+    },
+    cycleMode() {
+      this.currentMode = (this.currentMode + 1) % 3;
     }
+  },
+  mounted() {
+    // Apply initial mode
+    document.body.classList.add(`mode-${this.currentMode}`);
   }
 }
 </script>
@@ -258,10 +276,506 @@ export default {
   --lighter-pink: #ffeef2;
 }
 
-.faq-container {
-  font-family: Arial, sans-serif;
+/* Enhanced Mode Toggle Button Styles - MOVED TO BOTTOM LEFT */
+.mode-toggle-container {
+  position: fixed;
+  bottom: 20px;
+  left: 20px; /* Changed from right: 20px to left: 20px */
+  z-index: 10000; /* Increased z-index to ensure it's on top */
+}
+
+.mode-toggle-btn {
+  background: var(--hot-pink);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 15px rgba(255, 66, 117, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.mode-toggle-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 66, 117, 0.6);
+  background: var(--dark-pink);
+  color: white;
+}
+
+.mode-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Dark mode styles for the toggle button */
+.faq-container.mode-1 .mode-toggle-btn {
+  background: #555;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.faq-container.mode-1 .mode-toggle-btn:hover {
+  background: #666;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Light perception mode styles for the toggle button */
+.faq-container.mode-2 .mode-toggle-btn {
+  background: #000000;
+  color: #fffff0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  border: 2px solid #333;
+}
+
+.faq-container.mode-2 .mode-toggle-btn:hover {
+  background: #333333;
+  color: #fffff0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Original Mode (Mode 0) - Your existing styles */
+.faq-container.mode-0 {
   background-color: var(--light-pink);
   min-height: 100vh;
+  font-family: Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.faq-container.mode-0 .faq-search .form-control {
+  border-color: var(--pink);
+  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
+}
+
+.faq-container.mode-0 .faq-search .form-control:focus {
+  border-color: var(--hot-pink);
+  box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
+}
+
+.faq-container.mode-0 .nav-tabs {
+  border-bottom: 2px solid var(--pink);
+}
+
+.faq-container.mode-0 .nav-tabs .nav-link {
+  color: #495057;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 1rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.faq-container.mode-0 .nav-tabs .nav-link:hover {
+  color: var(--hot-pink);
+  background-color: var(--lighter-pink);
+  border-bottom-color: var(--dark-pink);
+}
+
+.faq-container.mode-0 .nav-tabs .nav-link.active {
+  color: var(--hot-pink);
+  background-color: white;
+  border-bottom-color: var(--hot-pink);
+  font-weight: 600;
+}
+
+.faq-container.mode-0 .form-select {
+  border-color: var(--pink);
+  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
+}
+
+.faq-container.mode-0 .form-select:focus {
+  border-color: var(--hot-pink);
+  box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
+}
+
+.faq-container.mode-0 .accordion-item {
+  border: 1px solid var(--pink);
+  border-radius: 8px !important;
+  margin-bottom: 0.75rem;
+  background: white;
+  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
+}
+
+.faq-container.mode-0 .accordion-button {
+  background-color: white;
+  color: #2c3e50;
+  font-weight: 500;
+  border: none;
+  padding: 1.25rem 3rem 1.25rem 1.5rem;
+  border-radius: 8px !important;
+  transition: all 0.3s ease;
+}
+
+.faq-container.mode-0 .accordion-button:not(.collapsed) {
+  background-color: var(--lighter-pink);
+  color: var(--hot-pink);
+  box-shadow: none;
+}
+
+.faq-container.mode-0 .accordion-button:hover {
+  background-color: var(--lighter-pink);
+}
+
+.faq-container.mode-0 .accordion-button::after {
+  display: none;
+}
+
+.faq-container.mode-0 .accordion-button::before {
+  content: '+';
+  position: absolute;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  color: var(--hot-pink);
+  font-weight: 300;
+  transition: all 0.2s ease;
+}
+
+.faq-container.mode-0 .accordion-button:not(.collapsed)::before {
+  content: '–';
+  color: var(--hot-pink);
+}
+
+.faq-container.mode-0 .accordion-body {
+  background-color: white;
+  border-top: 1px solid var(--pink);
+  padding: 1.5rem;
+  border-radius: 0 0 8px 8px;
+}
+
+.faq-container.mode-0 .accordion-body ol,
+.faq-container.mode-0 .accordion-body ul {
+  padding-left: 1.5rem;
+}
+
+.faq-container.mode-0 .accordion-body a {
+  color: var(--hot-pink);
+  text-decoration: none;
+}
+
+.faq-container.mode-0 .accordion-body a:hover {
+  text-decoration: underline;
+}
+
+.faq-container.mode-0 .btn-primary {
+  background-color: var(--hot-pink);
+  border-color: var(--hot-pink);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.faq-container.mode-0 .btn-primary:hover {
+  background-color: var(--dark-pink);
+  border-color: var(--dark-pink);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 66, 117, 0.3);
+}
+
+.faq-container.mode-0 h2.text-center {
+  color: var(--hot-pink);
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+/* Dark Mode (Mode 1) */
+.faq-container.mode-1 {
+  background-color: #1a1a1a;
+  min-height: 100vh;
+  color: #e0e0e0;
+  font-family: Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.faq-container.mode-1 .faq-search .form-control {
+  background-color: #2d2d2d;
+  border-color: #555;
+  color: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.faq-container.mode-1 .faq-search .form-control::placeholder {
+  color: #999;
+}
+
+.faq-container.mode-1 .faq-search .form-control:focus {
+  background-color: #2d2d2d;
+  border-color: #777;
+  color: #e0e0e0;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+}
+
+.faq-container.mode-1 .nav-tabs {
+  border-bottom-color: #555;
+}
+
+.faq-container.mode-1 .nav-tabs .nav-link {
+  color: #b0b0b0;
+  background-color: #2d2d2d;
+  border: none;
+  border-bottom: 3px solid transparent;
+}
+
+.faq-container.mode-1 .nav-tabs .nav-link:hover {
+  color: #ffffff;
+  background-color: #3d3d3d;
+  border-bottom-color: #777;
+}
+
+.faq-container.mode-1 .nav-tabs .nav-link.active {
+  color: #ffffff;
+  background-color: #1a1a1a;
+  border-bottom-color: #ffffff;
+  font-weight: 600;
+}
+
+.faq-container.mode-1 .form-select {
+  background-color: #2d2d2d;
+  border-color: #555;
+  color: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.faq-container.mode-1 .form-select:focus {
+  border-color: #777;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+}
+
+.faq-container.mode-1 .accordion-item {
+  background-color: #2d2d2d;
+  border-color: #555;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.faq-container.mode-1 .accordion-button {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.faq-container.mode-1 .accordion-button:not(.collapsed) {
+  background-color: #3d3d3d;
+  color: #ffffff;
+}
+
+.faq-container.mode-1 .accordion-button:hover {
+  background-color: #3d3d3d;
+}
+
+.faq-container.mode-1 .accordion-button::before {
+  color: #e0e0e0;
+}
+
+.faq-container.mode-1 .accordion-button:not(.collapsed)::before {
+  color: #ffffff;
+}
+
+.faq-container.mode-1 .accordion-body {
+  background-color: #2d2d2d;
+  border-top-color: #555;
+  color: #e0e0e0;
+}
+
+.faq-container.mode-1 .accordion-body a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.faq-container.mode-1 .accordion-body a:hover {
+  color: #cccccc;
+}
+
+.faq-container.mode-1 .btn-primary {
+  background-color: #555;
+  border-color: #555;
+}
+
+.faq-container.mode-1 .btn-primary:hover {
+  background-color: #666;
+  border-color: #666;
+}
+
+.faq-container.mode-1 h2.text-center {
+  color: #ffffff;
+}
+
+/* Light Perception Mode (Mode 2) - High Contrast for Light Sensitivity */
+.faq-container.mode-2 {
+  background-color: #fffff0;
+  min-height: 100vh;
+  color: #2c2c2c;
+  font-weight: 500;
+  font-family: Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.faq-container.mode-2 .faq-search .form-control {
+  background-color: #ffffff;
+  border: 3px solid #333;
+  color: #000000;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.faq-container.mode-2 .faq-search .form-control::placeholder {
+  color: #666;
+  font-weight: 600;
+}
+
+.faq-container.mode-2 .faq-search .form-control:focus {
+  background-color: #ffffff;
+  border: 3px solid #000000;
+  color: #000000;
+  box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
+}
+
+.faq-container.mode-2 .nav-tabs {
+  border-bottom: 3px solid #333;
+}
+
+.faq-container.mode-2 .nav-tabs .nav-link {
+  color: #000000;
+  background-color: #f8f8f8;
+  border: 2px solid transparent;
+  font-weight: 600;
+  border-bottom: 3px solid transparent;
+}
+
+.faq-container.mode-2 .nav-tabs .nav-link:hover {
+  color: #000000;
+  background-color: #eeeeee;
+  border: 2px solid #333;
+}
+
+.faq-container.mode-2 .nav-tabs .nav-link.active {
+  color: #000000;
+  background-color: #ffffff;
+  border-bottom: 3px solid #000000;
+  font-weight: 700;
+  border: 2px solid #333;
+  border-bottom: 3px solid #000000;
+}
+
+.faq-container.mode-2 .form-select {
+  background-color: #ffffff;
+  border: 3px solid #333;
+  color: #000000;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.faq-container.mode-2 .form-select:focus {
+  border: 3px solid #000000;
+  box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
+}
+
+.faq-container.mode-2 .accordion-item {
+  background-color: #ffffff;
+  border: 3px solid #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.faq-container.mode-2 .accordion-button {
+  background-color: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-bottom: 2px solid #333;
+}
+
+.faq-container.mode-2 .accordion-button:not(.collapsed) {
+  background-color: #f8f8f8;
+  color: #000000;
+  font-weight: 700;
+}
+
+.faq-container.mode-2 .accordion-button:hover {
+  background-color: #f0f0f0;
+}
+
+.faq-container.mode-2 .accordion-button::before {
+  color: #000000;
+  font-weight: 700;
+}
+
+.faq-container.mode-2 .accordion-button:not(.collapsed)::before {
+  color: #000000;
+}
+
+.faq-container.mode-2 .accordion-body {
+  background-color: #ffffff;
+  border-top: 3px solid #333;
+  color: #000000;
+  font-weight: 500;
+}
+
+.faq-container.mode-2 .accordion-body a {
+  color: #0000ee;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.faq-container.mode-2 .accordion-body a:hover {
+  color: #0000cc;
+}
+
+.faq-container.mode-2 .btn-primary {
+  background-color: #000000;
+  border-color: #000000;
+  color: #fffff0;
+  font-weight: 600;
+}
+
+.faq-container.mode-2 .btn-primary:hover {
+  background-color: #333333;
+  border-color: #333333;
+  color: #fffff0;
+}
+
+.faq-container.mode-2 h2.text-center {
+  color: #000000;
+  font-weight: 700;
+}
+
+/* Header styles for different modes */
+.faq-container.mode-1 header {
+  background-color: #1a1a1a;
+  border-color: #444;
+}
+
+.faq-container.mode-1 .bg-light-pink {
+  background-color: #333 !important;
+}
+
+.faq-container.mode-1 .text-hot-pink {
+  color: #ffffff !important;
+}
+
+.faq-container.mode-1 hr {
+  border-color: #444 !important;
+}
+
+.faq-container.mode-2 header {
+  background-color: #fffff0;
+  border-color: #333;
+}
+
+.faq-container.mode-2 .bg-light-pink {
+  background-color: #f8f8f8 !important;
+}
+
+.faq-container.mode-2 .text-hot-pink {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+.faq-container.mode-2 hr {
+  border-color: #333 !important;
+}
+
+/* Rest of your existing responsive styles */
+.accordion-body {
+  font-size: 0.95rem;
 }
 
 li {
@@ -272,145 +786,23 @@ li {
   margin: 20px auto;
 }
 
-.faq-search .form-control {
-  border-color: var(--pink);
-  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
-}
-
-.faq-search .form-control:focus {
-  border-color: var(--hot-pink);
-  box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
-}
-
-.nav-tabs {
-  border-bottom: 2px solid var(--pink);
-}
-
-.nav-tabs .nav-link {
-  color: #495057;
-  border: none;
-  border-bottom: 3px solid transparent;
-  padding: 1rem 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.nav-tabs .nav-link:hover {
-  color: var(--hot-pink);
-  background-color: var(--lighter-pink);
-  border-bottom-color: var(--dark-pink);
-}
-
-.nav-tabs .nav-link.active {
-  color: var(--hot-pink);
-  background-color: white;
-  border-bottom-color: var(--hot-pink);
-  font-weight: 600;
-}
-
-.form-select {
-  border-color: var(--pink);
-  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
-}
-
-.form-select:focus {
-  border-color: var(--hot-pink);
-  box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
-}
-
-.accordion-item {
-  border: 1px solid var(--pink);
-  border-radius: 8px !important;
-  margin-bottom: 0.75rem;
-  background: white;
-  box-shadow: 0 2px 4px rgba(255, 66, 117, 0.1);
-}
-
-.accordion-button {
-  background-color: white;
-  color: #2c3e50;
-  font-weight: 500;
-  border: none;
-  padding: 1.25rem 3rem 1.25rem 1.5rem;
-  border-radius: 8px !important;
-  transition: all 0.3s ease;
-}
-
-.accordion-button:not(.collapsed) {
-  background-color: var(--lighter-pink);
-  color: var(--hot-pink);
-  box-shadow: none;
-}
-
-.accordion-button:hover {
-  background-color: var(--lighter-pink);
-}
-
-.accordion-button::after {
-  display: none;
-}
-
-.accordion-button::before {
-  content: '+';
-  position: absolute;
-  right: 1.5rem;
-  font-size: 1.5rem;
-  color: var(--hot-pink);
-  font-weight: 300;
-  transition: all 0.2s ease;
-}
-
-.accordion-button:not(.collapsed)::before {
-  content: '–';
-  color: var(--hot-pink);
-}
-
-.accordion-body {
-  background-color: white;
-  border-top: 1px solid var(--pink);
-  padding: 1.5rem;
-  border-radius: 0 0 8px 8px;
-}
-
-.accordion-body ol,
-.accordion-body ul {
-  padding-left: 1.5rem;
-}
-
-.accordion-body a {
-  color: var(--hot-pink);
-  text-decoration: none;
-}
-
-.accordion-body a:hover {
-  text-decoration: underline;
-}
-
-.btn-primary {
-  background-color: var(--hot-pink);
-  border-color: var(--hot-pink);
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-  background-color: var(--dark-pink);
-  border-color: var(--dark-pink);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 66, 117, 0.3);
-}
-
-h2.text-center {
-  color: var(--hot-pink);
-  font-weight: 600;
-  margin-bottom: 2rem;
-}
-
-.accordion-body {
-  font-size: 0.95rem;
-}
-
+/* Mobile responsiveness for toggle button */
 @media (max-width: 768px) {
+  .mode-toggle-container {
+    bottom: 15px;
+    left: 15px; /* Also update for mobile */
+  }
+  
+  .mode-toggle-btn {
+    padding: 10px 15px;
+    min-width: 120px;
+    font-size: 0.85rem;
+  }
+  
+  .mode-label {
+    font-size: 0.8rem; /* Keep label visible but smaller */
+  }
+
   .accordion-button {
     padding: 1rem 3rem 1rem 1rem;
     font-size: 0.9rem;
@@ -429,6 +821,23 @@ h2.text-center {
   .nav-tabs .nav-link {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mode-toggle-container {
+    bottom: 10px;
+    left: 10px; /* Also update for mobile */
+  }
+  
+  .mode-toggle-btn {
+    padding: 8px 12px;
+    min-width: 100px;
+    font-size: 0.75rem;
+  }
+  
+  .mode-label {
+    font-size: 0.75rem;
   }
 }
 
@@ -456,6 +865,11 @@ h2.text-center {
     width: 100%;
     margin: 0.5rem;
   }
+
+  .mode-toggle-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
 }
 
 @media print {
@@ -472,5 +886,15 @@ h2.text-center {
   .fixed-bottom {
     display: none;
   }
+
+  .mode-toggle-container {
+    display: none;
+  }
+}
+
+/* Ensure the button is always visible */
+.mode-toggle-btn {
+  position: relative;
+  z-index: 10001;
 }
 </style>
