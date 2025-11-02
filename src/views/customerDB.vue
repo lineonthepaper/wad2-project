@@ -100,7 +100,7 @@
                   </div>
                 </div>
 
-                <!-- Parcel Information Section -->
+                <!-- Parcel Information Section - MOVED BELOW GLOBE -->
                 <div v-if="selectedParcel" class="parcel-information">
                   <div class="parcel-header">
                     <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
@@ -207,7 +207,7 @@
                     :key="parcel.id"
                     class="parcel-item"
                     :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
-                    @click="showParcelRoute(parcel)"
+                    @click="selectParcel(parcel)"
                   >
                     <div class="parcel-icon">
                       <i class="fas fa-box"></i>
@@ -889,60 +889,11 @@ export default {
       }
     },
 
-    async showParcelRoute(parcel) {
-      console.log('🎯 Showing route for parcel:', parcel.trackingId);
-
-      // Set the selected parcel
+    selectParcel(parcel) {
+      console.log('🎯 Selected parcel:', parcel.trackingId);
       this.selectedParcel = parcel;
-      this.routeLoading = true;
-      this.routeError = null;
 
-      try {
-        // Call backend API to get route data
-        const response = await axios.post('/api/dashboard.php', {
-          method: 'getParcelRoute',
-          trackingId: parcel.trackingId,
-          mailId: parcel.mailId
-        });
-
-        console.log('Route API Response:', response.data);
-
-        if (response.data.success) {
-          this.routeData = response.data.routeData;
-          console.log('Route data loaded successfully:', this.routeData);
-        } else {
-          throw new Error(response.data.error || 'Failed to load route data');
-        }
-      } catch (error) {
-        console.error('Error fetching route data:', error);
-        this.routeError = 'Failed to load route information. Please try again.';
-
-        // Fallback to basic route data using coordinates
-        this.routeData = {
-          waypoints: [
-            {
-              location: this.getLocationName(parcel.location),
-              coordinates: parcel.location,
-              timestamp: parcel.createdDate,
-              status: 'Departure',
-              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
-            },
-            {
-              location: this.getLocationName(parcel.destination),
-              coordinates: parcel.destination,
-              timestamp: parcel.expectedDelivery,
-              status: 'Destination',
-              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
-            }
-          ],
-          estimatedDuration: '3-5 days',
-          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
-        };
-      } finally {
-        this.routeLoading = false;
-      }
-
-      // Update the globe separately if needed (keeping globe functionality intact)
+      // Update globe to show the selected parcel route
       if (this.globe && this.globeInitialized) {
         this.updateGlobeRoute(parcel);
       }
@@ -986,10 +937,10 @@ export default {
 
         this.focusOnRoute(parcel.location, parcel.destination);
 
-        console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
+        console.log('✅ Globe route updated successfully');
 
       } catch (error) {
-        console.error('Error updating globe route:', error);
+        console.error('❌ Error updating globe route:', error);
       }
     },
 
@@ -1127,6 +1078,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 /* Your existing CSS styles remain exactly the same */
 /* Import Font Awesome */
@@ -1559,11 +1511,12 @@ export default {
   margin-bottom: 1rem;
 }
 
-/* Parcel Information Section */
+/* Parcel Information Section - NOW BELOW GLOBE */
 .parcel-information {
   background: var(--light-pink);
   border-radius: 12px;
   padding: 1.5rem;
+  margin-top: 1rem;
 }
 
 .parcel-header {
