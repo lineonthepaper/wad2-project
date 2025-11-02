@@ -47,17 +47,20 @@
             </button>
             <h1 class="jua text-hot-pink mb-0">Shipment Details</h1>
             <div class="status-display">
-
+              <span class="badge status-badge" :class="getStatusBadgeClass(transaction.status)">
+                {{ formatStatus(transaction.status) }}
+              </span>
             </div>
           </div>
-
         </div>
       </div>
-<div class="text-center mb-3">
-  <h4 class="text-white mb-2 fw-bold text-decoration-underline">
-    TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
-  </h4>
-</div>
+
+      <div class="text-center mb-3">
+        <h4 class="text-white mb-2 fw-bold text-decoration-underline">
+          TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
+        </h4>
+      </div>
+
       <div class="container mt-4">
         <div class="row">
           <!-- Main Content -->
@@ -75,42 +78,20 @@
                   <div class="col-md-6">
                     <h6 class="text-muted">From:</h6>
                     <div class="address-section">
-                      <strong>{{ senderAddress?.name || 'N/A' }}</strong>
-                      <p class="mb-1">{{ senderAddressLine1 }}</p>
-                      <p class="mb-1" v-if="senderAddressLine2">{{ senderAddressLine2 }}</p>
-                      <p class="mb-1" v-if="senderAddressLine3">{{ senderAddressLine3 }}</p>
-                      <p class="mb-0">
-                        {{ senderAddress?.postalCode || 'N/A' }},
-                        {{ getCountryName(senderAddress?.countryCode) }}
-                      </p>
-                      <p class="mb-0" v-if="senderAddress?.phone">
-                        <i class="fas fa-phone me-1"></i>
-                        {{ senderAddress?.phoneCountryCode || '' }} {{ senderAddress?.phone }}
-                      </p>
-                      <p class="mb-0">
-                        <i class="fas fa-envelope me-1"></i>
-                        {{ senderAddress?.email || 'N/A' }}
+                      <strong>{{ transaction.senderAddress?.name || 'N/A' }}</strong>
+                      <p class="mb-1">{{ getCountryName(transaction.senderAddress?.countryCode) }}</p>
+                      <p class="mb-0 text-muted">
+                        <small>Coordinates: {{ transaction.senderAddress?.coordinates?.lat?.toFixed(4) }}, {{ transaction.senderAddress?.coordinates?.lng?.toFixed(4) }}</small>
                       </p>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <h6 class="text-muted">To:</h6>
                     <div class="address-section">
-                      <strong>{{ recipientAddress?.name || 'N/A' }}</strong>
-                      <p class="mb-1">{{ recipientAddressLine1 }}</p>
-                      <p class="mb-1" v-if="recipientAddressLine2">{{ recipientAddressLine2 }}</p>
-                      <p class="mb-1" v-if="recipientAddressLine3">{{ recipientAddressLine3 }}</p>
-                      <p class="mb-0">
-                        {{ recipientAddress?.postalCode || 'N/A' }},
-                        {{ getCountryName(recipientAddress?.countryCode) }}
-                      </p>
-                      <p class="mb-0" v-if="recipientAddress?.phone">
-                        <i class="fas fa-phone me-1"></i>
-                        {{ recipientAddress?.phoneCountryCode || '' }} {{ recipientAddress?.phone }}
-                      </p>
-                      <p class="mb-0">
-                        <i class="fas fa-envelope me-1"></i>
-                        {{ recipientAddress?.email || 'N/A' }}
+                      <strong>{{ transaction.recipientAddress?.name || 'N/A' }}</strong>
+                      <p class="mb-1">{{ getCountryName(transaction.recipientAddress?.countryCode) }}</p>
+                      <p class="mb-0 text-muted">
+                        <small>Coordinates: {{ transaction.recipientAddress?.coordinates?.lat?.toFixed(4) }}, {{ transaction.recipientAddress?.coordinates?.lng?.toFixed(4) }}</small>
                       </p>
                     </div>
                   </div>
@@ -119,9 +100,9 @@
                 <!-- Progress Bar -->
                 <div class="route-progress mt-4">
                   <div class="progress-labels d-flex justify-content-between">
-                    <span class="progress-label">{{ getCountryName(senderAddress?.countryCode) }}</span>
+                    <span class="progress-label">{{ getCountryName(transaction.senderAddress?.countryCode) }}</span>
                     <span class="progress-percent">{{ Math.round(getProgressWidth(transaction.status)) }}%</span>
-                    <span class="progress-label">{{ getCountryName(recipientAddress?.countryCode) }}</span>
+                    <span class="progress-label">{{ getCountryName(transaction.recipientAddress?.countryCode) }}</span>
                   </div>
                   <div class="progress-track">
                     <div class="progress-bar">
@@ -158,6 +139,10 @@
                       <span class="detail-label">Total Weight:</span>
                       <span class="detail-value">{{ transaction.totalWeight }} kg</span>
                     </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Created Date:</span>
+                      <span class="detail-value">{{ formatDate(transaction.createdDate) }}</span>
+                    </div>
                   </div>
                   <div class="col-md-6">
                     <div class="detail-item">
@@ -168,13 +153,17 @@
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Total Value:</span>
-                      <span class="detail-value">${{ transaction.totalValue }}</span>
+                      <span class="detail-value">${{ transaction.totalValue.toFixed(2) }}</span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Payment Status:</span>
                       <span class="detail-value badge" :class="transaction.hasBeenPaid ? 'bg-success' : 'bg-warning text-dark'">
                         {{ transaction.hasBeenPaid ? 'Paid' : 'Pending' }}
                       </span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Expected Delivery:</span>
+                      <span class="detail-value">{{ formatDate(transaction.expectedDelivery) }}</span>
                     </div>
                   </div>
                 </div>
@@ -198,8 +187,7 @@
                         <th>Quantity</th>
                         <th>Weight (kg)</th>
                         <th>Value</th>
-                        <th>Currency</th>
-                        <th>HS Code</th>
+                        <th>Total Value</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -207,11 +195,16 @@
                         <td>{{ item.itemDescription }}</td>
                         <td>{{ item.itemQuantity }}</td>
                         <td>{{ item.itemWeight }}</td>
-                        <td>${{ item.declaredValue }}</td>
-                        <td>{{ item.declaredCurrency }}</td>
-                        <td>{{ item.hsCode || 'N/A' }}</td>
+                        <td>${{ item.declaredValue.toFixed(2) }}</td>
+                        <td>${{ (item.declaredValue * item.itemQuantity).toFixed(2) }}</td>
                       </tr>
                     </tbody>
+                    <tfoot>
+                      <tr class="table-primary">
+                        <td colspan="4" class="text-end fw-bold">Total:</td>
+                        <td class="fw-bold">${{ transaction.totalValue.toFixed(2) }}</td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </div>
@@ -230,7 +223,7 @@
               </div>
               <div class="card-body">
                 <div class="timeline">
-                  <div class="timeline-item" :class="{ active: transaction.status === 'pending' }">
+                  <div class="timeline-item" :class="{ active: true }">
                     <div class="timeline-marker"></div>
                     <div class="timeline-content">
                       <h6>Order Created</h6>
@@ -242,6 +235,7 @@
                     <div class="timeline-content">
                       <h6>In Transit</h6>
                       <p class="text-muted mb-0" v-if="transaction.status === 'in_transit'">Currently in transit</p>
+                      <p class="text-muted mb-0" v-else-if="transaction.status === 'delivered'">Completed on {{ formatDate(transaction.expectedDelivery) }}</p>
                     </div>
                   </div>
                   <div class="timeline-item" :class="{ active: transaction.status === 'delivered' }">
@@ -249,7 +243,7 @@
                     <div class="timeline-content">
                       <h6>Delivered</h6>
                       <p class="text-muted mb-0" v-if="transaction.status === 'delivered'">
-                        {{ formatDate(transaction.expectedDelivery) }}
+                        Delivered on {{ formatDate(transaction.expectedDelivery) }}
                       </p>
                       <p class="text-muted mb-0" v-else>
                         Expected: {{ formatDate(transaction.expectedDelivery) }}
@@ -282,7 +276,28 @@
               </div>
             </div>
 
-
+            <!-- Quick Actions Card -->
+            <div class="detail-card card mb-4">
+              <div class="card-header bg-light-pink">
+                <h4 class="mb-0">
+                  <i class="fas fa-bolt me-2"></i>
+                  Quick Actions
+                </h4>
+              </div>
+              <div class="card-body">
+                <div class="d-grid gap-2">
+                  <button class="btn btn-outline-primary" @click="downloadLabel">
+                    <i class="fas fa-download me-2"></i>Download Shipping Label
+                  </button>
+                  <button class="btn btn-outline-info" @click="trackPackage">
+                    <i class="fas fa-map-marker-alt me-2"></i>Live Tracking
+                  </button>
+                  <button class="btn btn-outline-warning" v-if="!transaction.hasBeenPaid" @click="makePayment">
+                    <i class="fas fa-credit-card me-2"></i>Make Payment
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -304,8 +319,6 @@ export default {
     const isAuthenticated = ref(false)
     const user = ref({ email: '' })
     const transaction = ref(null)
-    const senderAddress = ref(null)
-    const recipientAddress = ref(null)
     const loading = ref(false)
     const error = ref(null)
 
@@ -326,15 +339,6 @@ export default {
       }
     }
 
-    // Computed properties for address lines
-    const senderAddressLine1 = computed(() => senderAddress.value?.address?.addressLines?.[0] || 'N/A')
-    const senderAddressLine2 = computed(() => senderAddress.value?.address?.addressLines?.[1] || '')
-    const senderAddressLine3 = computed(() => senderAddress.value?.address?.addressLines?.[2] || '')
-
-    const recipientAddressLine1 = computed(() => recipientAddress.value?.address?.addressLines?.[0] || 'N/A')
-    const recipientAddressLine2 = computed(() => recipientAddress.value?.address?.addressLines?.[1] || '')
-    const recipientAddressLine3 = computed(() => recipientAddress.value?.address?.addressLines?.[2] || '')
-
     // Methods
     const fetchTransactionDetails = async () => {
       if (!isAuthenticated.value) return
@@ -343,7 +347,7 @@ export default {
       error.value = null
 
       try {
-        const transactionId = route.params.id
+        const transactionId = parseInt(route.params.id)
 
         // First try to get from session storage (from click)
         const storedTransaction = sessionStorage.getItem('selectedTransaction')
@@ -351,16 +355,17 @@ export default {
           transaction.value = JSON.parse(storedTransaction)
           console.log('Loaded transaction from session storage:', transaction.value)
         } else {
-          // If not in session storage, fetch from API
-          console.log('Fetching transaction from API for ID:', transactionId)
-          const response = await fetch('/api/mail.php', {
+          // If not in session storage, fetch all transactions and find the specific one
+          console.log('Fetching transactions from dashboard API for user:', user.value.email)
+
+          const response = await fetch('/api/dashboard.php', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              method: 'getMailById',
-              mailId: parseInt(transactionId)
+              method: 'getAllMailByCustomerEmail',
+              customerEmail: user.value.email
             })
           })
 
@@ -369,73 +374,48 @@ export default {
           }
 
           const data = await response.json()
-          console.log('API Response for transaction:', data)
+          console.log('Dashboard API Response:', data)
 
-          if (data.success && data.mail) {
-            transaction.value = data.mail
+          if (data.success && data.shipments) {
+            // Find the specific transaction by ID
+            const foundTransaction = data.shipments.find(
+              shipment => shipment.mailId === transactionId
+            )
+
+            if (foundTransaction) {
+              transaction.value = foundTransaction
+              console.log('Found transaction:', foundTransaction)
+            } else {
+              throw new Error(`Transaction with ID ${transactionId} not found in your shipments`)
+            }
           } else {
-            throw new Error(data.error || 'Transaction not found')
+            throw new Error(data.error || 'Failed to load shipments')
           }
-        }
-
-        // Fetch address details if available
-        if (transaction.value) {
-          await fetchAddressDetails()
         }
 
       } catch (err) {
         console.error('Error loading transaction details:', err)
         error.value = `Failed to load transaction details: ${err.message}`
+
+        // Fallback: try to get from transaction history data
+        try {
+          const transactionsData = sessionStorage.getItem('userTransactions')
+          if (transactionsData) {
+            const transactions = JSON.parse(transactionsData)
+            const foundTransaction = transactions.find(
+              t => t.mailId === parseInt(route.params.id)
+            )
+            if (foundTransaction) {
+              transaction.value = foundTransaction
+              error.value = null
+              console.log('Found transaction in fallback data:', foundTransaction)
+            }
+          }
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError)
+        }
       } finally {
         loading.value = false
-      }
-    }
-
-    const fetchAddressDetails = async () => {
-      try {
-        // Fetch sender address
-        if (transaction.value.senderAddressId) {
-          const senderResponse = await fetch('/api/addresses.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              method: 'getAddressById',
-              addressId: transaction.value.senderAddressId
-            })
-          })
-
-          if (senderResponse.ok) {
-            const senderData = await senderResponse.json()
-            if (senderData.success) {
-              senderAddress.value = senderData.address
-            }
-          }
-        }
-
-        // Fetch recipient address
-        if (transaction.value.recipientAddressId) {
-          const recipientResponse = await fetch('/api/addresses.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              method: 'getAddressById',
-              addressId: transaction.value.recipientAddressId
-            })
-          })
-
-          if (recipientResponse.ok) {
-            const recipientData = await recipientResponse.json()
-            if (recipientData.success) {
-              recipientAddress.value = recipientData.address
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching address details:', err)
       }
     }
 
@@ -472,11 +452,11 @@ export default {
 
     const getProgressWidth = (status) => {
       const progressMap = {
-        'pending': '25%',
-        'in_transit': '60%',
-        'delivered': '100%'
+        'pending': 25,
+        'in_transit': 60,
+        'delivered': 100
       }
-      return progressMap[status] || '0%'
+      return progressMap[status] || 0
     }
 
     const getCountryName = (countryCode) => {
@@ -493,9 +473,26 @@ export default {
         'FR': 'France',
         'DE': 'Germany',
         'IT': 'Italy',
-        'IN': 'India'
+        'IN': 'India',
+        'TH': 'Thailand',
+        'VN': 'Vietnam',
+        'PH': 'Philippines',
+        'ID': 'Indonesia'
       }
-      return countryMap[countryCode] || countryCode || 'Unknown'
+      return countryMap[countryCode] || countryCode || 'Unknown Country'
+    }
+
+    // Action methods
+    const downloadLabel = () => {
+      alert('Downloading shipping label for TRK-' + transaction.value.trackingNumber.toString().padStart(6, '0'))
+    }
+
+    const trackPackage = () => {
+      alert('Opening live tracking for TRK-' + transaction.value.trackingNumber.toString().padStart(6, '0'))
+    }
+
+    const makePayment = () => {
+      alert('Redirecting to payment for TRK-' + transaction.value.trackingNumber.toString().padStart(6, '0'))
     }
 
     const goBack = () => {
@@ -518,14 +515,6 @@ export default {
       isAuthenticated,
       user,
       transaction,
-      senderAddress,
-      recipientAddress,
-      senderAddressLine1,
-      senderAddressLine2,
-      senderAddressLine3,
-      recipientAddressLine1,
-      recipientAddressLine2,
-      recipientAddressLine3,
       loading,
       error,
       fetchTransactionDetails,
@@ -534,6 +523,9 @@ export default {
       formatDate,
       getProgressWidth,
       getCountryName,
+      downloadLabel,
+      trackPackage,
+      makePayment,
       goBack,
       redirectToLogin
     }
@@ -542,14 +534,8 @@ export default {
 </script>
 
 <style scoped>
+/* Your existing CSS remains the same */
 .history-detail-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
-}
-
-
-
-.transaction-detail-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
 }
