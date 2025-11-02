@@ -100,36 +100,100 @@
                   </div>
                 </div>
 
-                <div v-if="selectedParcel" class="selected-parcel-info">
-                  <div class="parcel-header">
-                    <h4>Active Tracking: {{ selectedParcel.trackingId }}</h4>
-                    <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
-                      {{ selectedParcel.status }}
-                    </span>
-                  </div>
-                  <div class="route-progress">
-                    <div class="progress-labels">
-                      <span class="progress-label">{{ getLocationName(selectedParcel.location) }}</span>
-                      <span class="progress-percent">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
-                      <span class="progress-label">{{ getLocationName(selectedParcel.destination) }}</span>
-                    </div>
-                    <div class="progress-track">
-                      <div class="progress-bar">
-                        <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
-                        <div class="progress-marker" :style="{ left: calculateProgress(selectedParcel) + '%' }">
-                          <i class="fas fa-shipping-fast"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="no-selection">
-                  <i class="fas fa-mouse-pointer"></i>
-                  <p>Select a shipment from the list to view its route</p>
-                </div>
-              </div>
-            </div>
-          </div>
+              <div v-if="selectedParcel" class="selected-parcel-info">
+  <div class="parcel-header">
+    <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
+    <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
+      {{ selectedParcel.status }}
+    </span>
+  </div>
+
+  <div class="parcel-details-grid">
+    <div class="detail-section">
+      <h5><i class="fas fa-route"></i> Route Information</h5>
+      <div class="detail-item">
+        <span class="detail-label">From:</span>
+        <span class="detail-value">{{ getLocationName(selectedParcel.location) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">To:</span>
+        <span class="detail-value">{{ getLocationName(selectedParcel.destination) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Current Location:</span>
+        <span class="detail-value">{{ getLocationName(selectedParcel.currentLocation) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Progress:</span>
+        <span class="detail-value">{{ Math.round(calculateProgress(selectedParcel)) }}% Complete</span>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h5><i class="fas fa-info-circle"></i> Shipment Details</h5>
+      <div class="detail-item">
+        <span class="detail-label">Service:</span>
+        <span class="detail-value">{{ selectedParcel.service?.name || 'Standard' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Weight:</span>
+        <span class="detail-value">{{ selectedParcel.totalWeight }} kg</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Value:</span>
+        <span class="detail-value">${{ selectedParcel.totalValue }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Dimensions:</span>
+        <span class="detail-value" v-if="selectedParcel.rawData">
+          {{ selectedParcel.rawData.parcelLength }}×{{ selectedParcel.rawData.parcelWidth }}×{{ selectedParcel.rawData.parcelHeight }} cm
+        </span>
+        <span class="detail-value" v-else>N/A</span>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h5><i class="fas fa-calendar-alt"></i> Timeline</h5>
+      <div class="detail-item">
+        <span class="detail-label">Created:</span>
+        <span class="detail-value">{{ formatDateTime(selectedParcel.createdDate) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Expected Delivery:</span>
+        <span class="detail-value">{{ formatDate(selectedParcel.expectedDelivery) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Payment Status:</span>
+        <span class="detail-value" :class="selectedParcel.hasBeenPaid ? 'paid' : 'unpaid'">
+          {{ selectedParcel.hasBeenPaid ? 'Paid' : 'Pending Payment' }}
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Shipment ID:</span>
+        <span class="detail-value">{{ selectedParcel.mailId }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Items information -->
+  <div class="items-section" v-if="selectedParcel.rawData && selectedParcel.rawData.mailItems">
+    <h5><i class="fas fa-box-open"></i> Package Contents</h5>
+    <div class="items-list">
+      <div class="item" v-for="item in selectedParcel.rawData.mailItems" :key="item.itemId">
+        <div class="item-description">{{ item.itemDescription }}</div>
+        <div class="item-details">
+          <span>Qty: {{ item.itemQuantity }}</span>
+          <span>Weight: {{ item.itemWeight }} kg</span>
+          <span>Value: ${{ item.declaredValue }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div v-else class="no-selection">
+  <i class="fas fa-mouse-pointer"></i>
+  <p>Select a shipment from the list to view details</p>
+</div>
 
           <div class="section-column parcels-column">
             <div class="section-card">
@@ -280,10 +344,7 @@ export default {
       arcsData: [],
       pointsData: [],
       refreshInterval: null,
-      usingFallbackData: false,
-      routeData: null,
-      routeLoading: false,
-      routeError: null
+      usingFallbackData: false
     };
   },
   computed: {
@@ -342,9 +403,6 @@ export default {
           chartData: [50, 55, 60, 65, 70, 75, 80]
         }
       ];
-    },
-    hasRouteData() {
-      return this.routeData && this.routeData.waypoints && this.routeData.waypoints.length > 0;
     }
   },
   mounted() {
@@ -401,7 +459,6 @@ export default {
         this.notifications = [];
         this.stats = { inProgress: 0, delivered: 0, pending: 0 };
         this.usingFallbackData = false;
-        this.routeData = null;
       }
     },
 
@@ -834,123 +891,44 @@ export default {
       }
     },
 
-    async showParcelRoute(parcel) {
-      console.log('🎯 Showing route for parcel:', parcel.trackingId);
+    showParcelRoute(parcel) {
+      console.log('🎯 Showing parcel information for:', parcel.trackingId);
 
       // Set the selected parcel
       this.selectedParcel = parcel;
-      this.routeLoading = true;
-      this.routeError = null;
 
-      try {
-        // Call backend API to get route data
-        const response = await axios.post('/api/dashboard.php', {
-          method: 'getParcelRoute',
-          trackingId: parcel.trackingId,
-          mailId: parcel.mailId
-        });
-
-        console.log('Route API Response:', response.data);
-
-        if (response.data.success) {
-          this.routeData = response.data.routeData;
-          console.log('Route data loaded successfully:', this.routeData);
-        } else {
-          throw new Error(response.data.error || 'Failed to load route data');
-        }
-      } catch (error) {
-        console.error('Error fetching route data:', error);
-        this.routeError = 'Failed to load route information. Please try again.';
-
-        // Fallback to basic route data using coordinates
-        this.routeData = {
-          waypoints: [
-            {
-              location: this.getLocationName(parcel.location),
-              coordinates: parcel.location,
-              timestamp: parcel.createdDate,
-              status: 'Departure',
-              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
-            },
-            {
-              location: this.getLocationName(parcel.destination),
-              coordinates: parcel.destination,
-              timestamp: parcel.expectedDelivery,
-              status: 'Destination',
-              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
-            }
-          ],
-          estimatedDuration: '3-5 days',
-          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
-        };
-      } finally {
-        this.routeLoading = false;
-      }
-
-      // Update the globe separately if needed (keeping globe functionality intact)
+      // Update the globe to focus on this parcel (no routes)
       if (this.globe && this.globeInitialized) {
-        this.updateGlobeRoute(parcel);
+        this.focusOnParcel(parcel);
       }
     },
 
-    updateGlobeRoute(parcel) {
-      if (!this.globe || !this.globeInitialized) return;
-
-      try {
-        console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
-
-        // Show the full route from start to destination
-        this.arcsData = [{
-          startLat: parcel.location[0],
-          startLng: parcel.location[1],
-          endLat: parcel.destination[0],
-          endLng: parcel.destination[1],
-          color: '#ff4444'
-        }];
-
-        // Also show current position arc if in transit
-        if (parcel.status === 'In Progress' && parcel.progress > 0) {
-          this.arcsData.push({
-            startLat: parcel.location[0],
-            startLng: parcel.location[1],
-            endLat: parcel.currentLocation[0],
-            endLng: parcel.currentLocation[1],
-            color: '#00ff00'
-          });
-        }
-
-        this.globe
-          .arcsData(this.arcsData)
-          .arcStartLat(d => d.startLat)
-          .arcStartLng(d => d.startLng)
-          .arcEndLat(d => d.endLat)
-          .arcEndLng(d => d.endLng)
-          .arcColor(d => d.color)
-          .arcStroke(1.5)
-          .arcAltitude(0.05);
-
-        this.focusOnRoute(parcel.location, parcel.destination);
-
-        console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
-
-      } catch (error) {
-        console.error('Error updating globe route:', error);
-      }
-    },
-
-    focusOnRoute(start, end) {
+    focusOnParcel(parcel) {
       if (!this.globe) return;
 
-      const midLat = (start[0] + end[0]) / 2;
-      const midLng = (start[1] + end[1]) / 2;
+      try {
+        console.log('🔄 Focusing globe on parcel:', parcel.trackingId);
 
-      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 });
+        // Clear any existing routes
+        this.arcsData = [];
+        this.globe.arcsData(this.arcsData);
+
+        // Focus on the parcel's current location
+        this.globe.pointOfView({
+          lat: parcel.currentLocation[0],
+          lng: parcel.currentLocation[1],
+          altitude: 1.5
+        });
+
+        console.log('✅ Globe focused on parcel');
+
+      } catch (error) {
+        console.error('Error focusing globe on parcel:', error);
+      }
     },
 
     clearRoute() {
       this.selectedParcel = null;
-      this.routeData = null;
-      this.routeError = null;
 
       if (this.globe && this.globeInitialized) {
         this.arcsData = [];
@@ -1041,6 +1019,21 @@ export default {
       }
     },
 
+    formatDateTime(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        return new Date(dateString).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (error) {
+        return 'Invalid Date';
+      }
+    },
+
     forceReinit() {
       this.globeInitialized = false;
       this.globeError = false;
@@ -1056,7 +1049,6 @@ export default {
 
       this.arcsData = [];
       this.selectedParcel = null;
-      this.routeData = null;
 
       // Reinitialize after a short delay
       this.$nextTick(() => {
@@ -1087,6 +1079,7 @@ export default {
   --light-pink: #ffe8ee;
   --pink-grey: #f1d9df;
 }
+
 
 /* Base Styles */
 .dashboard-wrapper {
@@ -1972,6 +1965,134 @@ export default {
 
   .stat-value {
     font-size: 2rem;
+  }
+}
+
+.selected-parcel-info {
+  background: var(--light-pink);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.parcel-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-section h5 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--dark-slate-blue);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--pink-grey);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: var(--slate-blue);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 0.85rem;
+  color: var(--dark-slate-blue);
+  font-weight: 600;
+  text-align: right;
+}
+
+.detail-value.paid {
+  color: var(--hot-pink);
+}
+
+.detail-value.unpaid {
+  color: var(--dark-pink);
+}
+
+.items-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pink-grey);
+}
+
+.items-section h5 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--dark-slate-blue);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--pink-grey);
+}
+
+.item-description {
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.item-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--slate-blue);
+}
+
+.no-selection {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--slate-blue);
+}
+
+.no-selection i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  color: var(--pink);
+}
+
+.no-selection p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .parcel-details-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .item-details {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 </style>
