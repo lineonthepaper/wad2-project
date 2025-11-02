@@ -523,8 +523,11 @@ export default {
           console.log('Successfully loaded', this.parcels.length, 'shipments');
 
           // Update globe data if globe is already initialized
-          if (this.globeInitialized) {
+          if (this.globeInitialized && this.globe) {
+            console.log('Updating globe with new shipment data');
             this.updateGlobeData();
+          } else {
+            console.log('Globe not ready yet, data will be loaded when globe initializes');
           }
 
         } else {
@@ -553,8 +556,11 @@ export default {
       this.generateNotifications();
 
       // Update globe data if globe is already initialized
-      if (this.globeInitialized) {
+      if (this.globeInitialized && this.globe) {
+        console.log('Updating globe after using fallback data');
         this.updateGlobeData();
+      } else {
+        console.log('Globe not ready, data will be loaded when globe initializes');
       }
     },
 
@@ -852,12 +858,17 @@ export default {
         // Set initial view
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
-        // Initialize with points data first
-        this.updateGlobeData();
-
         this.globeInitialized = true;
         this.globeError = false;
         console.log('Globe initialized successfully');
+
+        // Now update with any existing parcel data
+        if (this.parcels && this.parcels.length > 0) {
+          console.log('Loading existing parcel data into globe:', this.parcels.length, 'parcels');
+          this.updateGlobeData();
+        } else {
+          console.log('No parcel data yet to load into globe');
+        }
 
       } catch (error) {
         console.error('Globe initialization error:', error);
@@ -867,18 +878,35 @@ export default {
     },
 
     updateGlobeData() {
-      if (!this.globe || !this.globeInitialized) return;
+      if (!this.globe || !this.globeInitialized) {
+        console.log('Cannot update globe data - globe not initialized');
+        return;
+      }
+
+      if (!this.parcels || this.parcels.length === 0) {
+        console.log('No parcels to display on globe');
+        // Clear any existing data
+        this.globe.pointsData([]);
+        this.globe.arcsData([]);
+        return;
+      }
 
       try {
+        console.log('Updating globe with', this.parcels.length, 'parcels');
+
         // Create points data for all parcels
-        this.pointsData = this.parcels.map(parcel => ({
-          ...parcel,
-          lat: parcel.currentLocation[0],
-          lng: parcel.currentLocation[1],
-          color: this.getStatusColor(parcel.status),
-          size: 0.3,
-          label: `${parcel.trackingId}: ${parcel.status}`
-        }));
+        this.pointsData = this.parcels.map(parcel => {
+          const point = {
+            ...parcel,
+            lat: parcel.currentLocation[0],
+            lng: parcel.currentLocation[1],
+            color: this.getStatusColor(parcel.status),
+            size: 0.3,
+            label: `${parcel.trackingId}: ${parcel.status}`
+          };
+          console.log('Created point:', point.label, 'at', point.lat, point.lng);
+          return point;
+        });
 
         // Update globe with points
         this.globe
@@ -890,10 +918,10 @@ export default {
           .pointRadius('size')
           .pointLabel('label');
 
-        console.log('Globe data updated with', this.pointsData.length, 'points');
+        console.log('✅ Globe data updated successfully with', this.pointsData.length, 'points');
 
       } catch (error) {
-        console.error('Error updating globe data:', error);
+        console.error('❌ Error updating globe data:', error);
       }
     },
 
@@ -1088,7 +1116,6 @@ export default {
 };
 </script>
 <style scoped>
-/* Your existing CSS styles remain exactly the same */
 /* Import Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
