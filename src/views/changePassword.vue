@@ -17,7 +17,7 @@ const showDeleteModal = ref(false)
 const deletePassword = ref('')
 const deleteLoading = ref(false)
 
-// Check authentication and load current user
+
 const checkAuth = () => {
   const stored = sessionStorage.getItem('currentUser')
   if (!stored) {
@@ -38,19 +38,18 @@ const checkAuth = () => {
   }
 }
 
-// Load current user from sessionStorage with auth check
+
 onMounted(() => {
   checkAuth()
 })
 
-// Watch for changes in currentUser and redirect if becomes null
+
 watch(currentUser, (newVal) => {
   if (!newVal) {
     router.push('/login')
   }
 })
 
-// Handle display name change
 const changeDisplayName = async () => {
   if (!displayName.value.trim()) {
     alert('Display name cannot be empty.')
@@ -89,7 +88,7 @@ const changeDisplayName = async () => {
     console.log('Update display name response:', result)
 
     if (response.ok) {
-      // Update both possible property names
+
       currentUser.value.displayName = displayName.value.trim()
       currentUser.value.display_name = displayName.value.trim()
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
@@ -105,7 +104,7 @@ const changeDisplayName = async () => {
   }
 }
 
-// Handle email change
+
 const changeEmail = async () => {
   if (!email.value.trim()) {
     alert('Email cannot be empty.')
@@ -117,7 +116,7 @@ const changeEmail = async () => {
     return
   }
 
-  // Basic email validation
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email.value.trim())) {
     alert('Please enter a valid email address.')
@@ -151,7 +150,7 @@ const changeEmail = async () => {
     console.log('Update email response:', result)
 
     if (response.ok) {
-      // Update email in current user data
+
       currentUser.value.email = email.value.trim()
       sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
       alert('Email updated successfully!')
@@ -166,7 +165,7 @@ const changeEmail = async () => {
   }
 }
 
-// Handle password change
+
 const changePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
     alert('Passwords do not match.')
@@ -194,7 +193,7 @@ const changePassword = async () => {
 
   passwordLoading.value = true
   try {
-    // Step 1: Verify old password
+
     const verifyResponse = await fetch('/api/accounts.php', {
       method: 'POST',
       headers: {
@@ -215,7 +214,7 @@ const changePassword = async () => {
       return
     }
 
-    // Step 2: Update password
+
     const updateResponse = await fetch('/api/accounts.php', {
       method: 'POST',
       headers: {
@@ -247,7 +246,7 @@ const changePassword = async () => {
   }
 }
 
-// Handle account deletion
+
 const deleteAccount = async () => {
   if (!deletePassword.value) {
     alert('Please enter your password to confirm account deletion.')
@@ -282,9 +281,13 @@ const deleteAccount = async () => {
 
     if (response.ok) {
       alert('Account deleted successfully!')
-      // Clear session and redirect to home/login
+
       sessionStorage.removeItem('currentUser')
       currentUser.value = null
+
+
+      window.dispatchEvent(new Event('loginStatusChanged'))
+
       router.push('/')
     } else {
       alert(result.message || 'Failed to delete account')
@@ -299,28 +302,29 @@ const deleteAccount = async () => {
   }
 }
 
-// Open delete confirmation modal
+
 const confirmDelete = () => {
   showDeleteModal.value = true
 }
 
-// Close delete modal
 const closeDeleteModal = () => {
   showDeleteModal.value = false
   deletePassword.value = ''
 }
 
-// Logout function
 const logout = () => {
   sessionStorage.removeItem('currentUser')
   currentUser.value = null
+
+
+  window.dispatchEvent(new Event('loginStatusChanged'))
+
   router.push('/login')
 }
 </script>
 
 <template>
   <div class="account-settings container my-5" v-if="currentUser">
-    <!-- Header with user info and logout -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="text-pink fw-bold mb-0">Account Settings</h2>
       <div class="d-flex align-items-center">
@@ -332,7 +336,6 @@ const logout = () => {
     </div>
 
     <div class="card shadow-lg p-4 rounded-4 border-0">
-      <!-- Change Display Name -->
       <div class="mb-4">
         <h5 class="fw-bold text-pink">Change Display Name</h5>
         <div class="input-group">
@@ -356,7 +359,7 @@ const logout = () => {
 
       <hr />
 
-      <!-- Change Email -->
+
       <div class="mb-4">
         <h5 class="fw-bold text-pink">Change Email</h5>
         <div class="input-group">
@@ -380,7 +383,7 @@ const logout = () => {
 
       <hr />
 
-      <!-- Change Password -->
+
       <div class="mb-4">
         <h5 class="fw-bold text-pink">Change Password</h5>
         <div class="form-group mb-2">
@@ -423,7 +426,6 @@ const logout = () => {
 
       <hr />
 
-      <!-- Delete Account -->
       <div class="mt-4">
         <h5 class="fw-bold text-danger">Danger!</h5>
         <p class="text-muted small mb-3">
@@ -439,7 +441,7 @@ const logout = () => {
       </div>
     </div>
 
-    <!-- Delete Account Modal -->
+
     <div v-if="showDeleteModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -490,7 +492,7 @@ const logout = () => {
     </div>
   </div>
 
-  <!-- Loading/Unauthorized state -->
+
   <div v-else class="container my-5">
     <div class="text-center">
       <div class="spinner-border text-pink" role="status">
