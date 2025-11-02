@@ -20,12 +20,12 @@
     <!-- Main Content for Authenticated Users -->
     <div v-else class="dashboard-wrapper">
       <hr />
-      <div class="row bg-light-pink justify-content-center airplane-header">
-        <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-          <h1 class="jua text-hot-pink">Transaction History</h1>
-        </div>
+    <div class="row bg-light-pink justify-content-center airplane-header">
+      <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+        <h1 class="jua text-hot-pink">Transaction History</h1>
       </div>
-      <hr />
+    </div>
+    <hr />
 
       <div class="container mt-4">
         <!-- Loading State -->

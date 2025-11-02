@@ -53,7 +53,11 @@
 
         </div>
       </div>
- <h4 class="text-white mb-0 mt-2">TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}</h4>
+<div class="text-center mb-3">
+  <h4 class="text-white mb-2 fw-bold text-decoration-underline">
+    TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
+  </h4>
+</div>
       <div class="container mt-4">
         <div class="row">
           <!-- Main Content -->
@@ -278,7 +282,7 @@
               </div>
             </div>
 
-           
+
           </div>
         </div>
       </div>
