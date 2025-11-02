@@ -98,6 +98,7 @@
                   <div v-else-if="!globeInitialized" class="globe-loading">
                     <div class="loading-spinner"></div>
                     <p>Initializing 3D Globe...</p>
+                    <button class="btn-retry" @click="forceReinit" style="margin-top: 1rem;">Force Initialize</button>
                   </div>
                 </div>
               </div>
@@ -474,13 +475,13 @@ export default {
       // Debug coordinates first
       this.debugCountryCoordinates();
 
-      // First initialize the globe
-      await this.$nextTick();
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await this.initGlobe();
-
-      // Then fetch shipments which will update the globe
+      // Fetch shipments first
       await this.fetchUserShipments();
+
+      // Then initialize the globe after DOM is ready
+      await this.$nextTick();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      this.initGlobe();
     },
 
     debugCountryCoordinates() {
@@ -830,21 +831,31 @@ export default {
 
     async initGlobe() {
       try {
-        console.log('Starting globe initialization...');
+        console.log('🌍 Starting globe initialization...');
 
         const container = this.$refs.globeContainer;
         if (!container) {
+          console.error('❌ Globe container not found in DOM');
           throw new Error('Globe container not found');
         }
+
+        console.log('✅ Globe container found:', container);
 
         // Ensure container has proper dimensions
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 400;
 
-        console.log('Container dimensions:', width, 'x', height);
+        console.log('📐 Container dimensions:', width, 'x', height);
+
+        if (width === 0 || height === 0) {
+          console.error('❌ Container has zero dimensions');
+          throw new Error('Container has invalid dimensions');
+        }
 
         // Clear any existing content
         container.innerHTML = '';
+
+        console.log('🚀 Creating Globe instance...');
 
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
@@ -853,25 +864,26 @@ export default {
           .height(height)
           (container);
 
-        console.log('Basic globe created');
+        console.log('✅ Globe instance created');
 
         // Set initial view
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
         this.globeInitialized = true;
         this.globeError = false;
-        console.log('Globe initialized successfully');
+        console.log('✅ Globe initialized successfully');
 
         // Now update with any existing parcel data
         if (this.parcels && this.parcels.length > 0) {
-          console.log('Loading existing parcel data into globe:', this.parcels.length, 'parcels');
+          console.log('📦 Loading existing parcel data into globe:', this.parcels.length, 'parcels');
+          await this.$nextTick();
           this.updateGlobeData();
         } else {
-          console.log('No parcel data yet to load into globe');
+          console.log('⚠️ No parcel data yet to load into globe');
         }
 
       } catch (error) {
-        console.error('Globe initialization error:', error);
+        console.error('❌ Globe initialization error:', error);
         this.globeError = true;
         this.globeInitialized = false;
       }
@@ -926,12 +938,25 @@ export default {
     },
 
     selectParcel(parcel) {
-      console.log('🎯 Selected parcel:', parcel.trackingId);
+      console.log('🎯 Parcel clicked:', parcel.trackingId);
+
+      // Prevent double-clicking issues
+      if (this.selectedParcel && this.selectedParcel.id === parcel.id) {
+        console.log('ℹ️ Same parcel already selected');
+        return;
+      }
+
       this.selectedParcel = parcel;
+      console.log('✅ Selected parcel set:', this.selectedParcel.trackingId);
 
       // Update globe to show the selected parcel route
       if (this.globe && this.globeInitialized) {
-        this.updateGlobeRoute(parcel);
+        console.log('🗺️ Updating globe route...');
+        this.$nextTick(() => {
+          this.updateGlobeRoute(parcel);
+        });
+      } else {
+        console.warn('⚠️ Globe not ready, cannot update route');
       }
     },
 
@@ -1085,6 +1110,7 @@ export default {
     },
 
     forceReinit() {
+      console.log('🔄 Force reinitializing globe...');
       this.globeInitialized = false;
       this.globeError = false;
 
@@ -1098,14 +1124,26 @@ export default {
       }
 
       this.arcsData = [];
-      this.selectedParcel = null;
+      this.pointsData = [];
+
+      // Don't clear selectedParcel - keep it selected
+      const currentSelection = this.selectedParcel;
       this.routeData = null;
 
       // Reinitialize after a short delay
       this.$nextTick(() => {
         setTimeout(() => {
-          this.initGlobe();
-        }, 300);
+          this.initGlobe().then(() => {
+            // Restore selection if there was one
+            if (currentSelection) {
+              console.log('🔄 Restoring selection:', currentSelection.trackingId);
+              this.selectedParcel = currentSelection;
+              this.$nextTick(() => {
+                this.updateGlobeRoute(currentSelection);
+              });
+            }
+          });
+        }, 500);
       });
     },
 
@@ -1412,15 +1450,27 @@ export default {
 .section-column {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+}
+
+.globe-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.parcels-column {
+  display: flex;
+  flex-direction: column;
 }
 
 .section-card {
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  height: 100%;
   display: flex;
   flex-direction: column;
+  margin-bottom: 0;
 }
 
 .card-header {
