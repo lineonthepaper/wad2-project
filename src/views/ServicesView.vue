@@ -295,7 +295,7 @@ onMounted(() => {
                 </div>
               </div>
               <div class="card-footer bg-transparent">
-                <button class="btn btn-outline-primary w-100" @click.stop="goToDetail(service.id)">View Details</button>
+                <button class="buttonView w-100" @click.stop="goToDetail(service.id)">View Details</button>
               </div>
             </div>
           </div>
@@ -315,6 +315,26 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
+
+.buttonView {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #ff6297;
+  color: white !important;
+  text-decoration: none;
+  border: 2px solid #ff6297;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.buttonView:hover {
+  background-color: white;
+  color: #ff6297 !important;
+}
+
 .service-card:hover {
   transform: translateY(-5px);
 }

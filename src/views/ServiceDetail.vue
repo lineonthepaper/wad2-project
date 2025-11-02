@@ -194,6 +194,12 @@ onMounted(() => {
               </span>
             </div>
             <p class="description">{{ service.service_description }}</p>
+<router-link
+    to="/shipment"
+    class="buttonShipment"
+  >
+    📦 Ship Now!
+  </router-link>
 
             <p class="delivery-note mt-4">
               {{ service.delivery_note }}
@@ -277,6 +283,32 @@ onMounted(() => {
 </template>
 
 <style scoped>
+:root {
+  --hot-pink: #ff4275;
+  --dark-pink: #ff759e;
+  --pink: #ff9096;
+  --light-pink: #fff9fb;
+  --lighter-pink: #ffeef2;
+}
+.buttonShipment {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #ff6297;
+  color: white !important;
+  text-decoration: none;
+  border: 2px solid #ff6297;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.buttonShipment:hover {
+  background-color: white;
+  color: #ff6297 !important;
+}
+
+
 .service-detail {
   max-width: 1000px;
   background-color: white;
