@@ -86,6 +86,10 @@ try {
                     $isPaid = $mailDAO->isMailPaid($mail->getMailId());
                     $trackingNum = $mailDAO->getMailTrackingNum($mail->getMailId());
                     
+                    // Get coordinates for addresses
+                    $senderCoords = getCoordinatesForAddress($senderAddress);
+                    $recipientCoords = getCoordinatesForAddress($recipientAddress);
+                    
                     $enhancedMail = [
                         'mailId' => $mail->getMailId(),
                         'customerEmail' => $mail->getCustomerEmail(),
@@ -111,11 +115,13 @@ try {
                         'createdDate' => date('Y-m-d H:i:s'), // Use current date as fallback
                         'senderAddress' => $senderAddress ? [
                             'name' => $senderAddress->getName(),
-                            'countryCode' => $senderAddress->getAddress()['countryCode']
+                            'countryCode' => $senderAddress->getAddress()['countryCode'],
+                            'coordinates' => $senderCoords
                         ] : null,
                         'recipientAddress' => $recipientAddress ? [
                             'name' => $recipientAddress->getName(),
-                            'countryCode' => $recipientAddress->getAddress()['countryCode']
+                            'countryCode' => $recipientAddress->getAddress()['countryCode'],
+                            'coordinates' => $recipientCoords
                         ] : null,
                         'status' => determineStatus($latestStatus),
                         'expectedDelivery' => calculateExpectedDelivery($mail->getService())
@@ -189,6 +195,38 @@ function calculateExpectedDelivery($service) {
     return $expectedDate->format('Y-m-d');
 }
 
+function getCoordinatesForAddress($address) {
+    if (!$address) {
+        return ['lat' => 1.28478, 'lng' => 103.776222]; // Default to Singapore
+    }
+    
+    $addressData = $address->getAddress();
+    $countryCode = $addressData['countryCode'] ?? 'SG';
+    
+    // Country coordinates mapping
+    $countryCoordinates = [
+        'SG' => ['lat' => 1.28478, 'lng' => 103.776222],
+        'MY' => ['lat' => 3.153398, 'lng' => 101.697097],
+        'US' => ['lat' => 38.883757, 'lng' => -77.025347],
+        'UK' => ['lat' => 51.525751, 'lng' => -0.111290],
+        'CN' => ['lat' => 39.915494, 'lng' => 116.359857],
+        'JP' => ['lat' => 35.687015, 'lng' => 139.764585],
+        'KR' => ['lat' => 37.561637, 'lng' => 126.982072],
+        'AU' => ['lat' => -37.825337, 'lng' => 144.999122],
+        'CA' => ['lat' => 45.381872, 'lng' => -75.690368],
+        'FR' => ['lat' => 48.831429, 'lng' => 2.276772],
+        'DE' => ['lat' => 50.737742, 'lng' => 7.098077],
+        'IT' => ['lat' => 41.830555, 'lng' => 12.467820],
+        'IN' => ['lat' => 28.622656, 'lng' => 77.213115],
+        'TH' => ['lat' => 13.889791, 'lng' => 100.569561],
+        'VN' => ['lat' => 21.028398, 'lng' => 105.833947],
+        'PH' => ['lat' => 14.595453, 'lng' => 120.979232],
+        'ID' => ['lat' => 1.153575, 'lng' => 104.004398]
+    ];
+    
+    return $countryCoordinates[$countryCode] ?? ['lat' => 1.28478, 'lng' => 103.776222];
+}
+
 function getExampleShipments($customerEmail) {
     return [
         [
@@ -220,11 +258,13 @@ function getExampleShipments($customerEmail) {
             'createdDate' => date('Y-m-d H:i:s', strtotime('-2 days')),
             'senderAddress' => [
                 'name' => 'John Doe',
-                'countryCode' => 'SG'
+                'countryCode' => 'SG',
+                'coordinates' => ['lat' => 1.28478, 'lng' => 103.776222]
             ],
             'recipientAddress' => [
                 'name' => 'Sarah Wilson',
-                'countryCode' => 'US'
+                'countryCode' => 'US',
+                'coordinates' => ['lat' => 38.883757, 'lng' => -77.025347]
             ],
             'status' => 'in_transit',
             'expectedDelivery' => date('Y-m-d', strtotime('+3 days'))
@@ -258,11 +298,13 @@ function getExampleShipments($customerEmail) {
             'createdDate' => date('Y-m-d H:i:s', strtotime('-5 days')),
             'senderAddress' => [
                 'name' => 'John Doe',
-                'countryCode' => 'SG'
+                'countryCode' => 'SG',
+                'coordinates' => ['lat' => 1.28478, 'lng' => 103.776222]
             ],
             'recipientAddress' => [
                 'name' => 'Mike Chen',
-                'countryCode' => 'MY'
+                'countryCode' => 'MY',
+                'coordinates' => ['lat' => 3.153398, 'lng' => 101.697097]
             ],
             'status' => 'delivered',
             'expectedDelivery' => date('Y-m-d', strtotime('-1 day'))

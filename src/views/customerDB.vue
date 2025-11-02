@@ -537,84 +537,104 @@ export default {
       ];
     },
 
-    transformShipmentData(shipments) {
-      if (!shipments || !Array.isArray(shipments)) {
-        console.log('No shipments data found, using empty array');
-        return [];
+   transformShipmentData(shipments) {
+  if (!shipments || !Array.isArray(shipments)) {
+    console.log('No shipments data found, using empty array');
+    return [];
+  }
+
+  console.log('Transforming', shipments.length, 'shipments');
+
+  return shipments.map(shipment => {
+    try {
+      // Use coordinates directly from API if available, otherwise fallback to country lookup
+      let senderCoords, recipientCoords;
+
+      if (shipment.senderAddress?.coordinates) {
+        // Use coordinates from API
+        senderCoords = [shipment.senderAddress.coordinates.lat, shipment.senderAddress.coordinates.lng];
+        console.log('Using API coordinates for sender:', senderCoords);
+      } else {
+        // Fallback to country lookup
+        const senderCountry = shipment.senderAddress?.countryCode || 'SG';
+        senderCoords = this.getCountryCoordinates(senderCountry);
+        console.log('Using country lookup for sender:', senderCoords);
       }
 
-      console.log('Transforming', shipments.length, 'shipments');
+      if (shipment.recipientAddress?.coordinates) {
+        // Use coordinates from API
+        recipientCoords = [shipment.recipientAddress.coordinates.lat, shipment.recipientAddress.coordinates.lng];
+        console.log('Using API coordinates for recipient:', recipientCoords);
+      } else {
+        // Fallback to country lookup
+        const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+        recipientCoords = this.getCountryCoordinates(recipientCountry);
+        console.log('Using country lookup for recipient:', recipientCoords);
+      }
 
-      return shipments.map(shipment => {
-        try {
-          // Get coordinates from address data
-          const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-          const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+      // Determine current location based on status
+      let currentLocation = senderCoords;
+      const progress = this.calculateProgressFromStatus(shipment.status);
 
-          console.log('Sender country:', senderCountry, 'Recipient country:', recipientCountry);
+      if (progress > 0 && progress < 100) {
+        // For in-progress shipments, interpolate between start and end
+        currentLocation = [
+          senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
+          senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
+        ];
+      } else if (progress >= 100) {
+        currentLocation = recipientCoords;
+      }
 
-          const senderCoords = this.getCountryCoordinates(senderCountry);
-          const recipientCoords = this.getCountryCoordinates(recipientCountry);
+      // Create tracking ID from available data
+      let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
+      if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
+        trackingId = `TRK-${shipment.trackingNumber}`;
+      }
 
-          // Determine current location based on status
-          let currentLocation = senderCoords;
-          const progress = this.calculateProgressFromStatus(shipment.status);
+      const transformedParcel = {
+        id: shipment.mailId,
+        mailId: shipment.mailId,
+        trackingId: trackingId,
+        customer: shipment.senderAddress?.name || this.user.email,
+        status: this.mapApiStatus(shipment.status),
+        expectedDelivery: shipment.expectedDelivery,
+        location: senderCoords,
+        currentLocation: currentLocation,
+        destination: recipientCoords,
+        progress: progress,
+        service: shipment.service,
+        totalWeight: shipment.totalWeight,
+        totalValue: shipment.totalValue,
+        hasBeenPaid: shipment.hasBeenPaid,
+        createdDate: shipment.createdDate,
+        rawData: shipment
+      };
 
-          if (progress > 0 && progress < 100) {
-            // For in-progress shipments, interpolate between start and end
-            currentLocation = [
-              senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
-              senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
-            ];
-          } else if (progress >= 100) {
-            currentLocation = recipientCoords;
-          }
+      console.log('Transformed parcel:', transformedParcel);
+      return transformedParcel;
 
-          // Create tracking ID from available data
-          let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
-          if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
-            trackingId = `TRK-${shipment.trackingNumber}`;
-          }
-
-          const transformedParcel = {
-            id: shipment.mailId,
-            mailId: shipment.mailId,
-            trackingId: trackingId,
-            customer: shipment.senderAddress?.name || this.user.email,
-            status: this.mapApiStatus(shipment.status),
-            expectedDelivery: shipment.expectedDelivery,
-            location: senderCoords,
-            currentLocation: currentLocation,
-            destination: recipientCoords,
-            progress: progress,
-            service: shipment.service,
-            totalWeight: shipment.totalWeight,
-            totalValue: shipment.totalValue,
-            hasBeenPaid: shipment.hasBeenPaid,
-            createdDate: shipment.createdDate,
-            rawData: shipment
-          };
-
-          console.log('Transformed parcel:', transformedParcel);
-          return transformedParcel;
-
-        } catch (error) {
-          console.error('Error transforming shipment:', shipment, error);
-          return null;
-        }
-      }).filter(parcel => parcel !== null);
-    },
+    } catch (error) {
+      console.error('Error transforming shipment:', shipment, error);
+      return null;
+    }
+  }).filter(parcel => parcel !== null);
+},
 
     getCountryCoordinates(countryCode) {
-      const country = countryData.find(c => c.code2 === countryCode);
-      if (country) {
-        console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
-        return [country.lat, country.long];
-      }
-      // Default to Singapore if not found
-      console.warn(`Country code ${countryCode} not found, using Singapore as default`);
-      return [1.28478, 103.776222];
-    },
+  // Handle UK/GB country code variation
+  const code = countryCode === 'UK' ? 'GB' : countryCode;
+
+  const country = countryData.find(c => c.code2 === code);
+  if (country) {
+    console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
+    return [country.lat, country.long];
+  }
+
+  // Default to Singapore if not found
+  console.warn(`Country code ${countryCode} not found, using Singapore as default`);
+  return [1.28478, 103.776222];
+},
 
     calculateProgressFromStatus(status) {
       const progressMap = {
