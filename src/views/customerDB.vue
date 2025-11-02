@@ -392,7 +392,6 @@ export default {
       routeData: null,
       routeLoading: false,
       routeError: null,
-      // Add these new data properties
       isGlobeUpdating: false,
       parcelSelectionInProgress: false
     };
@@ -459,7 +458,6 @@ export default {
     }
   },
   mounted() {
-    // Add global error handler
     window.addEventListener('error', this.handleGlobalError);
     window.addEventListener('unhandledrejection', this.handleGlobalError);
 
@@ -487,7 +485,6 @@ export default {
       this.globe = null;
     }
 
-    // Remove global error handlers
     window.removeEventListener('error', this.handleGlobalError);
     window.removeEventListener('unhandledrejection', this.handleGlobalError);
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
@@ -532,18 +529,8 @@ export default {
 
     async initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
-
-      // Initialize globe first, then load data
       await this.initGlobe();
       await this.fetchUserShipments();
-    },
-
-    debugCountryCoordinates() {
-      const australia = countryData.find(c => c.code2 === 'AU');
-      console.log('Australia coordinates from JSON:', australia);
-
-      const singapore = countryData.find(c => c.code2 === 'SG');
-      console.log('Singapore coordinates from JSON:', singapore);
     },
 
     async fetchUserShipments() {
@@ -572,7 +559,6 @@ export default {
           this.generateNotifications();
           console.log('Successfully loaded', this.parcels.length, 'shipments');
 
-          // Update globe with new data
           this.updateGlobeData();
 
         } else {
@@ -693,7 +679,6 @@ export default {
           let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
           let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
 
-          // Ensure coordinates are valid numbers
           if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
             console.warn('Invalid sender coordinates, using Singapore default');
             senderCoords = [1.3521, 103.8198];
@@ -704,7 +689,6 @@ export default {
             recipientCoords = [39.8283, -98.5795];
           }
 
-          // Determine current location based on status
           let currentLocation = senderCoords;
           const progress = this.calculateProgressFromStatus(shipment.status);
 
@@ -852,12 +836,10 @@ export default {
           return this.initGlobe();
         }
 
-        // Clear any existing content safely
         if (container && container.innerHTML) {
           container.innerHTML = '';
         }
 
-        // Wait a bit for DOM to be ready
         await new Promise(resolve => setTimeout(resolve, 100));
 
         const width = container.clientWidth || 800;
@@ -865,7 +847,6 @@ export default {
 
         console.log('Creating globe with dimensions:', width, 'x', height);
 
-        // Create globe with safe configuration
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
           .backgroundColor('#000011')
@@ -873,7 +854,6 @@ export default {
           .height(height)
           (container);
 
-        // Set initial view
         if (this.globe.pointOfView) {
           this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 });
         }
@@ -887,7 +867,6 @@ export default {
         this.globeError = true;
         this.globeInitialized = false;
 
-        // Retry initialization after delay
         setTimeout(() => {
           if (!this.globeInitialized) {
             this.initGlobe();
@@ -902,7 +881,6 @@ export default {
       this.isGlobeUpdating = true;
 
       try {
-        // Create points data for all parcels
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
           lat: parcel.currentLocation[0],
@@ -912,7 +890,6 @@ export default {
           label: `${parcel.trackingId}: ${parcel.status}`
         }));
 
-        // Update globe with points and clear any existing arcs
         this.globe
           .pointsData(this.pointsData)
           .pointLat('lat')
@@ -921,7 +898,7 @@ export default {
           .pointAltitude(0.1)
           .pointRadius('size')
           .pointLabel('label')
-          .arcsData([]); // Clear arcs when updating base data
+          .arcsData([]);
 
         console.log('Globe data updated with', this.pointsData.length, 'points');
 
@@ -933,19 +910,20 @@ export default {
     },
 
     async showParcelRoute(parcel) {
-      // Prevent multiple simultaneous selections
       if (this.parcelSelectionInProgress) return;
 
       this.parcelSelectionInProgress = true;
       console.log('🎯 Showing route for parcel:', parcel.trackingId);
 
-      // Set the selected parcel immediately for UI responsiveness
-      this.selectedParcel = parcel;
+      // SET BOTH SIMULTANEOUSLY - This is the key change!
+      this.selectedParcel = parcel; // Show parcel details immediately
       this.routeLoading = true;
       this.routeError = null;
 
+      // Update globe immediately with the selected parcel highlighted
+      this.highlightSelectedParcel(parcel);
+
       try {
-        // Try to get route data from backend
         const response = await axios.post('/api/dashboard.php', {
           method: 'getParcelRoute',
           trackingId: parcel.trackingId,
@@ -958,31 +936,75 @@ export default {
           this.routeData = response.data.routeData;
           console.log('Route data loaded successfully:', this.routeData);
         } else {
-          // If method doesn't exist, use fallback data
           throw new Error('Route method not available, using fallback data');
         }
       } catch (error) {
         console.log('Using fallback route data:', error.message);
         this.routeError = 'Using estimated route information';
-
-        // Create comprehensive fallback route data
         this.routeData = this.generateFallbackRouteData(parcel);
       } finally {
         this.routeLoading = false;
         this.parcelSelectionInProgress = false;
-      }
 
-      // Update the globe with the route
-      this.updateGlobeRoute(parcel);
+        // Update globe with full route after data is loaded
+        this.updateGlobeRoute(parcel);
+      }
     },
 
-    // Add this new method to generate fallback route data
+    // NEW METHOD: Immediately highlight selected parcel without changing globe data
+    highlightSelectedParcel(parcel) {
+      if (!this.globe || !this.globeInitialized || this.isGlobeUpdating) return;
+
+      this.isGlobeUpdating = true;
+
+      try {
+        console.log('🔦 Highlighting selected parcel:', parcel.trackingId);
+
+        // Create updated points data with the selected parcel highlighted
+        const highlightedPointsData = this.pointsData.map(point => ({
+          ...point,
+          size: point.id === parcel.id ? 0.5 : 0.3, // Make selected larger
+          color: point.id === parcel.id ? '#ff0000' : this.getStatusColor(point.status) // Make selected red
+        }));
+
+        // Update points WITHOUT clearing arcs or reinitializing globe
+        this.globe
+          .pointsData(highlightedPointsData)
+          .pointLat('lat')
+          .pointLng('lng')
+          .pointColor('color')
+          .pointAltitude(0.1)
+          .pointRadius('size')
+          .pointLabel('label');
+
+        // Focus on the selected parcel
+        this.focusOnLocation(parcel.currentLocation);
+
+        console.log('✅ Selected parcel highlighted');
+
+      } catch (error) {
+        console.error('Error highlighting selected parcel:', error);
+      } finally {
+        this.isGlobeUpdating = false;
+      }
+    },
+
+    // NEW METHOD: Focus on a specific location
+    focusOnLocation(coords) {
+      if (!this.globe) return;
+
+      const [lat, lng] = coords;
+
+      if (this.globe.pointOfView) {
+        this.globe.pointOfView({ lat: lat, lng: lng, altitude: 2.0 }, 800);
+      }
+    },
+
     generateFallbackRouteData(parcel) {
       const startLocation = this.getLocationName(parcel.location);
       const endLocation = this.getLocationName(parcel.destination);
       const distance = this.calculateDistance(parcel.location, parcel.destination);
 
-      // Generate waypoints based on progress
       const waypoints = [
         {
           location: startLocation,
@@ -993,7 +1015,6 @@ export default {
         }
       ];
 
-      // Add intermediate points for in-progress shipments
       if (parcel.status === 'In Progress' && parcel.progress > 0 && parcel.progress < 100) {
         waypoints.push({
           location: 'In Transit',
@@ -1022,7 +1043,6 @@ export default {
       };
     },
 
-    // Add this helper method
     calculateEstimatedDuration(distance) {
       if (distance < 1000) return '1-2 days';
       if (distance < 5000) return '3-5 days';
@@ -1038,7 +1058,7 @@ export default {
       try {
         console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
 
-        // Show the full route from start to destination
+        // Create route arcs - show the journey
         this.arcsData = [{
           startLat: parcel.location[0],
           startLng: parcel.location[1],
@@ -1047,7 +1067,7 @@ export default {
           color: '#ff4444'
         }];
 
-        // Also show current position arc if in transit
+        // Show progress arc for in-transit shipments
         if (parcel.status === 'In Progress' && parcel.progress > 0) {
           this.arcsData.push({
             startLat: parcel.location[0],
@@ -1058,7 +1078,7 @@ export default {
           });
         }
 
-        // Update arcs WITHOUT clearing points
+        // Add arcs to the existing globe (points remain visible)
         this.globe
           .arcsData(this.arcsData)
           .arcStartLat(d => d.startLat)
@@ -1069,22 +1089,7 @@ export default {
           .arcStroke(1.5)
           .arcAltitude(0.05);
 
-        // Highlight the selected parcel point
-        const updatedPointsData = this.pointsData.map(point => ({
-          ...point,
-          size: point.id === parcel.id ? 0.5 : 0.3, // Make selected parcel larger
-          color: point.id === parcel.id ? '#ff0000' : this.getStatusColor(point.status) // Make selected parcel red
-        }));
-
-        this.globe
-          .pointsData(updatedPointsData)
-          .pointLat('lat')
-          .pointLng('lng')
-          .pointColor('color')
-          .pointAltitude(0.1)
-          .pointRadius('size')
-          .pointLabel('label');
-
+        // Focus on the full route
         this.focusOnRoute(parcel.location, parcel.destination);
 
         console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
@@ -1102,7 +1107,6 @@ export default {
       const midLat = (start[0] + end[0]) / 2;
       const midLng = (start[1] + end[1]) / 2;
 
-      // Smooth transition to the route
       if (this.globe.pointOfView) {
         this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 }, 1000);
       }
@@ -1184,7 +1188,6 @@ export default {
 
       const [lat, lng] = coords;
 
-      // Find country by coordinates with tolerance
       const country = countryData.find(c => {
         const latDiff = Math.abs(c.lat - lat);
         const lngDiff = Math.abs(c.long - lng);
@@ -1221,7 +1224,6 @@ export default {
       this.globeInitialized = false;
       this.globeError = false;
 
-      // Clean up existing globe
       if (this.globe) {
         const container = this.$refs.globeContainer;
         if (container) {
@@ -1234,11 +1236,9 @@ export default {
       this.selectedParcel = null;
       this.routeData = null;
 
-      // Reinitialize after a short delay
       this.$nextTick(() => {
         setTimeout(() => {
           this.initGlobe().then(() => {
-            // Restore data after globe is initialized
             this.updateGlobeData();
           });
         }, 500);
