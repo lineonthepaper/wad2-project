@@ -85,7 +85,8 @@
                 </div>
               </div>
               <div class="card-body">
-                <div ref="globeContainer" class="globe-container">
+                <!-- Fixed Globe Container with explicit dimensions -->
+                <div ref="globeContainer" class="globe-container" style="width: 100%; height: 400px;">
                   <div v-if="globeError" class="globe-error">
                     <div class="error-icon">
                       <i class="fas fa-exclamation-triangle"></i>
@@ -358,6 +359,10 @@ export default {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+    if (this.globe) {
+      // Clean up globe instance
+      this.globe = null;
+    }
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
@@ -396,10 +401,11 @@ export default {
     async initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
       await this.fetchUserShipments();
+      // Wait for DOM to be fully updated before initializing globe
       this.$nextTick(() => {
         setTimeout(() => {
           this.initGlobe();
-        }, 100);
+        }, 500); // Increased delay to ensure DOM is ready
       });
     },
 
@@ -430,6 +436,11 @@ export default {
           this.generateNotifications();
           console.log('Successfully loaded', this.parcels.length, 'shipments');
 
+          // Update globe data if globe is already initialized
+          if (this.globeInitialized) {
+            this.updateGlobeData();
+          }
+
         } else {
           console.error('Failed to fetch shipments:', response.data.error);
           // Fallback to example data if API fails
@@ -454,6 +465,11 @@ export default {
       this.parcels = this.transformShipmentData(exampleData);
       this.updateStats();
       this.generateNotifications();
+
+      // Update globe data if globe is already initialized
+      if (this.globeInitialized) {
+        this.updateGlobeData();
+      }
     },
 
     getExampleShipments(customerEmail) {
@@ -537,104 +553,104 @@ export default {
       ];
     },
 
-   transformShipmentData(shipments) {
-  if (!shipments || !Array.isArray(shipments)) {
-    console.log('No shipments data found, using empty array');
-    return [];
-  }
-
-  console.log('Transforming', shipments.length, 'shipments');
-
-  return shipments.map(shipment => {
-    try {
-      // Use coordinates directly from API if available, otherwise fallback to country lookup
-      let senderCoords, recipientCoords;
-
-      if (shipment.senderAddress?.coordinates) {
-        // Use coordinates from API
-        senderCoords = [shipment.senderAddress.coordinates.lat, shipment.senderAddress.coordinates.lng];
-        console.log('Using API coordinates for sender:', senderCoords);
-      } else {
-        // Fallback to country lookup
-        const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-        senderCoords = this.getCountryCoordinates(senderCountry);
-        console.log('Using country lookup for sender:', senderCoords);
+    transformShipmentData(shipments) {
+      if (!shipments || !Array.isArray(shipments)) {
+        console.log('No shipments data found, using empty array');
+        return [];
       }
 
-      if (shipment.recipientAddress?.coordinates) {
-        // Use coordinates from API
-        recipientCoords = [shipment.recipientAddress.coordinates.lat, shipment.recipientAddress.coordinates.lng];
-        console.log('Using API coordinates for recipient:', recipientCoords);
-      } else {
-        // Fallback to country lookup
-        const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
-        recipientCoords = this.getCountryCoordinates(recipientCountry);
-        console.log('Using country lookup for recipient:', recipientCoords);
-      }
+      console.log('Transforming', shipments.length, 'shipments');
 
-      // Determine current location based on status
-      let currentLocation = senderCoords;
-      const progress = this.calculateProgressFromStatus(shipment.status);
+      return shipments.map(shipment => {
+        try {
+          // Use coordinates directly from API if available, otherwise fallback to country lookup
+          let senderCoords, recipientCoords;
 
-      if (progress > 0 && progress < 100) {
-        // For in-progress shipments, interpolate between start and end
-        currentLocation = [
-          senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
-          senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
-        ];
-      } else if (progress >= 100) {
-        currentLocation = recipientCoords;
-      }
+          if (shipment.senderAddress?.coordinates) {
+            // Use coordinates from API
+            senderCoords = [shipment.senderAddress.coordinates.lat, shipment.senderAddress.coordinates.lng];
+            console.log('Using API coordinates for sender:', senderCoords);
+          } else {
+            // Fallback to country lookup
+            const senderCountry = shipment.senderAddress?.countryCode || 'SG';
+            senderCoords = this.getCountryCoordinates(senderCountry);
+            console.log('Using country lookup for sender:', senderCoords);
+          }
 
-      // Create tracking ID from available data
-      let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
-      if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
-        trackingId = `TRK-${shipment.trackingNumber}`;
-      }
+          if (shipment.recipientAddress?.coordinates) {
+            // Use coordinates from API
+            recipientCoords = [shipment.recipientAddress.coordinates.lat, shipment.recipientAddress.coordinates.lng];
+            console.log('Using API coordinates for recipient:', recipientCoords);
+          } else {
+            // Fallback to country lookup
+            const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+            recipientCoords = this.getCountryCoordinates(recipientCountry);
+            console.log('Using country lookup for recipient:', recipientCoords);
+          }
 
-      const transformedParcel = {
-        id: shipment.mailId,
-        mailId: shipment.mailId,
-        trackingId: trackingId,
-        customer: shipment.senderAddress?.name || this.user.email,
-        status: this.mapApiStatus(shipment.status),
-        expectedDelivery: shipment.expectedDelivery,
-        location: senderCoords,
-        currentLocation: currentLocation,
-        destination: recipientCoords,
-        progress: progress,
-        service: shipment.service,
-        totalWeight: shipment.totalWeight,
-        totalValue: shipment.totalValue,
-        hasBeenPaid: shipment.hasBeenPaid,
-        createdDate: shipment.createdDate,
-        rawData: shipment
-      };
+          // Determine current location based on status
+          let currentLocation = senderCoords;
+          const progress = this.calculateProgressFromStatus(shipment.status);
 
-      console.log('Transformed parcel:', transformedParcel);
-      return transformedParcel;
+          if (progress > 0 && progress < 100) {
+            // For in-progress shipments, interpolate between start and end
+            currentLocation = [
+              senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
+              senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
+            ];
+          } else if (progress >= 100) {
+            currentLocation = recipientCoords;
+          }
 
-    } catch (error) {
-      console.error('Error transforming shipment:', shipment, error);
-      return null;
-    }
-  }).filter(parcel => parcel !== null);
-},
+          // Create tracking ID from available data
+          let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
+          if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
+            trackingId = `TRK-${shipment.trackingNumber}`;
+          }
+
+          const transformedParcel = {
+            id: shipment.mailId,
+            mailId: shipment.mailId,
+            trackingId: trackingId,
+            customer: shipment.senderAddress?.name || this.user.email,
+            status: this.mapApiStatus(shipment.status),
+            expectedDelivery: shipment.expectedDelivery,
+            location: senderCoords,
+            currentLocation: currentLocation,
+            destination: recipientCoords,
+            progress: progress,
+            service: shipment.service,
+            totalWeight: shipment.totalWeight,
+            totalValue: shipment.totalValue,
+            hasBeenPaid: shipment.hasBeenPaid,
+            createdDate: shipment.createdDate,
+            rawData: shipment
+          };
+
+          console.log('Transformed parcel:', transformedParcel);
+          return transformedParcel;
+
+        } catch (error) {
+          console.error('Error transforming shipment:', shipment, error);
+          return null;
+        }
+      }).filter(parcel => parcel !== null);
+    },
 
     getCountryCoordinates(countryCode) {
-  // Handle UK/GB country code variation
-  const code = countryCode === 'UK' ? 'GB' : countryCode;
+      // Handle UK/GB country code variation
+      const code = countryCode === 'UK' ? 'GB' : countryCode;
 
-  const country = countryData.find(c => c.code2 === code);
-  if (country) {
-    console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
-    return [country.lat, country.long];
-  }
+      const country = countryData.find(c => c.code2 === code);
+      if (country) {
+        console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
+        return [country.lat, country.long];
+      }
 
-  // Default to Singapore if not found
-  console.warn(`Country code ${countryCode} not found, using Singapore as default`);
-  return [1.28478, 103.776222];
-},
+      // Default to Singapore if not found
+      console.warn(`Country code ${countryCode} not found, using Singapore as default`);
+      return [1.28478, 103.776222];
+    },
 
     calculateProgressFromStatus(status) {
       const progressMap = {
@@ -718,7 +734,6 @@ export default {
       }
     },
 
-    // Rest of your existing methods remain the same...
     async initGlobe() {
       try {
         console.log('Starting globe initialization...');
@@ -728,44 +743,55 @@ export default {
           throw new Error('Globe container not found');
         }
 
+        // Ensure container has proper dimensions
         const width = container.clientWidth || 800;
-        const height = container.clientHeight || 500;
+        const height = container.clientHeight || 400;
 
         console.log('Container dimensions:', width, 'x', height);
+
+        // Clear any existing content
+        container.innerHTML = '';
 
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
           .backgroundColor('#000011')
           .width(width)
-          .height(height)(container);
+          .height(height)
+          (container);
 
         console.log('Basic globe created');
+
+        // Set initial view
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
         this.updateGlobeData();
 
         this.globeInitialized = true;
+        this.globeError = false;
         console.log('Globe initialized successfully');
 
       } catch (error) {
         console.error('Globe initialization error:', error);
         this.globeError = true;
-        this.errorMessage = error.message;
+        this.globeInitialized = false;
       }
     },
 
     updateGlobeData() {
-      if (!this.globe) return;
+      if (!this.globe || !this.globeInitialized) return;
 
       try {
+        // Create points data for all parcels
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
           lat: parcel.currentLocation[0],
           lng: parcel.currentLocation[1],
           color: this.getStatusColor(parcel.status),
-          size: 0.4,
-          label: `${parcel.trackingId}: ${parcel.customer} (${parcel.status})`
+          size: 0.3,
+          label: `${parcel.trackingId}: ${parcel.status}`
         }));
 
+        // Update globe with points
         this.globe
           .pointsData(this.pointsData)
           .pointLat('lat')
@@ -775,20 +801,20 @@ export default {
           .pointRadius('size')
           .pointLabel('label');
 
+        // Update arcs if a parcel is selected
         if (this.selectedParcel) {
           this.updateRouteForParcel(this.selectedParcel);
         }
 
-        console.log('Globe data updated successfully');
+        console.log('Globe data updated with', this.pointsData.length, 'points');
 
       } catch (error) {
         console.error('Error updating globe data:', error);
-        this.globeError = true;
       }
     },
 
     showParcelRoute(parcel) {
-      if (!this.globe) {
+      if (!this.globe || !this.globeInitialized) {
         console.error('Globe not ready');
         return;
       }
@@ -798,27 +824,32 @@ export default {
     },
 
     updateRouteForParcel(parcel) {
-      if (!this.globe) return;
+      if (!this.globe || !this.globeInitialized) return;
 
-      this.arcsData = [{
-        startLat: parcel.location[0],
-        startLng: parcel.location[1],
-        endLat: parcel.currentLocation[0],
-        endLng: parcel.currentLocation[1],
-        color: '#00ff00'
-      }];
+      try {
+        this.arcsData = [{
+          startLat: parcel.location[0],
+          startLng: parcel.location[1],
+          endLat: parcel.currentLocation[0],
+          endLng: parcel.currentLocation[1],
+          color: this.getStatusColor(parcel.status)
+        }];
 
-      this.globe
-        .arcsData(this.arcsData)
-        .arcStartLat(d => d.startLat)
-        .arcStartLng(d => d.startLng)
-        .arcEndLat(d => d.endLat)
-        .arcEndLng(d => d.endLng)
-        .arcColor(d => d.color)
-        .arcStroke(1.5)
-        .arcAltitude(0.05);
+        this.globe
+          .arcsData(this.arcsData)
+          .arcStartLat(d => d.startLat)
+          .arcStartLng(d => d.startLng)
+          .arcEndLat(d => d.endLat)
+          .arcEndLng(d => d.endLng)
+          .arcColor(d => d.color)
+          .arcStroke(1.5)
+          .arcAltitude(0.05);
 
-      this.focusOnRoute(parcel.location, parcel.destination);
+        this.focusOnRoute(parcel.location, parcel.destination);
+
+      } catch (error) {
+        console.error('Error updating route:', error);
+      }
     },
 
     focusOnRoute(start, end) {
@@ -827,20 +858,15 @@ export default {
       const midLat = (start[0] + end[0]) / 2;
       const midLng = (start[1] + end[1]) / 2;
 
-      const latDiff = Math.abs(start[0] - end[0]);
-      const lngDiff = Math.abs(start[1] - end[1]);
-      const maxDiff = Math.max(latDiff, lngDiff);
-      const altitude = Math.max(1.5, 3 - maxDiff * 0.5);
-
-      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude });
+      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 });
     },
 
     clearRoute() {
-      if (this.globe) {
+      if (this.globe && this.globeInitialized) {
         this.arcsData = [];
         this.selectedParcel = null;
         this.globe.arcsData(this.arcsData);
-        this.globe.pointOfView({ lat: 0, lng: 0, altitude: 1.8 });
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
         this.updateGlobeData();
       }
     },
@@ -882,6 +908,10 @@ export default {
     },
 
     getLocationName(coords) {
+      if (!coords || !Array.isArray(coords) || coords.length < 2) {
+        return 'Unknown Location';
+      }
+
       // Find country by coordinates
       const country = countryData.find(c =>
         Math.abs(c.lat - coords[0]) < 5 && Math.abs(c.long - coords[1]) < 5
@@ -914,14 +944,24 @@ export default {
     forceReinit() {
       this.globeInitialized = false;
       this.globeError = false;
-      this.globe = null;
+
+      // Clean up existing globe
+      if (this.globe) {
+        const container = this.$refs.globeContainer;
+        if (container) {
+          container.innerHTML = '';
+        }
+        this.globe = null;
+      }
+
       this.arcsData = [];
       this.selectedParcel = null;
 
+      // Reinitialize after a short delay
       this.$nextTick(() => {
         setTimeout(() => {
           this.initGlobe();
-        }, 100);
+        }, 300);
       });
     },
 
@@ -931,7 +971,6 @@ export default {
   }
 };
 </script>
-
 <style scoped>
 /* Your existing CSS styles remain exactly the same */
 /* Import Font Awesome */
