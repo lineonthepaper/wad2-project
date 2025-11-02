@@ -47,15 +47,13 @@
             </button>
             <h1 class="jua text-hot-pink mb-0">Shipment Details</h1>
             <div class="status-display">
-              <span class="badge status-badge" :class="getStatusBadgeClass(transaction.status)">
-                {{ formatStatus(transaction.status) }}
-              </span>
+
             </div>
           </div>
-          <p class="text-white mb-0 mt-2">TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}</p>
+
         </div>
       </div>
-
+ <h4 class="text-white mb-0 mt-2">TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}</h4>
       <div class="container mt-4">
         <div class="row">
           <!-- Main Content -->
@@ -280,31 +278,7 @@
               </div>
             </div>
 
-            <!-- Actions Card -->
-            <div class="detail-card card">
-              <div class="card-header bg-light-pink">
-                <h4 class="mb-0">
-                  <i class="fas fa-cog me-2"></i>
-                  Actions
-                </h4>
-              </div>
-              <div class="card-body">
-                <div class="d-grid gap-2">
-                  <button class="btn btn-outline-primary">
-                    <i class="fas fa-print me-2"></i>
-                    Print Label
-                  </button>
-                  <button class="btn btn-outline-secondary">
-                    <i class="fas fa-share me-2"></i>
-                    Share Tracking
-                  </button>
-                  <button class="btn btn-outline-info" v-if="!transaction.hasBeenPaid">
-                    <i class="fas fa-credit-card me-2"></i>
-                    Make Payment
-                  </button>
-                </div>
-              </div>
-            </div>
+           
           </div>
         </div>
       </div>
