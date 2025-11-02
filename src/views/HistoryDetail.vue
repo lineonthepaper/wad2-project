@@ -276,28 +276,7 @@
               </div>
             </div>
 
-            <!-- Quick Actions Card -->
-            <div class="detail-card card mb-4">
-              <div class="card-header bg-light-pink">
-                <h4 class="mb-0">
-                  <i class="fas fa-bolt me-2"></i>
-                  Quick Actions
-                </h4>
-              </div>
-              <div class="card-body">
-                <div class="d-grid gap-2">
-                  <button class="btn btn-outline-primary" @click="downloadLabel">
-                    <i class="fas fa-download me-2"></i>Download Shipping Label
-                  </button>
-                  <button class="btn btn-outline-info" @click="trackPackage">
-                    <i class="fas fa-map-marker-alt me-2"></i>Live Tracking
-                  </button>
-                  <button class="btn btn-outline-warning" v-if="!transaction.hasBeenPaid" @click="makePayment">
-                    <i class="fas fa-credit-card me-2"></i>Make Payment
-                  </button>
-                </div>
-              </div>
-            </div>
+
           </div>
         </div>
       </div>
