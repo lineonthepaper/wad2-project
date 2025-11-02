@@ -101,7 +101,7 @@
                 </div>
 
                 <!-- Parcel Information Section - MOVED BELOW GLOBE -->
-                <div v-if="selectedParcel" class="parcel-information">
+                <div v-show="selectedParcel" class="parcel-information">
                   <div class="parcel-header">
                     <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
                     <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
@@ -178,7 +178,7 @@
                     </div>
                   </div>
                 </div>
-                <div v-else class="no-selection">
+                <div v-show="!selectedParcel" class="no-selection">
                   <i class="fas fa-mouse-pointer"></i>
                   <p>Select a shipment from the list to view its details</p>
                 </div>
