@@ -109,6 +109,59 @@
                     </span>
                   </div>
 
+                  <!-- Loading state for route data -->
+                  <div v-if="routeLoading" class="route-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading route information...</p>
+                  </div>
+
+                  <!-- Error state -->
+                  <div v-else-if="routeError" class="route-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>{{ routeError }}</p>
+                  </div>
+
+                  <!-- Route information when available -->
+                  <div v-else class="route-details">
+                    <div class="route-header">
+                      <h5><i class="fas fa-route"></i> Route Information</h5>
+                      <span v-if="routeError" class="fallback-badge">Estimated Route</span>
+                    </div>
+                    <div class="waypoints-list">
+                      <div v-for="(waypoint, index) in routeData.waypoints" :key="index"
+                           class="waypoint-item" :class="{
+                             'active': waypoint.status === 'In Transit',
+                             'completed': waypoint.status === 'Departure' || waypoint.status === 'Delivered'
+                           }">
+                        <div class="waypoint-marker">
+                          <div class="marker-dot" :class="waypoint.status.toLowerCase().replace(' ', '-')"></div>
+                          <div class="marker-line" v-if="index < routeData.waypoints.length - 1"></div>
+                        </div>
+                        <div class="waypoint-content">
+                          <div class="waypoint-status">{{ waypoint.status }}</div>
+                          <div class="waypoint-location">{{ waypoint.location }}</div>
+                          <div class="waypoint-description">{{ waypoint.description }}</div>
+                          <div class="waypoint-time">{{ formatDate(waypoint.timestamp) }}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="route-summary">
+                      <div class="summary-item">
+                        <span class="summary-label">Estimated Duration:</span>
+                        <span class="summary-value">{{ routeData.estimatedDuration }}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Distance:</span>
+                        <span class="summary-value">{{ routeData.distance }}</span>
+                      </div>
+                      <div class="summary-item" v-if="routeData.progress">
+                        <span class="summary-label">Current Progress:</span>
+                        <span class="summary-value">{{ Math.round(routeData.progress) }}%</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="parcel-details-grid">
                     <div class="detail-section">
                       <h5><i class="fas fa-route"></i> Route Information</h5>
@@ -206,7 +259,7 @@
                     v-for="parcel in filteredParcels"
                     :key="parcel.id"
                     class="parcel-item"
-                    :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
+                    :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id, 'loading': parcelSelectionInProgress && selectedParcel && selectedParcel.id === parcel.id }"
                     @click="showParcelRoute(parcel)"
                   >
                     <div class="parcel-icon">
@@ -406,6 +459,10 @@ export default {
     }
   },
   mounted() {
+    // Add global error handler
+    window.addEventListener('error', this.handleGlobalError);
+    window.addEventListener('unhandledrejection', this.handleGlobalError);
+
     this.checkAuthentication();
     if (this.isAuthenticated) {
       this.initializeDashboard();
@@ -423,16 +480,23 @@ export default {
       clearInterval(this.refreshInterval);
     }
     if (this.globe) {
-      // Proper cleanup of globe
       const container = this.$refs.globeContainer;
       if (container) {
         container.innerHTML = '';
       }
       this.globe = null;
     }
+
+    // Remove global error handlers
+    window.removeEventListener('error', this.handleGlobalError);
+    window.removeEventListener('unhandledrejection', this.handleGlobalError);
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
+    handleGlobalError(error) {
+      console.error('Global error caught:', error);
+    },
+
     checkAuthentication() {
       const userData = sessionStorage.getItem('currentUser');
       if (userData) {
@@ -783,19 +847,25 @@ export default {
 
         const container = this.$refs.globeContainer;
         if (!container) {
-          throw new Error('Globe container not found');
+          console.warn('Globe container not found, retrying...');
+          await this.$nextTick();
+          return this.initGlobe();
         }
 
-        // Clear any existing content
-        container.innerHTML = '';
+        // Clear any existing content safely
+        if (container && container.innerHTML) {
+          container.innerHTML = '';
+        }
 
-        // Get container dimensions
+        // Wait a bit for DOM to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 400;
 
         console.log('Creating globe with dimensions:', width, 'x', height);
 
-        // Create globe with minimal configuration first
+        // Create globe with safe configuration
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
           .backgroundColor('#000011')
@@ -804,7 +874,9 @@ export default {
           (container);
 
         // Set initial view
-        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 });
+        if (this.globe.pointOfView) {
+          this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 });
+        }
 
         this.globeInitialized = true;
         this.globeError = false;
@@ -814,6 +886,13 @@ export default {
         console.error('Globe initialization error:', error);
         this.globeError = true;
         this.globeInitialized = false;
+
+        // Retry initialization after delay
+        setTimeout(() => {
+          if (!this.globeInitialized) {
+            this.initGlobe();
+          }
+        }, 2000);
       }
     },
 
@@ -833,7 +912,7 @@ export default {
           label: `${parcel.trackingId}: ${parcel.status}`
         }));
 
-        // Update globe with points
+        // Update globe with points and clear any existing arcs
         this.globe
           .pointsData(this.pointsData)
           .pointLat('lat')
@@ -841,7 +920,8 @@ export default {
           .pointColor('color')
           .pointAltitude(0.1)
           .pointRadius('size')
-          .pointLabel('label');
+          .pointLabel('label')
+          .arcsData([]); // Clear arcs when updating base data
 
         console.log('Globe data updated with', this.pointsData.length, 'points');
 
@@ -865,7 +945,7 @@ export default {
       this.routeError = null;
 
       try {
-        // Call backend API to get route data
+        // Try to get route data from backend
         const response = await axios.post('/api/dashboard.php', {
           method: 'getParcelRoute',
           trackingId: parcel.trackingId,
@@ -878,33 +958,15 @@ export default {
           this.routeData = response.data.routeData;
           console.log('Route data loaded successfully:', this.routeData);
         } else {
-          throw new Error(response.data.error || 'Failed to load route data');
+          // If method doesn't exist, use fallback data
+          throw new Error('Route method not available, using fallback data');
         }
       } catch (error) {
-        console.error('Error fetching route data:', error);
-        this.routeError = 'Failed to load route information. Please try again.';
+        console.log('Using fallback route data:', error.message);
+        this.routeError = 'Using estimated route information';
 
-        // Fallback to basic route data
-        this.routeData = {
-          waypoints: [
-            {
-              location: this.getLocationName(parcel.location),
-              coordinates: parcel.location,
-              timestamp: parcel.createdDate,
-              status: 'Departure',
-              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
-            },
-            {
-              location: this.getLocationName(parcel.destination),
-              coordinates: parcel.destination,
-              timestamp: parcel.expectedDelivery,
-              status: 'Destination',
-              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
-            }
-          ],
-          estimatedDuration: '3-5 days',
-          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
-        };
+        // Create comprehensive fallback route data
+        this.routeData = this.generateFallbackRouteData(parcel);
       } finally {
         this.routeLoading = false;
         this.parcelSelectionInProgress = false;
@@ -912,6 +974,60 @@ export default {
 
       // Update the globe with the route
       this.updateGlobeRoute(parcel);
+    },
+
+    // Add this new method to generate fallback route data
+    generateFallbackRouteData(parcel) {
+      const startLocation = this.getLocationName(parcel.location);
+      const endLocation = this.getLocationName(parcel.destination);
+      const distance = this.calculateDistance(parcel.location, parcel.destination);
+
+      // Generate waypoints based on progress
+      const waypoints = [
+        {
+          location: startLocation,
+          coordinates: parcel.location,
+          timestamp: parcel.createdDate,
+          status: 'Departure',
+          description: `Shipment departed from ${startLocation}`
+        }
+      ];
+
+      // Add intermediate points for in-progress shipments
+      if (parcel.status === 'In Progress' && parcel.progress > 0 && parcel.progress < 100) {
+        waypoints.push({
+          location: 'In Transit',
+          coordinates: parcel.currentLocation,
+          timestamp: new Date().toISOString(),
+          status: 'In Transit',
+          description: `Shipment is currently in transit (${Math.round(parcel.progress)}% complete)`
+        });
+      }
+
+      waypoints.push({
+        location: endLocation,
+        coordinates: parcel.destination,
+        timestamp: parcel.expectedDelivery,
+        status: parcel.status === 'Delivered' ? 'Delivered' : 'Destination',
+        description: parcel.status === 'Delivered'
+          ? `Shipment delivered to ${endLocation}`
+          : `Expected delivery at ${endLocation}`
+      });
+
+      return {
+        waypoints: waypoints,
+        estimatedDuration: this.calculateEstimatedDuration(distance),
+        distance: Math.round(distance) + ' km',
+        progress: parcel.progress
+      };
+    },
+
+    // Add this helper method
+    calculateEstimatedDuration(distance) {
+      if (distance < 1000) return '1-2 days';
+      if (distance < 5000) return '3-5 days';
+      if (distance < 10000) return '5-7 days';
+      return '7-10 days';
     },
 
     updateGlobeRoute(parcel) {
@@ -942,6 +1058,7 @@ export default {
           });
         }
 
+        // Update arcs WITHOUT clearing points
         this.globe
           .arcsData(this.arcsData)
           .arcStartLat(d => d.startLat)
@@ -951,6 +1068,22 @@ export default {
           .arcColor(d => d.color)
           .arcStroke(1.5)
           .arcAltitude(0.05);
+
+        // Highlight the selected parcel point
+        const updatedPointsData = this.pointsData.map(point => ({
+          ...point,
+          size: point.id === parcel.id ? 0.5 : 0.3, // Make selected parcel larger
+          color: point.id === parcel.id ? '#ff0000' : this.getStatusColor(point.status) // Make selected parcel red
+        }));
+
+        this.globe
+          .pointsData(updatedPointsData)
+          .pointLat('lat')
+          .pointLng('lng')
+          .pointColor('color')
+          .pointAltitude(0.1)
+          .pointRadius('size')
+          .pointLabel('label');
 
         this.focusOnRoute(parcel.location, parcel.destination);
 
@@ -970,7 +1103,9 @@ export default {
       const midLng = (start[1] + end[1]) / 2;
 
       // Smooth transition to the route
-      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 }, 1000);
+      if (this.globe.pointOfView) {
+        this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 }, 1000);
+      }
     },
 
     clearRoute() {
@@ -980,12 +1115,30 @@ export default {
       this.routeError = null;
 
       if (this.globe && this.globeInitialized) {
+        // Clear only arcs, keep points
         this.arcsData = [];
         this.globe.arcsData(this.arcsData);
+
+        // Reset points to original state
+        const resetPointsData = this.pointsData.map(point => ({
+          ...point,
+          size: 0.3,
+          color: this.getStatusColor(point.status)
+        }));
+
+        this.globe
+          .pointsData(resetPointsData)
+          .pointLat('lat')
+          .pointLng('lng')
+          .pointColor('color')
+          .pointAltitude(0.1)
+          .pointRadius('size')
+          .pointLabel('label');
+
         // Reset to default view
-        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
-        // Restore points data
-        this.updateGlobeData();
+        if (this.globe.pointOfView) {
+          this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
+        }
       }
     },
 
@@ -1098,6 +1251,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 /* Your existing CSS styles remain exactly the same */
 /* Import Font Awesome */
@@ -1114,138 +1268,6 @@ export default {
   --pink-grey: #f1d9df;
 }
 
-/
-.route-loading, .route-error {
-  text-align: center;
-  padding: 2rem;
-  background: var(--light-pink);
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.route-error {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
-}
-
-.route-error i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.waypoints-list {
-  margin: 1rem 0;
-}
-
-.waypoint-item {
-  display: flex;
-  gap: 1rem;
-  padding: 0.5rem 0;
-  position: relative;
-}
-
-.waypoint-marker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 20px;
-}
-
-.marker-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--hot-pink);
-  z-index: 2;
-}
-
-.marker-line {
-  flex: 1;
-  width: 2px;
-  background: var(--pink);
-  margin-top: 2px;
-}
-
-.waypoint-content {
-  flex: 1;
-  padding-bottom: 1rem;
-}
-
-.waypoint-location {
-  font-weight: 600;
-  color: var(--dark-slate-blue);
-  margin-bottom: 0.25rem;
-}
-
-.waypoint-description {
-  font-size: 0.9rem;
-  color: var(--slate-blue);
-  margin-bottom: 0.25rem;
-}
-
-.waypoint-time {
-  font-size: 0.8rem;
-  color: var(--pink);
-}
-
-.route-summary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--pink-grey);
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-label {
-  font-size: 0.9rem;
-  color: var(--slate-blue);
-}
-
-.summary-value {
-  font-weight: 600;
-  color: var(--dark-slate-blue);
-}
-
-/* Ensure globe container maintains visibility */
-.globe-container {
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.globe-container.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-.globe-updating {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.parcel-loading {
-  position: relative;
-}
-
-.parcel-loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
-  border: 2px solid var(--pink-grey);
-  border-top: 2px solid var(--hot-pink);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
 /* Base Styles */
 .dashboard-wrapper {
   min-height: 100vh;
@@ -1684,6 +1706,140 @@ export default {
   color: var(--dark-slate-blue);
 }
 
+/* Route Loading and Error States */
+.route-loading, .route-error {
+  text-align: center;
+  padding: 2rem;
+  background: var(--light-pink);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.route-error {
+  background: var(--pink-grey);
+  color: var(--dark-pink);
+}
+
+.route-error i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.fallback-badge {
+  background: var(--pink);
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.waypoints-list {
+  margin: 1rem 0;
+}
+
+.waypoint-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  position: relative;
+}
+
+.waypoint-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20px;
+}
+
+.marker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--hot-pink);
+  z-index: 2;
+}
+
+.marker-dot.departure {
+  background: var(--hot-pink);
+}
+
+.marker-dot.in-transit {
+  background: #ffa500;
+}
+
+.marker-dot.delivered, .marker-dot.destination {
+  background: #00ff00;
+}
+
+.marker-line {
+  flex: 1;
+  width: 2px;
+  background: var(--pink);
+  margin-top: 2px;
+}
+
+.waypoint-content {
+  flex: 1;
+  padding-bottom: 1rem;
+}
+
+.waypoint-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--hot-pink);
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+}
+
+.waypoint-item.active .waypoint-status {
+  color: #ffa500;
+  animation: pulse 2s infinite;
+}
+
+.waypoint-location {
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+  margin-bottom: 0.25rem;
+}
+
+.waypoint-description {
+  font-size: 0.9rem;
+  color: var(--slate-blue);
+  margin-bottom: 0.25rem;
+}
+
+.waypoint-time {
+  font-size: 0.8rem;
+  color: var(--pink);
+}
+
+.route-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pink-grey);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: var(--slate-blue);
+}
+
+.summary-value {
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+}
+
 .parcel-details-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1832,6 +1988,7 @@ export default {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .parcel-item:hover {
@@ -1842,6 +1999,20 @@ export default {
 .parcel-item.active {
   border-color: var(--hot-pink);
   background: var(--light-pink);
+}
+
+.parcel-item.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--pink-grey);
+  border-top: 2px solid var(--hot-pink);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .parcel-icon {
@@ -2111,7 +2282,7 @@ export default {
 /* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.7; }
   100% { opacity: 1; }
 }
 
@@ -2175,6 +2346,10 @@ export default {
   }
 
   .parcel-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .route-summary {
     grid-template-columns: 1fr;
   }
 }
