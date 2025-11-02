@@ -1108,6 +1108,16 @@ export default {
 </script>
 
 <style scoped>
+/* Pink Color Palette */
+:root {
+  --hot-pink: #ff4275;
+  --dark-pink: #ff759e;
+  --pink: #ff9096;
+  --light-pink: #ffe8ee;
+  --pink-grey: #f1d9df;
+  --dark-slate: #1a1a2e;
+  --slate-blue: #2a2a3e;
+}
 
 .history-card {
   background: rgba(255, 255, 255, 0.05);
@@ -1125,9 +1135,9 @@ export default {
 
 .history-card:hover {
   transform: translateY(-5px);
-  border-color: rgba(74, 144, 226, 0.3);
+  border-color: rgba(255, 66, 117, 0.3);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  background: rgba(74, 144, 226, 0.1);
+  background: rgba(255, 66, 117, 0.1);
 }
 
 .history-content {
@@ -1146,7 +1156,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  background: linear-gradient(135deg, #4a90e2 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   color: white;
 }
 
@@ -1168,7 +1178,7 @@ export default {
 }
 
 .history-arrow {
-  color: #4a90e2;
+  color: var(--hot-pink);
   font-size: 1.2rem;
 }
 
@@ -1178,10 +1188,11 @@ export default {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
 }
+
 /* Dashboard Layout */
 .dashboard-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0c0c2e 0%, #1a1a3e 100%);
+  background: linear-gradient(135deg, var(--dark-slate) 0%, var(--slate-blue) 100%);
   color: white;
 }
 
@@ -1192,7 +1203,7 @@ export default {
 }
 
 .header-background {
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.2) 0%, rgba(142, 68, 173, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(255, 66, 117, 0.2) 0%, rgba(255, 117, 158, 0.2) 100%);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -1217,7 +1228,7 @@ export default {
 .title-main {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #4a90e2 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1248,7 +1259,7 @@ export default {
   display: block;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #4a90e2;
+  color: var(--hot-pink);
 }
 
 .stat-label {
@@ -1273,12 +1284,6 @@ export default {
   margin-bottom: 1rem;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
 .stat-card {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
@@ -1293,7 +1298,7 @@ export default {
 
 .stat-card:hover {
   transform: translateY(-5px);
-  border-color: rgba(74, 144, 226, 0.3);
+  border-color: rgba(255, 66, 117, 0.3);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
@@ -1311,7 +1316,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  background: linear-gradient(135deg, #4a90e2 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
 }
 
 .stat-data {
@@ -1347,7 +1352,7 @@ export default {
 }
 
 .stat-trend.down {
-  color: #ff4275;
+  color: var(--hot-pink);
 }
 
 .stat-chart {
@@ -1363,7 +1368,7 @@ export default {
 
 .chart-bar {
   width: 4px;
-  background: linear-gradient(to top, #4a90e2, #8e44ad);
+  background: linear-gradient(to top, var(--hot-pink), var(--dark-pink));
   border-radius: 2px;
   transition: all 0.3s ease;
 }
@@ -1422,7 +1427,7 @@ export default {
 }
 
 .card-header h3 i {
-  color: #4a90e2;
+  color: var(--hot-pink);
 }
 
 .card-actions {
@@ -1456,7 +1461,7 @@ export default {
 
 .search-box input:focus {
   outline: none;
-  border-color: #4a90e2;
+  border-color: var(--hot-pink);
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -1509,12 +1514,12 @@ export default {
 .loading-spinner {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #ff4275;
+  color: var(--hot-pink);
 }
 
 .loading-spinner {
   border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid #4a90e2;
+  border-top: 3px solid var(--hot-pink);
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -1528,7 +1533,7 @@ export default {
 }
 
 .btn-retry {
-  background: linear-gradient(135deg, #4a90e2 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   border: none;
   border-radius: 8px;
   padding: 0.75rem 1.5rem;
@@ -1540,7 +1545,7 @@ export default {
 
 .btn-retry:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+  box-shadow: 0 5px 15px rgba(255, 66, 117, 0.4);
 }
 
 .globe-updating-indicator {
@@ -1548,7 +1553,7 @@ export default {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.8rem;
-  color: #4a90e2;
+  color: var(--hot-pink);
   animation: pulse 2s infinite;
 }
 
@@ -1579,20 +1584,20 @@ export default {
 
 .parcel-item:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(74, 144, 226, 0.3);
+  border-color: rgba(255, 66, 117, 0.3);
   transform: translateX(5px);
 }
 
 .parcel-item.active {
-  background: rgba(74, 144, 226, 0.15);
-  border-color: #4a90e2;
+  background: rgba(255, 66, 117, 0.15);
+  border-color: var(--hot-pink);
 }
 
 .parcel-icon {
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #4a90e2 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1644,7 +1649,7 @@ export default {
 
 .status-pending {
   background: rgba(255, 66, 117, 0.2);
-  color: #ff4275;
+  color: var(--hot-pink);
   border: 1px solid rgba(255, 66, 117, 0.3);
 }
 
@@ -1664,7 +1669,7 @@ export default {
 
 .info-item i {
   width: 16px;
-  color: #4a90e2;
+  color: var(--hot-pink);
 }
 
 .parcel-progress {
@@ -1684,7 +1689,7 @@ export default {
 
 .progress-fill-mini {
   height: 100%;
-  background: linear-gradient(90deg, #4a90e2, #8e44ad);
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -1755,8 +1760,8 @@ export default {
 }
 
 .notification-icon.info {
-  background: rgba(74, 144, 226, 0.2);
-  color: #4a90e2;
+  background: rgba(255, 66, 117, 0.2);
+  color: var(--hot-pink);
 }
 
 .notification-icon.success {
@@ -1807,7 +1812,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(12, 12, 46, 0.9);
+  background: rgba(26, 26, 46, 0.9);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1818,7 +1823,7 @@ export default {
 
 .loading-spinner-large {
   border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top: 4px solid #4a90e2;
+  border-top: 4px solid var(--hot-pink);
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -1826,7 +1831,7 @@ export default {
 }
 
 .error-banner {
-  background: linear-gradient(135deg, #ff4275 0%, #ff6b9d 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   color: white;
   padding: 1rem 1.5rem;
   border-radius: 12px;
@@ -1859,6 +1864,7 @@ export default {
   justify-content: center;
   min-height: 60vh;
   padding: 2rem;
+  background: linear-gradient(135deg, var(--dark-slate) 0%, var(--slate-blue) 100%);
 }
 
 .login-message {
@@ -1874,7 +1880,7 @@ export default {
 
 .message-icon {
   font-size: 4rem;
-  color: #4a90e2;
+  color: var(--hot-pink);
   margin-bottom: 1.5rem;
 }
 
@@ -1910,13 +1916,13 @@ export default {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #4a90e2 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   color: white;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+  box-shadow: 0 5px 15px rgba(255, 66, 117, 0.4);
 }
 
 /* Responsive Design */
@@ -2032,12 +2038,11 @@ export default {
 }
 
 .parcels-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #4a90e2 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
   border-radius: 3px;
 }
 
 .parcels-list::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #3a80d2 0%, #7e34a0 100%);
+  background: linear-gradient(135deg, #ff2b63 0%, #ff5a8c 100%);
 }
 </style>
-
