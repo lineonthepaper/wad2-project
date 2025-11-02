@@ -24,7 +24,7 @@
                 <span class="title-main">Parcel Tracking</span>
                 <span class="title-sub">Dashboard</span>
               </h1>
-              <p class="welcome-message">Welcome back, <strong>{{user.displayName}}</strong>! Track your shipments in real-time.</p>
+              <p class="welcome-message">Welcome back, <strong>{{user.email}}</strong>! Track your shipments in real-time.</p>
             </div>
             <div class="header-stats">
               <div class="header-stat">
@@ -579,25 +579,22 @@ export default {
 
   return shipments.map(shipment => {
     try {
-      // Get coordinates - use actual country data
-      const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-      const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+      // Get coordinates with better error handling
+      let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
+      let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
 
-      let senderCoords = this.getCountryCoordinates(senderCountry);
-      let recipientCoords = this.getCountryCoordinates(recipientCountry);
+      console.log('Sender coords for', shipment.senderAddress?.countryCode, ':', senderCoords);
+      console.log('Recipient coords for', shipment.recipientAddress?.countryCode, ':', recipientCoords);
 
-      console.log('Sender coordinates:', senderCoords, 'for country:', senderCountry);
-      console.log('Recipient coordinates:', recipientCoords, 'for country:', recipientCountry);
-
-      // Validate coordinates
-      if (!this.isValidCoordinates(senderCoords)) {
-        console.warn('Invalid sender coordinates, using fallback');
-        senderCoords = [1.3521, 103.8198]; // Singapore
+      // Ensure coordinates are valid numbers
+      if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
+        console.warn('Invalid sender coordinates, using Singapore default');
+        senderCoords = [1.3521, 103.8198]; // Singapore coordinates
       }
 
-      if (!this.isValidCoordinates(recipientCoords)) {
-        console.warn('Invalid recipient coordinates, using fallback');
-        recipientCoords = [39.8283, -98.5795]; // US center
+      if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
+        console.warn('Invalid recipient coordinates, using US default');
+        recipientCoords = [39.8283, -98.5795]; // US center coordinates
       }
 
       // Determine current location based on status
@@ -614,7 +611,7 @@ export default {
         currentLocation = recipientCoords;
       }
 
-      // Create tracking ID
+      // Create tracking ID from available data
       let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
       if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
         trackingId = `TRK-${shipment.trackingNumber}`;
@@ -641,20 +638,18 @@ export default {
         recipientAddress: shipment.recipientAddress
       };
 
-      console.log('✅ Transformed parcel:', {
+      console.log('Transformed parcel:', {
         id: transformedParcel.id,
         trackingId: transformedParcel.trackingId,
         status: transformedParcel.status,
-        from: senderCountry,
-        to: recipientCountry,
-        location: transformedParcel.location,
-        destination: transformedParcel.destination,
+        from: this.getLocationName(transformedParcel.location),
+        to: this.getLocationName(transformedParcel.destination),
         progress: transformedParcel.progress
       });
       return transformedParcel;
 
     } catch (error) {
-      console.error('❌ Error transforming shipment:', shipment, error);
+      console.error('Error transforming shipment:', shipment, error);
       return null;
     }
   }).filter(parcel => parcel !== null);
@@ -758,106 +753,89 @@ export default {
     },
 
     async initGlobe() {
-  try {
-    console.log('Starting globe initialization...');
+      try {
+        console.log('Starting globe initialization...');
 
-    const container = this.$refs.globeContainer;
-    if (!container) {
-      throw new Error('Globe container not found');
-    }
+        const container = this.$refs.globeContainer;
+        if (!container) {
+          throw new Error('Globe container not found');
+        }
 
-    // Ensure container has proper dimensions
-    const width = container.clientWidth || 800;
-    const height = container.clientHeight || 400;
+        // Ensure container has proper dimensions
+        const width = container.clientWidth || 800;
+        const height = container.clientHeight || 400;
 
-    console.log('Container dimensions:', width, 'x', height);
+        console.log('Container dimensions:', width, 'x', height);
 
-    // Clear any existing content
-    container.innerHTML = '';
+        // Clear any existing content
+        container.innerHTML = '';
 
-    this.globe = Globe()
-      .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-      .backgroundColor('#000011')
-      .width(width)
-      .height(height)
-      (container);
+        this.globe = Globe()
+          .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+          .backgroundColor('#000011')
+          .width(width)
+          .height(height)
+          (container);
 
-    console.log('Basic globe created');
+        console.log('Basic globe created');
 
-    // Set initial view
-    this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
+        // Set initial view
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
-    // Update globe data immediately after initialization
-    this.updateGlobeData();
+        this.updateGlobeData();
 
-    this.globeInitialized = true;
-    this.globeError = false;
-    console.log('Globe initialized successfully');
+        this.globeInitialized = true;
+        this.globeError = false;
+        console.log('Globe initialized successfully');
 
-    // If there's a selected parcel, show its route after a brief delay to ensure globe is fully loaded
-    if (this.selectedParcel) {
-      setTimeout(() => {
-        this.updateRouteForParcel(this.selectedParcel);
-      }, 100);
-    }
+      } catch (error) {
+        console.error('Globe initialization error:', error);
+        this.globeError = true;
+        this.globeInitialized = false;
+      }
+    },
 
-  } catch (error) {
-    console.error('Globe initialization error:', error);
-    this.globeError = true;
-    this.globeInitialized = false;
-  }
-},
+    updateGlobeData() {
+      if (!this.globe || !this.globeInitialized) return;
 
-updateGlobeData() {
-  if (!this.globe || !this.globeInitialized) return;
+      try {
+        // Create points data for all parcels
+        this.pointsData = this.parcels.map(parcel => ({
+          ...parcel,
+          lat: parcel.currentLocation[0],
+          lng: parcel.currentLocation[1],
+          color: this.getStatusColor(parcel.status),
+          size: 0.3,
+          label: `${parcel.trackingId}: ${parcel.status}`
+        }));
 
-  try {
-    // Create points data for all parcels
-    this.pointsData = this.parcels.map(parcel => ({
-      ...parcel,
-      lat: parcel.currentLocation[0],
-      lng: parcel.currentLocation[1],
-      color: this.getStatusColor(parcel.status),
-      size: 0.3,
-      label: `${parcel.trackingId}: ${parcel.status}`
-    }));
+        // Update globe with points
+        this.globe
+          .pointsData(this.pointsData)
+          .pointLat('lat')
+          .pointLng('lng')
+          .pointColor('color')
+          .pointAltitude(0.1)
+          .pointRadius('size')
+          .pointLabel('label');
 
-    // Update globe with points
-    this.globe
-      .pointsData(this.pointsData)
-      .pointLat('lat')
-      .pointLng('lng')
-      .pointColor('color')
-      .pointAltitude(0.1)
-      .pointRadius('size')
-      .pointLabel('label');
+        // Update arcs if a parcel is selected
+        if (this.selectedParcel) {
+          this.updateRouteForParcel(this.selectedParcel);
+        }
 
-    console.log('Globe data updated with', this.pointsData.length, 'points');
+        console.log('Globe data updated with', this.pointsData.length, 'points');
 
-    // IMPORTANT: Update route for selected parcel AFTER points are set
-    if (this.selectedParcel) {
-      this.updateRouteForParcel(this.selectedParcel);
-    }
-
-  } catch (error) {
-    console.error('Error updating globe data:', error);
-  }
-},
+      } catch (error) {
+        console.error('Error updating globe data:', error);
+      }
+    },
 
  showParcelRoute(parcel) {
-  console.log('🎯 Showing route for parcel:', parcel.trackingId);
-
-  // Set the selected parcel - this will make it appear below the globe
-  this.selectedParcel = parcel;
-
-  // Update the globe with the route if globe is ready
-  if (this.globe && this.globeInitialized) {
-    this.updateRouteForParcel(parcel);
-  } else {
-    console.log('Globe not ready yet, route will show when globe initializes');
-    // The route will be shown when globe initializes via updateGlobeData()
+  if (!this.globe || !this.globeInitialized) {
+    console.error('Globe not ready');
+    return;
   }
-
 
   console.log('Showing route for parcel:', {
     trackingId: parcel.trackingId,
