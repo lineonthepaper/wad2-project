@@ -282,7 +282,7 @@ class MailDAO
                 $mS["status_location"]
             );
         }
-        return $mS;
+        return $mailStatus;
     }
 
     public function getMailStatusByStatusId(int $statusId): ?MailStatus

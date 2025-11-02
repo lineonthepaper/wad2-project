@@ -66,9 +66,15 @@ try {
                     $senderAddress = $mailDAO->getAddressById($mail->getSenderAddressId());
                     $recipientAddress = $mailDAO->getAddressById($mail->getRecipientAddressId());
                     
-                    // Get latest status
-                    $statuses = $mailDAO->getMailStatusesByMailId($mail->getMailId());
-                    $latestStatus = !empty($statuses) ? end($statuses) : null;
+                    // Get latest status - with error handling
+                    $latestStatus = null;
+                    try {
+                        $statuses = $mailDAO->getMailStatusesByMailId($mail->getMailId());
+                        $latestStatus = !empty($statuses) ? end($statuses) : null;
+                    } catch (Exception $e) {
+                        error_log("Error getting status for mail " . $mail->getMailId() . ": " . $e->getMessage());
+                        $latestStatus = null;
+                    }
                     
                     // Calculate total value from mail items
                     $totalValue = 0;
