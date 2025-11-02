@@ -79,7 +79,7 @@
                   <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
                     <i class="fas fa-sync-alt"></i>
                   </button>
-                  <button class="btn-icon" v-if="selectedParcel" @click="clearSelection" title="Clear Selection">
+                  <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
                     <i class="fas fa-times"></i>
                   </button>
                 </div>
@@ -207,7 +207,7 @@
                     :key="parcel.id"
                     class="parcel-item"
                     :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
-                    @click="showParcelDetails(parcel)"
+                    @click="showParcelRoute(parcel)"
                   >
                     <div class="parcel-icon">
                       <i class="fas fa-box"></i>
@@ -338,7 +338,10 @@ export default {
       usingFallbackData: false,
       routeData: null,
       routeLoading: false,
-      routeError: null
+      routeError: null,
+      // Add these new data properties
+      isGlobeUpdating: false,
+      parcelSelectionInProgress: false
     };
   },
   computed: {
@@ -406,7 +409,6 @@ export default {
     this.checkAuthentication();
     if (this.isAuthenticated) {
       this.initializeDashboard();
-      // Refresh every 30 seconds for real-time updates
       this.refreshInterval = setInterval(() => {
         if (this.isAuthenticated) {
           this.fetchUserShipments();
@@ -421,7 +423,11 @@ export default {
       clearInterval(this.refreshInterval);
     }
     if (this.globe) {
-      // Clean up globe instance
+      // Proper cleanup of globe
+      const container = this.$refs.globeContainer;
+      if (container) {
+        container.innerHTML = '';
+      }
       this.globe = null;
     }
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
@@ -451,28 +457,21 @@ export default {
       if (this.isAuthenticated) {
         this.initializeDashboard();
       } else {
-        // Clear data when logging out
         this.parcels = [];
         this.notifications = [];
         this.stats = { inProgress: 0, delivered: 0, pending: 0 };
         this.usingFallbackData = false;
         this.routeData = null;
+        this.selectedParcel = null;
       }
     },
 
     async initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
 
-      // Debug coordinates first
-      this.debugCountryCoordinates();
-
+      // Initialize globe first, then load data
+      await this.initGlobe();
       await this.fetchUserShipments();
-      // Wait for DOM to be fully updated before initializing globe
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this.initGlobe();
-        }, 500);
-      });
     },
 
     debugCountryCoordinates() {
@@ -481,10 +480,6 @@ export default {
 
       const singapore = countryData.find(c => c.code2 === 'SG');
       console.log('Singapore coordinates from JSON:', singapore);
-
-      // Test the getCountryCoordinates method
-      console.log('getCountryCoordinates("AU"):', this.getCountryCoordinates('AU'));
-      console.log('getCountryCoordinates("SG"):', this.getCountryCoordinates('SG'));
     },
 
     async fetchUserShipments() {
@@ -503,7 +498,6 @@ export default {
         console.log('API Response:', response.data);
 
         if (response.data.success) {
-          // Check if we're using fallback data
           if (response.data.note) {
             this.usingFallbackData = true;
             console.log('Using fallback data:', response.data.note);
@@ -514,19 +508,15 @@ export default {
           this.generateNotifications();
           console.log('Successfully loaded', this.parcels.length, 'shipments');
 
-          // Update globe data if globe is already initialized
-          if (this.globeInitialized) {
-            this.updateGlobeData();
-          }
+          // Update globe with new data
+          this.updateGlobeData();
 
         } else {
           console.error('Failed to fetch shipments:', response.data.error);
-          // Fallback to example data if API fails
           this.useFallbackData();
         }
       } catch (error) {
         console.error('Error fetching shipments:', error);
-        // Fallback to example data on network error
         this.useFallbackData();
       } finally {
         this.loading = false;
@@ -538,16 +528,11 @@ export default {
       this.usingFallbackData = true;
       this.errorMessage = 'Connected to demo data. Real shipments will appear here once you create them.';
 
-      // Use the example data directly
       const exampleData = this.getExampleShipments(this.user.email);
       this.parcels = this.transformShipmentData(exampleData);
       this.updateStats();
       this.generateNotifications();
-
-      // Update globe data if globe is already initialized
-      if (this.globeInitialized) {
-        this.updateGlobeData();
-      }
+      this.updateGlobeData();
     },
 
     getExampleShipments(customerEmail) {
@@ -641,22 +626,18 @@ export default {
 
       return shipments.map(shipment => {
         try {
-          // Get coordinates with better error handling
           let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
           let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
-
-          console.log('Sender coords for', shipment.senderAddress?.countryCode, ':', senderCoords);
-          console.log('Recipient coords for', shipment.recipientAddress?.countryCode, ':', recipientCoords);
 
           // Ensure coordinates are valid numbers
           if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
             console.warn('Invalid sender coordinates, using Singapore default');
-            senderCoords = [1.3521, 103.8198]; // Singapore coordinates
+            senderCoords = [1.3521, 103.8198];
           }
 
           if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
             console.warn('Invalid recipient coordinates, using US default');
-            recipientCoords = [39.8283, -98.5795]; // US center coordinates
+            recipientCoords = [39.8283, -98.5795];
           }
 
           // Determine current location based on status
@@ -664,7 +645,6 @@ export default {
           const progress = this.calculateProgressFromStatus(shipment.status);
 
           if (progress > 0 && progress < 100) {
-            // For in-progress shipments, interpolate between start and end
             currentLocation = [
               senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
               senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
@@ -673,13 +653,12 @@ export default {
             currentLocation = recipientCoords;
           }
 
-          // Create tracking ID from available data
           let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
           if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
             trackingId = `TRK-${shipment.trackingNumber}`;
           }
 
-          const transformedParcel = {
+          return {
             id: shipment.mailId,
             mailId: shipment.mailId,
             trackingId: trackingId,
@@ -700,16 +679,6 @@ export default {
             recipientAddress: shipment.recipientAddress
           };
 
-          console.log('Transformed parcel:', {
-            id: transformedParcel.id,
-            trackingId: transformedParcel.trackingId,
-            status: transformedParcel.status,
-            from: this.getLocationName(transformedParcel.location),
-            to: this.getLocationName(transformedParcel.destination),
-            progress: transformedParcel.progress
-          });
-          return transformedParcel;
-
         } catch (error) {
           console.error('Error transforming shipment:', shipment, error);
           return null;
@@ -718,16 +687,11 @@ export default {
     },
 
     getCountryCoordinates(countryCode) {
-      // Handle UK/GB country code variation
       const code = countryCode === 'UK' ? 'GB' : countryCode;
-
       const country = countryData.find(c => c.code2 === code);
       if (country) {
-        console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
         return [country.lat, country.long];
       }
-
-      // Default to Singapore if not found
       console.warn(`Country code ${countryCode} not found, using Singapore as default`);
       return [1.28478, 103.776222];
     },
@@ -759,7 +723,6 @@ export default {
     },
 
     generateNotifications() {
-      // Create notifications from recent shipments
       this.notifications = this.parcels
         .slice(0, 4)
         .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
@@ -823,15 +786,16 @@ export default {
           throw new Error('Globe container not found');
         }
 
-        // Ensure container has proper dimensions
-        const width = container.clientWidth || 800;
-        const height = container.clientHeight || 400;
-
-        console.log('Container dimensions:', width, 'x', height);
-
         // Clear any existing content
         container.innerHTML = '';
 
+        // Get container dimensions
+        const width = container.clientWidth || 800;
+        const height = container.clientHeight || 400;
+
+        console.log('Creating globe with dimensions:', width, 'x', height);
+
+        // Create globe with minimal configuration first
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
           .backgroundColor('#000011')
@@ -839,13 +803,8 @@ export default {
           .height(height)
           (container);
 
-        console.log('Basic globe created');
-
         // Set initial view
-        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
-
-        // Initialize with points data first
-        this.updateGlobeData();
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 });
 
         this.globeInitialized = true;
         this.globeError = false;
@@ -859,7 +818,9 @@ export default {
     },
 
     updateGlobeData() {
-      if (!this.globe || !this.globeInitialized) return;
+      if (!this.globe || !this.globeInitialized || this.isGlobeUpdating) return;
+
+      this.isGlobeUpdating = true;
 
       try {
         // Create points data for all parcels
@@ -886,50 +847,149 @@ export default {
 
       } catch (error) {
         console.error('Error updating globe data:', error);
+      } finally {
+        this.isGlobeUpdating = false;
       }
     },
 
-    async showParcelDetails(parcel) {
-      console.log('🎯 Showing details for parcel:', parcel.trackingId);
+    async showParcelRoute(parcel) {
+      // Prevent multiple simultaneous selections
+      if (this.parcelSelectionInProgress) return;
 
-      // Set the selected parcel
+      this.parcelSelectionInProgress = true;
+      console.log('🎯 Showing route for parcel:', parcel.trackingId);
+
+      // Set the selected parcel immediately for UI responsiveness
       this.selectedParcel = parcel;
+      this.routeLoading = true;
+      this.routeError = null;
 
       try {
-        // Fetch additional parcel details from backend if needed
+        // Call backend API to get route data
         const response = await axios.post('/api/dashboard.php', {
-          method: 'getParcelDetails',
-          mailId: parcel.mailId,
-          trackingId: parcel.trackingId
+          method: 'getParcelRoute',
+          trackingId: parcel.trackingId,
+          mailId: parcel.mailId
         });
 
-        console.log('Parcel details API Response:', response.data);
+        console.log('Route API Response:', response.data);
 
-        if (response.data.success && response.data.parcelDetails) {
-          // Merge additional details with existing parcel data
-          this.selectedParcel = {
-            ...parcel,
-            ...response.data.parcelDetails
-          };
-          console.log('Enhanced parcel details loaded successfully');
+        if (response.data.success) {
+          this.routeData = response.data.routeData;
+          console.log('Route data loaded successfully:', this.routeData);
         } else {
-          console.log('Using basic parcel details');
+          throw new Error(response.data.error || 'Failed to load route data');
         }
       } catch (error) {
-        console.error('Error fetching parcel details:', error);
-        // Continue with basic parcel details if API fails
-        console.log('Using basic parcel details due to API error');
+        console.error('Error fetching route data:', error);
+        this.routeError = 'Failed to load route information. Please try again.';
+
+        // Fallback to basic route data
+        this.routeData = {
+          waypoints: [
+            {
+              location: this.getLocationName(parcel.location),
+              coordinates: parcel.location,
+              timestamp: parcel.createdDate,
+              status: 'Departure',
+              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
+            },
+            {
+              location: this.getLocationName(parcel.destination),
+              coordinates: parcel.destination,
+              timestamp: parcel.expectedDelivery,
+              status: 'Destination',
+              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
+            }
+          ],
+          estimatedDuration: '3-5 days',
+          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
+        };
+      } finally {
+        this.routeLoading = false;
+        this.parcelSelectionInProgress = false;
+      }
+
+      // Update the globe with the route
+      this.updateGlobeRoute(parcel);
+    },
+
+    updateGlobeRoute(parcel) {
+      if (!this.globe || !this.globeInitialized || this.isGlobeUpdating) return;
+
+      this.isGlobeUpdating = true;
+
+      try {
+        console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
+
+        // Show the full route from start to destination
+        this.arcsData = [{
+          startLat: parcel.location[0],
+          startLng: parcel.location[1],
+          endLat: parcel.destination[0],
+          endLng: parcel.destination[1],
+          color: '#ff4444'
+        }];
+
+        // Also show current position arc if in transit
+        if (parcel.status === 'In Progress' && parcel.progress > 0) {
+          this.arcsData.push({
+            startLat: parcel.location[0],
+            startLng: parcel.location[1],
+            endLat: parcel.currentLocation[0],
+            endLng: parcel.currentLocation[1],
+            color: '#00ff00'
+          });
+        }
+
+        this.globe
+          .arcsData(this.arcsData)
+          .arcStartLat(d => d.startLat)
+          .arcStartLng(d => d.startLng)
+          .arcEndLat(d => d.endLat)
+          .arcEndLng(d => d.endLng)
+          .arcColor(d => d.color)
+          .arcStroke(1.5)
+          .arcAltitude(0.05);
+
+        this.focusOnRoute(parcel.location, parcel.destination);
+
+        console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
+
+      } catch (error) {
+        console.error('Error updating globe route:', error);
+      } finally {
+        this.isGlobeUpdating = false;
       }
     },
 
-    clearSelection() {
+    focusOnRoute(start, end) {
+      if (!this.globe) return;
+
+      const midLat = (start[0] + end[0]) / 2;
+      const midLng = (start[1] + end[1]) / 2;
+
+      // Smooth transition to the route
+      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 }, 1000);
+    },
+
+    clearRoute() {
+      console.log('Clearing route...');
       this.selectedParcel = null;
       this.routeData = null;
       this.routeError = null;
+
+      if (this.globe && this.globeInitialized) {
+        this.arcsData = [];
+        this.globe.arcsData(this.arcsData);
+        // Reset to default view
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
+        // Restore points data
+        this.updateGlobeData();
+      }
     },
 
     calculateProgress(parcel) {
-      // Use the stored progress if available
       if (parcel.progress !== undefined) {
         return parcel.progress;
       }
@@ -971,20 +1031,14 @@ export default {
 
       const [lat, lng] = coords;
 
-      // Find country by coordinates with a reasonable tolerance
+      // Find country by coordinates with tolerance
       const country = countryData.find(c => {
         const latDiff = Math.abs(c.lat - lat);
         const lngDiff = Math.abs(c.long - lng);
-        return latDiff < 15 && lngDiff < 15; // Increased tolerance for better matching
+        return latDiff < 15 && lngDiff < 15;
       });
 
-      if (country) {
-        console.log(`Matched coordinates [${lat}, ${lng}] to country: ${country.name}`);
-        return country.name;
-      }
-
-      console.warn(`No country found for coordinates [${lat}, ${lng}]`);
-      return 'Unknown Location';
+      return country ? country.name : 'Unknown Location';
     },
 
     getStatusColor(status) {
@@ -1010,6 +1064,7 @@ export default {
     },
 
     forceReinit() {
+      console.log('Force reinitializing globe...');
       this.globeInitialized = false;
       this.globeError = false;
 
@@ -1029,8 +1084,11 @@ export default {
       // Reinitialize after a short delay
       this.$nextTick(() => {
         setTimeout(() => {
-          this.initGlobe();
-        }, 300);
+          this.initGlobe().then(() => {
+            // Restore data after globe is initialized
+            this.updateGlobeData();
+          });
+        }, 500);
       });
     },
 
@@ -1056,6 +1114,29 @@ export default {
   --pink-grey: #f1d9df;
 }
 
+
+.globe-updating {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.parcel-loading {
+  position: relative;
+}
+
+.parcel-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--pink-grey);
+  border-top: 2px solid var(--hot-pink);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
 /* Base Styles */
 .dashboard-wrapper {
   min-height: 100vh;
