@@ -1,4 +1,34 @@
-<template>
+  data() {
+    return {
+      isAuthenticated: false,
+      user: {
+        email: ''
+      },
+      searchQuery: '',
+      selectedParcel: null,
+      globeInitialized: false,
+      globeError: false,
+      errorMessage: "",
+      loading: false,
+      stats: {
+        inProgress: 0,
+        delivered: 0,
+        pending: 0,
+      },
+      parcels: [],
+      notifications: [],
+      globe: null,
+      arcsData: [],
+      pointsData: [],
+      refreshInterval: null,
+      usingFallbackData: false,
+      routeData: null,
+      routeLoading: false,
+      routeError: null,
+      globeInitAttempts: 0,
+      maxGlobeInitAttempts: 3
+    };
+  },<template>
   <div>
     <!-- Show dashboard only when authenticated -->
     <div class="dashboard-wrapper" v-if="isAuthenticated">
@@ -77,6 +107,9 @@
               <div class="card-header">
                 <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
                 <div class="card-actions">
+                  <span v-if="globeUpdateTimeout" class="globe-updating-indicator">
+                    <i class="fas fa-circle-notch fa-spin"></i> Updating...
+                  </span>
                   <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
                     <i class="fas fa-sync-alt"></i>
                   </button>
@@ -347,7 +380,8 @@ export default {
       usingFallbackData: false,
       routeData: null,
       routeLoading: false,
-      routeError: null
+      routeError: null,
+      globeUpdateTimeout: null
     };
   },
   computed: {
@@ -429,6 +463,9 @@ export default {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+    if (this.globeUpdateTimeout) {
+      clearTimeout(this.globeUpdateTimeout);
+    }
     if (this.globe) {
       // Clean up globe instance
       this.globe = null;
@@ -478,10 +515,10 @@ export default {
       // Fetch shipments first
       await this.fetchUserShipments();
 
-      // Then initialize the globe after DOM is ready
+      // Then initialize the globe after DOM is ready and data is loaded
       await this.$nextTick();
-      await new Promise(resolve => setTimeout(resolve, 500));
-      this.initGlobe();
+      await new Promise(resolve => setTimeout(resolve, 800));
+      await this.initGlobe();
     },
 
     debugCountryCoordinates() {
@@ -839,7 +876,7 @@ export default {
           throw new Error('Globe container not found');
         }
 
-        console.log('✅ Globe container found:', container);
+        console.log('✅ Globe container found');
 
         // Ensure container has proper dimensions
         const width = container.clientWidth || 800;
@@ -869,17 +906,29 @@ export default {
         // Set initial view
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
+        // Enable controls
+        this.globe.controls().enableZoom = true;
+        this.globe.controls().autoRotate = false;
+        this.globe.controls().autoRotateSpeed = 0.5;
+
         this.globeInitialized = true;
         this.globeError = false;
         console.log('✅ Globe initialized successfully');
 
         // Now update with any existing parcel data
         if (this.parcels && this.parcels.length > 0) {
-          console.log('📦 Loading existing parcel data into globe:', this.parcels.length, 'parcels');
+          console.log('📦 Loading', this.parcels.length, 'parcels into globe');
           await this.$nextTick();
           this.updateGlobeData();
+
+          // If there's a selected parcel, show its route
+          if (this.selectedParcel) {
+            console.log('🗺️ Restoring route for selected parcel:', this.selectedParcel.trackingId);
+            await this.$nextTick();
+            this.updateGlobeRoute(this.selectedParcel);
+          }
         } else {
-          console.log('⚠️ No parcel data yet to load into globe');
+          console.log('⚠️ No parcel data yet');
         }
 
       } catch (error) {
@@ -891,12 +940,12 @@ export default {
 
     updateGlobeData() {
       if (!this.globe || !this.globeInitialized) {
-        console.log('Cannot update globe data - globe not initialized');
+        console.log('⚠️ Cannot update globe data - globe not initialized');
         return;
       }
 
       if (!this.parcels || this.parcels.length === 0) {
-        console.log('No parcels to display on globe');
+        console.log('⚠️ No parcels to display on globe');
         // Clear any existing data
         this.globe.pointsData([]);
         this.globe.arcsData([]);
@@ -904,19 +953,19 @@ export default {
       }
 
       try {
-        console.log('Updating globe with', this.parcels.length, 'parcels');
+        console.log('📦 Updating globe with', this.parcels.length, 'parcels');
 
         // Create points data for all parcels
         this.pointsData = this.parcels.map(parcel => {
           const point = {
-            ...parcel,
+            id: parcel.id,
             lat: parcel.currentLocation[0],
             lng: parcel.currentLocation[1],
             color: this.getStatusColor(parcel.status),
-            size: 0.3,
+            size: 0.4,
+            altitude: 0.01,
             label: `${parcel.trackingId}: ${parcel.status}`
           };
-          console.log('Created point:', point.label, 'at', point.lat, point.lng);
           return point;
         });
 
@@ -926,11 +975,12 @@ export default {
           .pointLat('lat')
           .pointLng('lng')
           .pointColor('color')
-          .pointAltitude(0.1)
+          .pointAltitude('altitude')
           .pointRadius('size')
-          .pointLabel('label');
+          .pointLabel('label')
+          .pointsMerge(false); // Force complete update
 
-        console.log('✅ Globe data updated successfully with', this.pointsData.length, 'points');
+        console.log('✅ Globe data updated with', this.pointsData.length, 'points');
 
       } catch (error) {
         console.error('❌ Error updating globe data:', error);
@@ -940,52 +990,65 @@ export default {
     selectParcel(parcel) {
       console.log('🎯 Parcel clicked:', parcel.trackingId);
 
-      // Prevent double-clicking issues
-      if (this.selectedParcel && this.selectedParcel.id === parcel.id) {
-        console.log('ℹ️ Same parcel already selected');
-        return;
+      // Always update the selected parcel immediately for UI responsiveness
+      this.selectedParcel = parcel;
+      console.log('✅ Shipment details updated for:', this.selectedParcel.trackingId);
+
+      // Clear any pending globe updates to prevent conflicts
+      if (this.globeUpdateTimeout) {
+        clearTimeout(this.globeUpdateTimeout);
       }
 
-      this.selectedParcel = parcel;
-      console.log('✅ Selected parcel set:', this.selectedParcel.trackingId);
-
-      // Update globe to show the selected parcel route
+      // Update globe route if globe is ready (with debouncing for rapid clicks)
       if (this.globe && this.globeInitialized) {
-        console.log('🗺️ Updating globe route...');
-        this.$nextTick(() => {
-          this.updateGlobeRoute(parcel);
-        });
+        console.log('🗺️ Scheduling globe route update for:', parcel.trackingId);
+
+        this.globeUpdateTimeout = setTimeout(() => {
+          requestAnimationFrame(() => {
+            this.updateGlobeRoute(parcel);
+          });
+        }, 100); // Small delay to handle rapid clicking
       } else {
-        console.warn('⚠️ Globe not ready, cannot update route');
+        console.warn('⚠️ Globe not ready yet, but shipment details are showing');
       }
     },
 
     updateGlobeRoute(parcel) {
-      if (!this.globe || !this.globeInitialized) return;
+      if (!this.globe || !this.globeInitialized) {
+        console.warn('⚠️ Globe not ready, skipping route update');
+        return;
+      }
 
       try {
         console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
 
-        // Show the full route from start to destination
-        this.arcsData = [{
+        // Clear existing arcs first
+        this.arcsData = [];
+
+        // Show the full route from start to destination (red dashed line)
+        const mainRoute = {
           startLat: parcel.location[0],
           startLng: parcel.location[1],
           endLat: parcel.destination[0],
           endLng: parcel.destination[1],
-          color: '#ff4444'
-        }];
+          color: '#ff4275'
+        };
 
-        // Also show current position arc if in transit
-        if (parcel.status === 'In Progress' && parcel.progress > 0) {
-          this.arcsData.push({
+        this.arcsData.push(mainRoute);
+
+        // Also show current position arc if in transit (green line)
+        if (parcel.status === 'In Progress' && parcel.progress > 0 && parcel.progress < 100) {
+          const progressRoute = {
             startLat: parcel.location[0],
             startLng: parcel.location[1],
             endLat: parcel.currentLocation[0],
             endLng: parcel.currentLocation[1],
-            color: '#00ff00'
-          });
+            color: '#00ff88'
+          };
+          this.arcsData.push(progressRoute);
         }
 
+        // Update the globe with new arcs
         this.globe
           .arcsData(this.arcsData)
           .arcStartLat(d => d.startLat)
@@ -993,37 +1056,72 @@ export default {
           .arcEndLat(d => d.endLat)
           .arcEndLng(d => d.endLng)
           .arcColor(d => d.color)
-          .arcStroke(1.5)
-          .arcAltitude(0.05);
+          .arcStroke(2)
+          .arcDashLength(0.4)
+          .arcDashGap(0.2)
+          .arcDashAnimateTime(2000)
+          .arcAltitude(0.1);
 
+        // Focus on the route
         this.focusOnRoute(parcel.location, parcel.destination);
 
-        console.log('✅ Globe route updated successfully');
+        // Clear the timeout indicator
+        this.globeUpdateTimeout = null;
+
+        console.log('✅ Globe route updated successfully with', this.arcsData.length, 'arcs');
 
       } catch (error) {
         console.error('❌ Error updating globe route:', error);
+        this.globeUpdateTimeout = null;
       }
     },
 
     focusOnRoute(start, end) {
       if (!this.globe) return;
 
-      const midLat = (start[0] + end[0]) / 2;
-      const midLng = (start[1] + end[1]) / 2;
+      try {
+        const midLat = (start[0] + end[0]) / 2;
+        const midLng = (start[1] + end[1]) / 2;
 
-      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 });
+        // Calculate appropriate altitude based on distance
+        const distance = this.calculateDistance(start, end);
+        const altitude = Math.min(2.5, Math.max(1.5, distance / 5000));
+
+        // Smooth transition to the route
+        this.globe.pointOfView({
+          lat: midLat,
+          lng: midLng,
+          altitude: altitude
+        }, 1000); // 1 second transition
+
+        console.log('🎥 Camera focused on route');
+      } catch (error) {
+        console.error('❌ Error focusing on route:', error);
+      }
     },
 
     clearRoute() {
+      console.log('🧹 Clearing route and selection');
+
+      // Clear selection immediately for UI responsiveness
       this.selectedParcel = null;
       this.routeData = null;
       this.routeError = null;
 
+      // Clear globe arcs if globe is ready (non-blocking)
       if (this.globe && this.globeInitialized) {
-        this.arcsData = [];
-        this.globe.arcsData(this.arcsData);
-        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
-        this.updateGlobeData();
+        try {
+          this.arcsData = [];
+          this.globe.arcsData(this.arcsData);
+          this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 }, 1000);
+
+          // Restore all points
+          this.updateGlobeData();
+
+          console.log('✅ Route cleared from globe');
+        } catch (error) {
+          console.error('❌ Error clearing route:', error);
+        }
       }
     },
 
@@ -1499,6 +1597,16 @@ export default {
   gap: 0.5rem;
 }
 
+.globe-updating-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--hot-pink);
+  font-weight: 600;
+  padding: 0.5rem;
+}
+
 .btn-icon {
   width: 36px;
   height: 36px;
@@ -1777,6 +1885,8 @@ export default {
 .parcel-item.active {
   border-color: var(--hot-pink);
   background: var(--light-pink);
+  box-shadow: 0 4px 12px rgba(255, 66, 117, 0.2);
+  transform: translateX(5px);
 }
 
 .parcel-icon {
