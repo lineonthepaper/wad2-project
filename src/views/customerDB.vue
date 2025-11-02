@@ -79,7 +79,7 @@
                   <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
                     <i class="fas fa-sync-alt"></i>
                   </button>
-                  <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
+                  <button class="btn-icon" v-if="selectedParcel" @click="clearSelection" title="Clear Selection">
                     <i class="fas fa-times"></i>
                   </button>
                 </div>
@@ -207,7 +207,7 @@
                     :key="parcel.id"
                     class="parcel-item"
                     :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
-                    @click="showParcelRoute(parcel)"
+                    @click="showParcelDetails(parcel)"
                   >
                     <div class="parcel-icon">
                       <i class="fas fa-box"></i>
@@ -889,130 +889,43 @@ export default {
       }
     },
 
-    async showParcelRoute(parcel) {
-      console.log('🎯 Showing route for parcel:', parcel.trackingId);
+    async showParcelDetails(parcel) {
+      console.log('🎯 Showing details for parcel:', parcel.trackingId);
 
       // Set the selected parcel
       this.selectedParcel = parcel;
-      this.routeLoading = true;
-      this.routeError = null;
 
       try {
-        // Call backend API to get route data
+        // Fetch additional parcel details from backend if needed
         const response = await axios.post('/api/dashboard.php', {
-          method: 'getParcelRoute',
-          trackingId: parcel.trackingId,
-          mailId: parcel.mailId
+          method: 'getParcelDetails',
+          mailId: parcel.mailId,
+          trackingId: parcel.trackingId
         });
 
-        console.log('Route API Response:', response.data);
+        console.log('Parcel details API Response:', response.data);
 
-        if (response.data.success) {
-          this.routeData = response.data.routeData;
-          console.log('Route data loaded successfully:', this.routeData);
+        if (response.data.success && response.data.parcelDetails) {
+          // Merge additional details with existing parcel data
+          this.selectedParcel = {
+            ...parcel,
+            ...response.data.parcelDetails
+          };
+          console.log('Enhanced parcel details loaded successfully');
         } else {
-          throw new Error(response.data.error || 'Failed to load route data');
+          console.log('Using basic parcel details');
         }
       } catch (error) {
-        console.error('Error fetching route data:', error);
-        this.routeError = 'Failed to load route information. Please try again.';
-
-        // Fallback to basic route data using coordinates
-        this.routeData = {
-          waypoints: [
-            {
-              location: this.getLocationName(parcel.location),
-              coordinates: parcel.location,
-              timestamp: parcel.createdDate,
-              status: 'Departure',
-              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
-            },
-            {
-              location: this.getLocationName(parcel.destination),
-              coordinates: parcel.destination,
-              timestamp: parcel.expectedDelivery,
-              status: 'Destination',
-              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
-            }
-          ],
-          estimatedDuration: '3-5 days',
-          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
-        };
-      } finally {
-        this.routeLoading = false;
-      }
-
-      // Update the globe separately if needed (keeping globe functionality intact)
-      if (this.globe && this.globeInitialized) {
-        this.updateGlobeRoute(parcel);
+        console.error('Error fetching parcel details:', error);
+        // Continue with basic parcel details if API fails
+        console.log('Using basic parcel details due to API error');
       }
     },
 
-    updateGlobeRoute(parcel) {
-      if (!this.globe || !this.globeInitialized) return;
-
-      try {
-        console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
-
-        // Show the full route from start to destination
-        this.arcsData = [{
-          startLat: parcel.location[0],
-          startLng: parcel.location[1],
-          endLat: parcel.destination[0],
-          endLng: parcel.destination[1],
-          color: '#ff4444'
-        }];
-
-        // Also show current position arc if in transit
-        if (parcel.status === 'In Progress' && parcel.progress > 0) {
-          this.arcsData.push({
-            startLat: parcel.location[0],
-            startLng: parcel.location[1],
-            endLat: parcel.currentLocation[0],
-            endLng: parcel.currentLocation[1],
-            color: '#00ff00'
-          });
-        }
-
-        this.globe
-          .arcsData(this.arcsData)
-          .arcStartLat(d => d.startLat)
-          .arcStartLng(d => d.startLng)
-          .arcEndLat(d => d.endLat)
-          .arcEndLng(d => d.endLng)
-          .arcColor(d => d.color)
-          .arcStroke(1.5)
-          .arcAltitude(0.05);
-
-        this.focusOnRoute(parcel.location, parcel.destination);
-
-        console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
-
-      } catch (error) {
-        console.error('Error updating globe route:', error);
-      }
-    },
-
-    focusOnRoute(start, end) {
-      if (!this.globe) return;
-
-      const midLat = (start[0] + end[0]) / 2;
-      const midLng = (start[1] + end[1]) / 2;
-
-      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 });
-    },
-
-    clearRoute() {
+    clearSelection() {
       this.selectedParcel = null;
       this.routeData = null;
       this.routeError = null;
-
-      if (this.globe && this.globeInitialized) {
-        this.arcsData = [];
-        this.globe.arcsData(this.arcsData);
-        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
-        this.updateGlobeData();
-      }
     },
 
     calculateProgress(parcel) {
