@@ -1,5 +1,5 @@
 <template>
-  <div class="transaction-history-page">
+  <div class="history-page">
     <!-- Authentication Check -->
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
@@ -56,10 +56,14 @@
                 <input
                   type="text"
                   class="form-control search-input"
-                  placeholder="Search by tracking number, service, or destination..."
+                  placeholder="Search by tracking number, service, destination, or items..."
                   v-model="searchQuery"
+                  @input="handleSearch"
                 >
               </div>
+              <small class="text-muted mt-1 d-block">
+                Search by: Tracking Number, Service Type, Destination Country, or Item Description
+              </small>
             </div>
             <div class="col-md-6">
               <div class="d-flex flex-wrap gap-2">
@@ -117,6 +121,14 @@
                 >
                   Service: {{ selectedService }} <i class="fas fa-times ms-1"></i>
                 </span>
+                <span
+                  v-if="searchQuery"
+                  class="badge bg-info text-dark"
+                  @click="searchQuery = ''"
+                  style="cursor: pointer;"
+                >
+                  Search: "{{ searchQuery }}" <i class="fas fa-times ms-1"></i>
+                </span>
               </div>
             </div>
           </div>
@@ -158,6 +170,7 @@
                   class="transaction-card card mb-3 shadow-sm"
                   v-for="transaction in paginatedTransactions"
                   :key="transaction.mailId"
+                  @click="viewTransactionDetails(transaction)"
                   style="cursor: pointer; transition: transform 0.2s;"
                 >
                   <div class="card-body">
@@ -248,12 +261,22 @@
               </div>
 
               <!-- No Results -->
-              <div v-if="filteredTransactions.length === 0" class="text-center py-5">
+              <div v-if="filteredTransactions.length === 0 && transactions.length > 0" class="text-center py-5">
                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">No transactions found</h4>
+                <h4 class="text-muted">No transactions match your search</h4>
                 <p class="text-muted">Try adjusting your search terms or filters</p>
                 <button class="btn btn-primary" @click="clearFilters">
                   Clear All Filters
+                </button>
+              </div>
+
+              <!-- No Transactions at All -->
+              <div v-if="transactions.length === 0 && !loading" class="text-center py-5">
+                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No transactions found</h4>
+                <p class="text-muted">You haven't created any shipments yet.</p>
+                <button class="btn btn-primary" @click="redirectToCreateShipment">
+                  Create Your First Shipment
                 </button>
               </div>
 
@@ -291,7 +314,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 export default {
-  name: 'TransactionHistory',
+  name: 'History',
   setup() {
     const router = useRouter()
 
@@ -325,26 +348,63 @@ export default {
       }
     }
 
+    // Search handler
+    const handleSearch = () => {
+      currentPage.value = 1 // Reset to first page when searching
+    }
+
+    // View transaction details
+    const viewTransactionDetails = (transaction) => {
+      console.log('Viewing transaction details:', transaction.mailId)
+
+      // Store the transaction data for the detail page
+      sessionStorage.setItem('selectedTransaction', JSON.stringify(transaction))
+
+      // Navigate to history detail page
+      router.push(`/history/${transaction.mailId}`)
+    }
+
     // Computed properties
     const hasActiveFilters = computed(() => {
       return selectedStatus.value || selectedService.value || searchQuery.value
     })
 
     const filteredTransactions = computed(() => {
+      if (!transactions.value.length) return []
+
       return transactions.value.filter(transaction => {
-        const matchesSearch = !searchQuery.value ||
-          transaction.trackingNumber.toString().includes(searchQuery.value) ||
-          transaction.service.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          (transaction.recipientAddress?.countryCode || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          transaction.mailItems.some(item =>
-            item.itemDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
-          )
+        const query = searchQuery.value.toLowerCase().trim()
 
-        const matchesStatus = !selectedStatus.value ||
-          transaction.status === selectedStatus.value
+        // If no search query, only apply status and service filters
+        if (!query) {
+          const matchesStatus = !selectedStatus.value || transaction.status === selectedStatus.value
+          const matchesService = !selectedService.value ||
+            transaction.service?.name?.toLowerCase().includes(selectedService.value.toLowerCase())
+          return matchesStatus && matchesService
+        }
 
+        // Search across multiple fields
+        const matchesSearch =
+          // Search by tracking number
+          (transaction.trackingNumber?.toString().toLowerCase().includes(query)) ||
+          // Search by service name
+          (transaction.service?.name?.toLowerCase().includes(query)) ||
+          // Search by destination country code
+          (transaction.recipientAddress?.countryCode?.toLowerCase().includes(query)) ||
+          // Search by destination country name (if available)
+          (transaction.recipientAddress?.name?.toLowerCase().includes(query)) ||
+          // Search by item descriptions
+          (transaction.mailItems?.some(item =>
+            item.itemDescription?.toLowerCase().includes(query)
+          )) ||
+          // Search by status
+          (formatStatus(transaction.status).toLowerCase().includes(query)) ||
+          // Search by sender country
+          (transaction.senderAddress?.countryCode?.toLowerCase().includes(query))
+
+        const matchesStatus = !selectedStatus.value || transaction.status === selectedStatus.value
         const matchesService = !selectedService.value ||
-          transaction.service.name.toLowerCase().includes(selectedService.value.toLowerCase())
+          transaction.service?.name?.toLowerCase().includes(selectedService.value.toLowerCase())
 
         return matchesSearch && matchesStatus && matchesService
       })
@@ -414,6 +474,8 @@ export default {
       error.value = null
 
       try {
+        console.log('Fetching transactions for:', user.value.email)
+
         const response = await fetch('/api/dashboard.php', {
           method: 'POST',
           headers: {
@@ -426,22 +488,28 @@ export default {
         })
 
         if (!response.ok) {
-          throw new Error('Failed to fetch transactions')
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
 
         const data = await response.json()
+        console.log('API Response:', data)
 
         if (data.success) {
           transactions.value = data.shipments || []
-          console.log('Loaded transactions:', transactions.value.length)
+          console.log('Successfully loaded transactions:', transactions.value.length)
+
+          if (transactions.value.length > 0) {
+            console.log('First transaction sample:', transactions.value[0])
+          } else {
+            console.log('No transactions found for user')
+          }
         } else {
-          throw new Error(data.error || 'Failed to load transactions')
+          throw new Error(data.error || 'Failed to load transactions from server')
         }
       } catch (err) {
         console.error('Error loading transactions:', err)
-        error.value = err.message
-        // Fallback to example data
-        transactions.value = getExampleTransactions(user.value.email)
+        error.value = `Failed to load transactions: ${err.message}`
+        transactions.value = [] // Clear transactions on error
       } finally {
         loading.value = false
       }
@@ -473,11 +541,16 @@ export default {
     }
 
     const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
+      if (!dateString) return 'N/A'
+      try {
+        return new Date(dateString).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        })
+      } catch (error) {
+        return 'Invalid Date'
+      }
     }
 
     const getProgressWidth = (status) => {
@@ -507,64 +580,12 @@ export default {
       return textMap[status] || 'Unknown'
     }
 
-    const getExampleTransactions = (email) => {
-      return [
-        {
-          mailId: 1001,
-          customerEmail: email,
-          trackingNumber: '000053',
-          status: 'in_transit',
-          service: { name: 'Registered Mail', type: 'Packets', zone: 3 },
-          totalWeight: 1.5,
-          totalValue: 250.00,
-          hasBeenPaid: true,
-          createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          expectedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-          senderAddress: { countryCode: 'SG' },
-          recipientAddress: { countryCode: 'US' },
-          mailItems: [
-            { itemDescription: 'Electronics Package', declaredValue: 250.00, itemWeight: 1.5, itemQuantity: 1 }
-          ]
-        },
-        {
-          mailId: 1002,
-          customerEmail: email,
-          trackingNumber: '000054',
-          status: 'delivered',
-          service: { name: 'Standard Mail', type: 'Documents', zone: 2 },
-          totalWeight: 0.5,
-          totalValue: 50.00,
-          hasBeenPaid: true,
-          createdDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          expectedDelivery: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          senderAddress: { countryCode: 'SG' },
-          recipientAddress: { countryCode: 'MY' },
-          mailItems: [
-            { itemDescription: 'Documents', declaredValue: 50.00, itemWeight: 0.5, itemQuantity: 1 }
-          ]
-        },
-        {
-          mailId: 1003,
-          customerEmail: email,
-          trackingNumber: '000055',
-          status: 'pending',
-          service: { name: 'Basic Mail', type: 'Packets', zone: 1 },
-          totalWeight: 2.0,
-          totalValue: 150.00,
-          hasBeenPaid: false,
-          createdDate: new Date().toISOString(),
-          expectedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          senderAddress: { countryCode: 'SG' },
-          recipientAddress: { countryCode: 'UK' },
-          mailItems: [
-            { itemDescription: 'Clothing', declaredValue: 150.00, itemWeight: 2.0, itemQuantity: 3 }
-          ]
-        }
-      ]
-    }
-
     const redirectToLogin = () => {
       router.push('/login')
+    }
+
+    const redirectToCreateShipment = () => {
+      router.push('/create-shipment')
     }
 
     // Lifecycle
@@ -593,20 +614,27 @@ export default {
       enhancedStats,
       fetchTransactions,
       clearFilters,
+      handleSearch,
+      viewTransactionDetails,
       getStatusBadgeClass,
       formatStatus,
       formatDate,
       getProgressWidth,
       getProgressBarClass,
       getProgressText,
-      redirectToLogin
+      redirectToLogin,
+      redirectToCreateShipment
     }
   }
 }
 </script>
 
 <style scoped>
-/* Pink Color Palette */
+.history-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 :root {
   --hot-pink: #ff4275;
   --dark-pink: #ff759e;

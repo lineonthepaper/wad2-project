@@ -14,6 +14,7 @@ import ConfirmationView from '@/views/ConfirmationView.vue'
 import settings from  '@/views/settings.vue'
 import changePassword from '@/views/changePassword.vue'
 import history from '@/views/history.vue'
+import HistoryDetail from '@/views/HistoryDetail.vue'
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -29,7 +30,8 @@ export const routes = [
   { path: '/confirmation', name: 'confirmation', title: 'Confirmed!', component: ConfirmationView },
   {path: '/settings',name: 'settings', title: 'settings', component: settings},
   {path: '/changePassword',name: 'changepw', title: 'changePassword', component: changePassword},
-  {path: '/history',name: 'history', title: 'History', component: history}
+  {path: '/history',name: 'history', title: 'History', component: history},
+  { path: '/history/:id', name: 'HistoryDetail', component: HistoryDetail, props: true },
 ]
 
 const router = createRouter({
