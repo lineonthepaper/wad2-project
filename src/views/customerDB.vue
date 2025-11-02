@@ -100,7 +100,7 @@
                   </div>
                 </div>
 
-              <div v-if="selectedParcel" class="selected-parcel-info">
+             <div v-if="selectedParcel" class="selected-parcel-info">
   <div class="parcel-header">
     <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
     <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
@@ -108,83 +108,102 @@
     </span>
   </div>
 
-  <div class="parcel-details-grid">
+  <div class="shipment-details-grid">
+    <!-- Sender Information -->
     <div class="detail-section">
-      <h5><i class="fas fa-route"></i> Route Information</h5>
+      <h5><i class="fas fa-paper-plane"></i> Sender Information</h5>
       <div class="detail-item">
-        <span class="detail-label">From:</span>
-        <span class="detail-value">{{ getLocationName(selectedParcel.location) }}</span>
+        <label>Name:</label>
+        <span>{{ selectedParcel.senderAddress?.name || 'N/A' }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">To:</span>
-        <span class="detail-value">{{ getLocationName(selectedParcel.destination) }}</span>
+        <label>Location:</label>
+        <span>{{ getLocationName(selectedParcel.location) }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Current Location:</span>
-        <span class="detail-value">{{ getLocationName(selectedParcel.currentLocation) }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Progress:</span>
-        <span class="detail-value">{{ Math.round(calculateProgress(selectedParcel)) }}% Complete</span>
+      <div class="detail-item" v-if="selectedParcel.senderAddress?.countryCode">
+        <label>Country:</label>
+        <span>{{ selectedParcel.senderAddress.countryCode }}</span>
       </div>
     </div>
 
+    <!-- Recipient Information -->
+    <div class="detail-section">
+      <h5><i class="fas fa-map-marker-alt"></i> Recipient Information</h5>
+      <div class="detail-item">
+        <label>Name:</label>
+        <span>{{ selectedParcel.recipientAddress?.name || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Destination:</label>
+        <span>{{ getLocationName(selectedParcel.destination) }}</span>
+      </div>
+      <div class="detail-item" v-if="selectedParcel.recipientAddress?.countryCode">
+        <label>Country:</label>
+        <span>{{ selectedParcel.recipientAddress.countryCode }}</span>
+      </div>
+    </div>
+
+    <!-- Shipment Details -->
     <div class="detail-section">
       <h5><i class="fas fa-info-circle"></i> Shipment Details</h5>
       <div class="detail-item">
-        <span class="detail-label">Service:</span>
-        <span class="detail-value">{{ selectedParcel.service?.name || 'Standard' }}</span>
+        <label>Service Type:</label>
+        <span>{{ selectedParcel.service?.name || 'Standard' }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Weight:</span>
-        <span class="detail-value">{{ selectedParcel.totalWeight }} kg</span>
+        <label>Total Weight:</label>
+        <span>{{ selectedParcel.totalWeight }} kg</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Value:</span>
-        <span class="detail-value">${{ selectedParcel.totalValue }}</span>
+        <label>Declared Value:</label>
+        <span>${{ selectedParcel.totalValue?.toFixed(2) || '0.00' }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Dimensions:</span>
-        <span class="detail-value" v-if="selectedParcel.rawData">
-          {{ selectedParcel.rawData.parcelLength }}×{{ selectedParcel.rawData.parcelWidth }}×{{ selectedParcel.rawData.parcelHeight }} cm
+        <label>Payment Status:</label>
+        <span :class="selectedParcel.hasBeenPaid ? 'status-paid' : 'status-unpaid'">
+          {{ selectedParcel.hasBeenPaid ? 'Paid' : 'Unpaid' }}
         </span>
-        <span class="detail-value" v-else>N/A</span>
       </div>
     </div>
 
+    <!-- Delivery Information -->
     <div class="detail-section">
-      <h5><i class="fas fa-calendar-alt"></i> Timeline</h5>
+      <h5><i class="fas fa-calendar-alt"></i> Delivery Information</h5>
       <div class="detail-item">
-        <span class="detail-label">Created:</span>
-        <span class="detail-value">{{ formatDateTime(selectedParcel.createdDate) }}</span>
+        <label>Created Date:</label>
+        <span>{{ formatDate(selectedParcel.createdDate) }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Expected Delivery:</span>
-        <span class="detail-value">{{ formatDate(selectedParcel.expectedDelivery) }}</span>
+        <label>Expected Delivery:</label>
+        <span>{{ formatDate(selectedParcel.expectedDelivery) }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Payment Status:</span>
-        <span class="detail-value" :class="selectedParcel.hasBeenPaid ? 'paid' : 'unpaid'">
-          {{ selectedParcel.hasBeenPaid ? 'Paid' : 'Pending Payment' }}
-        </span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Shipment ID:</span>
-        <span class="detail-value">{{ selectedParcel.mailId }}</span>
+        <label>Progress:</label>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
+          </div>
+          <span class="progress-text">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Items information -->
-  <div class="items-section" v-if="selectedParcel.rawData && selectedParcel.rawData.mailItems">
+  <!-- Package Items -->
+  <div class="package-items" v-if="selectedParcel.mailItems && selectedParcel.mailItems.length > 0">
     <h5><i class="fas fa-box-open"></i> Package Contents</h5>
     <div class="items-list">
-      <div class="item" v-for="item in selectedParcel.rawData.mailItems" :key="item.itemId">
-        <div class="item-description">{{ item.itemDescription }}</div>
+      <div v-for="(item, index) in selectedParcel.mailItems" :key="index" class="item-card">
+        <div class="item-icon">
+          <i class="fas fa-box"></i>
+        </div>
         <div class="item-details">
-          <span>Qty: {{ item.itemQuantity }}</span>
-          <span>Weight: {{ item.itemWeight }} kg</span>
-          <span>Value: ${{ item.declaredValue }}</span>
+          <h6>{{ item.itemDescription || 'Unnamed Item' }}</h6>
+          <div class="item-specs">
+            <span class="spec">Weight: {{ item.itemWeight }} kg</span>
+            <span class="spec">Value: ${{ item.declaredValue?.toFixed(2) || '0.00' }}</span>
+            <span class="spec">Qty: {{ item.itemQuantity || 1 }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -344,7 +363,10 @@ export default {
       arcsData: [],
       pointsData: [],
       refreshInterval: null,
-      usingFallbackData: false
+      usingFallbackData: false,
+      routeData: null,
+      routeLoading: false,
+      routeError: null
     };
   },
   computed: {
@@ -403,6 +425,9 @@ export default {
           chartData: [50, 55, 60, 65, 70, 75, 80]
         }
       ];
+    },
+    hasRouteData() {
+      return this.routeData && this.routeData.waypoints && this.routeData.waypoints.length > 0;
     }
   },
   mounted() {
@@ -459,6 +484,7 @@ export default {
         this.notifications = [];
         this.stats = { inProgress: 0, delivered: 0, pending: 0 };
         this.usingFallbackData = false;
+        this.routeData = null;
       }
     },
 
@@ -699,7 +725,8 @@ export default {
             createdDate: shipment.createdDate,
             rawData: shipment,
             senderAddress: shipment.senderAddress,
-            recipientAddress: shipment.recipientAddress
+            recipientAddress: shipment.recipientAddress,
+            mailItems: this.formatMailItems(shipment.mailItems || [])
           };
 
           console.log('Transformed parcel:', {
@@ -717,6 +744,30 @@ export default {
           return null;
         }
       }).filter(parcel => parcel !== null);
+    },
+
+    formatMailItems(mailItems) {
+      if (!mailItems || !Array.isArray(mailItems)) {
+        return [];
+      }
+
+      return mailItems.map(item => ({
+        itemId: item.itemId || Math.random().toString(36).substr(2, 9),
+        itemDescription: item.itemDescription || 'Unnamed Item',
+        declaredValue: parseFloat(item.declaredValue) || 0,
+        itemWeight: parseFloat(item.itemWeight) || 0,
+        itemQuantity: parseInt(item.itemQuantity) || 1
+      }));
+    },
+
+    formatAddress(address) {
+      if (!address) return null;
+
+      return {
+        name: address.name || 'Unknown',
+        countryCode: address.countryCode || 'SG',
+        coordinates: address.coordinates || this.getCountryCoordinates(address.countryCode || 'SG')
+      };
     },
 
     getCountryCoordinates(countryCode) {
@@ -891,44 +942,123 @@ export default {
       }
     },
 
-    showParcelRoute(parcel) {
-      console.log('🎯 Showing parcel information for:', parcel.trackingId);
+    async showParcelRoute(parcel) {
+      console.log('📦 Showing details for parcel:', parcel.trackingId);
 
       // Set the selected parcel
       this.selectedParcel = parcel;
+      this.routeLoading = true;
+      this.routeError = null;
 
-      // Update the globe to focus on this parcel (no routes)
+      try {
+        // Try to fetch additional parcel details from backend
+        const response = await axios.post('/api/dashboard.php', {
+          method: 'getParcelDetails',
+          trackingId: parcel.trackingId,
+          mailId: parcel.mailId
+        });
+
+        console.log('Parcel Details API Response:', response.data);
+
+        if (response.data.success && response.data.parcelDetails) {
+          // Enhance the parcel data with additional details
+          this.selectedParcel = {
+            ...parcel,
+            ...response.data.parcelDetails,
+            // Ensure we have mailItems array
+            mailItems: this.formatMailItems(response.data.parcelDetails.mailItems || parcel.mailItems || [])
+          };
+          console.log('Enhanced parcel details loaded successfully');
+        } else {
+          // If no additional details, enhance with existing data
+          this.enhanceParcelData(parcel);
+        }
+      } catch (error) {
+        console.error('Error fetching parcel details:', error);
+        // Fallback to enhancing existing data
+        this.enhanceParcelData(parcel);
+      } finally {
+        this.routeLoading = false;
+      }
+
+      // Update the globe to show the selected parcel's location
       if (this.globe && this.globeInitialized) {
-        this.focusOnParcel(parcel);
+        this.updateGlobeForSelectedParcel(parcel);
       }
     },
 
-    focusOnParcel(parcel) {
-      if (!this.globe) return;
+    enhanceParcelData(parcel) {
+      // Ensure the parcel has all necessary properties for the details view
+      this.selectedParcel = {
+        ...parcel,
+        // Ensure mailItems exists and is properly formatted
+        mailItems: this.formatMailItems(parcel.mailItems || parcel.rawData?.mailItems || []),
+        // Ensure addresses are properly structured
+        senderAddress: this.formatAddress(parcel.senderAddress || parcel.rawData?.senderAddress),
+        recipientAddress: this.formatAddress(parcel.recipientAddress || parcel.rawData?.recipientAddress),
+        // Ensure service information
+        service: parcel.service || parcel.rawData?.service || { name: 'Standard Service' },
+        // Ensure financial data
+        totalWeight: parcel.totalWeight || parcel.rawData?.totalWeight || 0,
+        totalValue: parcel.totalValue || parcel.rawData?.totalValue || 0,
+        hasBeenPaid: parcel.hasBeenPaid !== undefined ? parcel.hasBeenPaid : (parcel.rawData?.hasBeenPaid || false),
+        // Ensure dates
+        createdDate: parcel.createdDate || parcel.rawData?.createdDate || new Date().toISOString(),
+        expectedDelivery: parcel.expectedDelivery || parcel.rawData?.expectedDelivery || this.calculateExpectedDelivery()
+      };
+
+      console.log('Enhanced parcel data for details view');
+    },
+
+    calculateExpectedDelivery() {
+      const date = new Date();
+      date.setDate(date.getDate() + 5); // Default 5 days from now
+      return date.toISOString().split('T')[0];
+    },
+
+    updateGlobeForSelectedParcel(parcel) {
+      if (!this.globe || !this.globeInitialized) return;
 
       try {
-        console.log('🔄 Focusing globe on parcel:', parcel.trackingId);
+        console.log('🔄 Updating globe for selected parcel:', parcel.trackingId);
 
-        // Clear any existing routes
-        this.arcsData = [];
-        this.globe.arcsData(this.arcsData);
+        // Highlight the selected parcel on the globe
+        this.pointsData = this.parcels.map(p => ({
+          ...p,
+          lat: p.currentLocation[0],
+          lng: p.currentLocation[1],
+          color: p.id === parcel.id ? '#ff4444' : this.getStatusColor(p.status),
+          size: p.id === parcel.id ? 0.5 : 0.3,
+          label: `${p.trackingId}: ${p.status}`
+        }));
 
-        // Focus on the parcel's current location
+        this.globe
+          .pointsData(this.pointsData)
+          .pointLat('lat')
+          .pointLng('lng')
+          .pointColor('color')
+          .pointAltitude(0.1)
+          .pointRadius('size')
+          .pointLabel('label');
+
+        // Focus on the selected parcel
         this.globe.pointOfView({
           lat: parcel.currentLocation[0],
           lng: parcel.currentLocation[1],
           altitude: 1.5
         });
 
-        console.log('✅ Globe focused on parcel');
+        console.log('✅ Globe updated for selected parcel');
 
       } catch (error) {
-        console.error('Error focusing globe on parcel:', error);
+        console.error('Error updating globe for selected parcel:', error);
       }
     },
 
     clearRoute() {
       this.selectedParcel = null;
+      this.routeData = null;
+      this.routeError = null;
 
       if (this.globe && this.globeInitialized) {
         this.arcsData = [];
@@ -1019,21 +1149,6 @@ export default {
       }
     },
 
-    formatDateTime(dateString) {
-      if (!dateString) return 'N/A';
-      try {
-        return new Date(dateString).toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } catch (error) {
-        return 'Invalid Date';
-      }
-    },
-
     forceReinit() {
       this.globeInitialized = false;
       this.globeError = false;
@@ -1049,6 +1164,7 @@ export default {
 
       this.arcsData = [];
       this.selectedParcel = null;
+      this.routeData = null;
 
       // Reinitialize after a short delay
       this.$nextTick(() => {
@@ -1079,7 +1195,6 @@ export default {
   --light-pink: #ffe8ee;
   --pink-grey: #f1d9df;
 }
-
 
 /* Base Styles */
 .dashboard-wrapper {
@@ -1878,7 +1993,197 @@ export default {
   background: var(--dark-pink);
   transform: translateY(-2px);
 }
+/* Shipment Details Styles */
+.shipment-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
 
+.detail-section {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--pink-grey);
+}
+
+.detail-section h5 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: var(--dark-slate-blue);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-section h5 i {
+  color: var(--hot-pink);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--pink-grey);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item label {
+  font-weight: 600;
+  color: var(--slate-blue);
+  font-size: 0.85rem;
+}
+
+.detail-item span {
+  color: var(--dark-slate-blue);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.status-paid {
+  color: var(--hot-pink);
+  font-weight: 600;
+}
+
+.status-unpaid {
+  color: var(--dark-pink);
+  font-weight: 600;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.progress-container .progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--pink-grey);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-container .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--hot-pink);
+  min-width: 40px;
+}
+
+/* Package Items */
+.package-items {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--pink-grey);
+}
+
+.package-items h5 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: var(--dark-slate-blue);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.package-items h5 i {
+  color: var(--hot-pink);
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--light-pink);
+  border-radius: 8px;
+  border: 1px solid var(--pink-grey);
+}
+
+.item-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+}
+
+.item-details {
+  flex: 1;
+}
+
+.item-details h6 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--dark-slate-blue);
+}
+
+.item-specs {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.spec {
+  font-size: 0.8rem;
+  color: var(--slate-blue);
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--pink-grey);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .shipment-details-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .progress-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .progress-container .progress-bar {
+    width: 100%;
+  }
+
+  .item-specs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
 /* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
@@ -1965,134 +2270,6 @@ export default {
 
   .stat-value {
     font-size: 2rem;
-  }
-}
-
-.selected-parcel-info {
-  background: var(--light-pink);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.parcel-details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-section h5 {
-  margin: 0 0 1rem 0;
-  font-size: 0.9rem;
-  color: var(--dark-slate-blue);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  padding: 0.3rem 0;
-  border-bottom: 1px solid var(--pink-grey);
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-size: 0.8rem;
-  color: var(--slate-blue);
-  font-weight: 500;
-}
-
-.detail-value {
-  font-size: 0.85rem;
-  color: var(--dark-slate-blue);
-  font-weight: 600;
-  text-align: right;
-}
-
-.detail-value.paid {
-  color: var(--hot-pink);
-}
-
-.detail-value.unpaid {
-  color: var(--dark-pink);
-}
-
-.items-section {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--pink-grey);
-}
-
-.items-section h5 {
-  margin: 0 0 1rem 0;
-  font-size: 0.9rem;
-  color: var(--dark-slate-blue);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.item {
-  background: white;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--pink-grey);
-}
-
-.item-description {
-  font-weight: 600;
-  color: var(--dark-slate-blue);
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.item-details {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--slate-blue);
-}
-
-.no-selection {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--slate-blue);
-}
-
-.no-selection i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-  color: var(--pink);
-}
-
-.no-selection p {
-  margin: 0;
-  font-size: 1rem;
-}
-
-@media (max-width: 768px) {
-  .parcel-details-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .item-details {
-    flex-direction: column;
-    gap: 0.25rem;
   }
 }
 </style>
