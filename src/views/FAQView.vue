@@ -1,5 +1,4 @@
 <template>
-  <!-- Add the toggle button - moved to bottom LEFT -->
   <div class="mode-toggle-container">
     <button 
       class="btn mode-toggle-btn"
@@ -41,7 +40,6 @@
         </div>
       </div>
 
-      <!-- Mobile View (Dropdown) -->
       <div class="row d-lg-none mb-3">
         <div class="col-12">
           <select v-model="activeTab" class="form-select form-select-lg" @change="setActiveTab(activeTab)">
@@ -50,9 +48,7 @@
         </div>
       </div>
 
-      <!-- Desktop View (Tabs) -->
       <div class="row d-none d-lg-block">
-        <!-- First Row of Tabs -->
         <div class="col-12 mb-2">
           <ul class="nav nav-tabs nav-justified" role="tablist">
             <li class="nav-item" v-for="tab in firstRowTabs" :key="tab.id">
@@ -69,7 +65,6 @@
           </ul>
         </div>
         
-        <!-- Second Row of Tabs -->
         <div class="col-12">
           <ul class="nav nav-tabs nav-justified" role="tablist">
             <li class="nav-item" v-for="tab in secondRowTabs" :key="tab.id">
@@ -141,7 +136,7 @@ export default {
       searchQuery: '',
       activeTab: 'gettingStarted',
       openItems: new Set(),
-      currentMode: 0, // 0: original, 1: dark, 2: light perception
+      currentMode: 0, 
       modeLabels: ['Original', 'Dark Mode', 'Light Perception'],
       tabs: [
         { id: 'gettingStarted', name: 'Getting Started' },
@@ -261,7 +256,6 @@ export default {
     }
   },
   mounted() {
-    // Apply initial mode
     document.body.classList.add(`mode-${this.currentMode}`);
   }
 }
@@ -276,12 +270,11 @@ export default {
   --lighter-pink: #ffeef2;
 }
 
-/* Enhanced Mode Toggle Button Styles - MOVED TO BOTTOM LEFT */
 .mode-toggle-container {
   position: fixed;
   bottom: 20px;
-  left: 20px; /* Changed from right: 20px to left: 20px */
-  z-index: 10000; /* Increased z-index to ensure it's on top */
+  left: 20px; 
+  z-index: 10000; 
 }
 
 .mode-toggle-btn {
@@ -313,7 +306,6 @@ export default {
   font-weight: 500;
 }
 
-/* Dark mode styles for the toggle button */
 .faq-container.mode-1 .mode-toggle-btn {
   background: #555;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -324,7 +316,6 @@ export default {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
-/* Light perception mode styles for the toggle button */
 .faq-container.mode-2 .mode-toggle-btn {
   background: #000000;
   color: #fffff0;
@@ -338,7 +329,6 @@ export default {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
-/* Original Mode (Mode 0) - Your existing styles */
 .faq-container.mode-0 {
   background-color: var(--light-pink);
   min-height: 100vh;
@@ -480,7 +470,6 @@ export default {
   margin-bottom: 2rem;
 }
 
-/* Dark Mode (Mode 1) */
 .faq-container.mode-1 {
   background-color: #1a1a1a;
   min-height: 100vh;
@@ -600,7 +589,6 @@ export default {
   color: #ffffff;
 }
 
-/* Light Perception Mode (Mode 2) - High Contrast for Light Sensitivity */
 .faq-container.mode-2 {
   background-color: #fffff0;
   min-height: 100vh;
@@ -737,7 +725,6 @@ export default {
   font-weight: 700;
 }
 
-/* Header styles for different modes */
 .faq-container.mode-1 header {
   background-color: #1a1a1a;
   border-color: #444;
@@ -773,7 +760,6 @@ export default {
   border-color: #333 !important;
 }
 
-/* Rest of your existing responsive styles */
 .accordion-body {
   font-size: 0.95rem;
 }
@@ -786,11 +772,11 @@ li {
   margin: 20px auto;
 }
 
-/* Mobile responsiveness for toggle button */
+
 @media (max-width: 768px) {
   .mode-toggle-container {
     bottom: 15px;
-    left: 15px; /* Also update for mobile */
+    left: 15px; 
   }
   
   .mode-toggle-btn {
@@ -800,7 +786,7 @@ li {
   }
   
   .mode-label {
-    font-size: 0.8rem; /* Keep label visible but smaller */
+    font-size: 0.8rem; 
   }
 
   .accordion-button {
@@ -827,7 +813,7 @@ li {
 @media (max-width: 480px) {
   .mode-toggle-container {
     bottom: 10px;
-    left: 10px; /* Also update for mobile */
+    left: 10px; 
   }
   
   .mode-toggle-btn {
@@ -892,7 +878,6 @@ li {
   }
 }
 
-/* Ensure the button is always visible */
 .mode-toggle-btn {
   position: relative;
   z-index: 10001;

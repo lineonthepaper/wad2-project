@@ -21,6 +21,7 @@
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
     "choices.js": "^11.1.0",
+    "gasp": "^0.0.2",
     "globe.gl": "^2.44.0",
     "gsap": "^3.13.0",
     "jsbarcode": "^3.12.1",
