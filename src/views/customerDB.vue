@@ -85,19 +85,19 @@
                 </div>
               </div>
               <div class="card-body">
-                <div ref="globeContainer" class="globe-container">
-                  <div v-if="globeError" class="globe-error">
-                    <div class="error-icon">
-                      <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <p>Failed to load globe visualization</p>
-                    <button class="btn-retry" @click="forceReinit">Retry</button>
-                  </div>
-                  <div v-else-if="!globeInitialized" class="globe-loading">
-                    <div class="loading-spinner"></div>
-                    <p>Initializing 3D Globe...</p>
-                  </div>
-                </div>
+                <div ref="globeContainer" class="globe-container" v-show="globeInitialized && !globeError">
+  <div v-if="globeError" class="globe-error">
+    <div class="error-icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <p>Failed to load globe visualization</p>
+    <button class="btn-retry" @click="forceReinit">Retry</button>
+  </div>
+  <div v-else-if="!globeInitialized" class="globe-loading">
+    <div class="loading-spinner"></div>
+    <p>Initializing 3D Globe...</p>
+  </div>
+</div>
 
                 <div v-if="selectedParcel" class="selected-parcel-info">
                   <div class="parcel-header">
@@ -341,19 +341,24 @@ export default {
     }
   },
   mounted() {
-    this.checkAuthentication();
-    if (this.isAuthenticated) {
-      this.initializeDashboard();
-      // Refresh every 30 seconds for real-time updates
-      this.refreshInterval = setInterval(() => {
-        if (this.isAuthenticated) {
-          this.fetchUserShipments();
-        }
-      }, 30000);
-    }
+  this.checkAuthentication();
+  if (this.isAuthenticated) {
+    this.initializeDashboard();
+    // Refresh every 30 seconds for real-time updates
+    this.refreshInterval = setInterval(() => {
+      if (this.isAuthenticated) {
+        this.fetchUserShipments();
+      }
+    }, 30000);
+  }
 
-    window.addEventListener('loginStatusChanged', this.handleLoginStatusChange);
-  },
+  window.addEventListener('loginStatusChanged', this.handleLoginStatusChange);
+
+  // Make countryData globally available
+  if (countryData) {
+    window.countryData = countryData;
+  }
+},
   beforeUnmount() {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
@@ -537,7 +542,9 @@ export default {
       ];
     },
 
-   transformShipmentData(shipments) {
+  // In your customerDB.vue, update the transformShipmentData method and add better globe initialization:
+
+transformShipmentData(shipments) {
   if (!shipments || !Array.isArray(shipments)) {
     console.log('No shipments data found, using empty array');
     return [];
@@ -550,27 +557,41 @@ export default {
       // Use coordinates directly from API if available, otherwise fallback to country lookup
       let senderCoords, recipientCoords;
 
-      if (shipment.senderAddress?.coordinates) {
-        // Use coordinates from API
-        senderCoords = [shipment.senderAddress.coordinates.lat, shipment.senderAddress.coordinates.lng];
-        console.log('Using API coordinates for sender:', senderCoords);
-      } else {
-        // Fallback to country lookup
-        const senderCountry = shipment.senderAddress?.countryCode || 'SG';
-        senderCoords = this.getCountryCoordinates(senderCountry);
-        console.log('Using country lookup for sender:', senderCoords);
+      try {
+        if (shipment.senderAddress?.coordinates) {
+          // Use coordinates from API
+          senderCoords = [shipment.senderAddress.coordinates.lat, shipment.senderAddress.coordinates.lng];
+          console.log('Using API coordinates for sender:', senderCoords);
+        } else {
+          // Fallback to country lookup
+          const senderCountry = shipment.senderAddress?.countryCode || 'SG';
+          senderCoords = this.getCountryCoordinates(senderCountry);
+          console.log('Using country lookup for sender:', senderCoords);
+        }
+      } catch (error) {
+        console.error('Error getting sender coordinates, using default:', error);
+        senderCoords = [1.28478, 103.776222]; // Default Singapore coordinates
       }
 
-      if (shipment.recipientAddress?.coordinates) {
-        // Use coordinates from API
-        recipientCoords = [shipment.recipientAddress.coordinates.lat, shipment.recipientAddress.coordinates.lng];
-        console.log('Using API coordinates for recipient:', recipientCoords);
-      } else {
-        // Fallback to country lookup
-        const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
-        recipientCoords = this.getCountryCoordinates(recipientCountry);
-        console.log('Using country lookup for recipient:', recipientCoords);
+      try {
+        if (shipment.recipientAddress?.coordinates) {
+          // Use coordinates from API
+          recipientCoords = [shipment.recipientAddress.coordinates.lat, shipment.recipientAddress.coordinates.lng];
+          console.log('Using API coordinates for recipient:', recipientCoords);
+        } else {
+          // Fallback to country lookup
+          const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
+          recipientCoords = this.getCountryCoordinates(recipientCountry);
+          console.log('Using country lookup for recipient:', recipientCoords);
+        }
+      } catch (error) {
+        console.error('Error getting recipient coordinates, using default:', error);
+        recipientCoords = [38.883757, -77.025347]; // Default US coordinates
       }
+
+      // Ensure coordinates are valid numbers
+      senderCoords = this.validateCoordinates(senderCoords);
+      recipientCoords = this.validateCoordinates(recipientCoords);
 
       // Determine current location based on status
       let currentLocation = senderCoords;
@@ -616,25 +637,99 @@ export default {
 
     } catch (error) {
       console.error('Error transforming shipment:', shipment, error);
-      return null;
+      // Return a basic parcel with dummy coordinates
+      return this.createDummyParcel(shipment);
     }
   }).filter(parcel => parcel !== null);
 },
 
-    getCountryCoordinates(countryCode) {
-  // Handle UK/GB country code variation
-  const code = countryCode === 'UK' ? 'GB' : countryCode;
-
-  const country = countryData.find(c => c.code2 === code);
-  if (country) {
-    console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
-    return [country.lat, country.long];
+// Add these new helper methods:
+validateCoordinates(coords) {
+  if (!Array.isArray(coords) || coords.length !== 2) {
+    return [1.28478, 103.776222]; // Default to Singapore
   }
 
-  // Default to Singapore if not found
-  console.warn(`Country code ${countryCode} not found, using Singapore as default`);
-  return [1.28478, 103.776222];
+  const [lat, lng] = coords;
+  if (typeof lat !== 'number' || typeof lng !== 'number' ||
+      isNaN(lat) || isNaN(lng) ||
+      lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return [1.28478, 103.776222]; // Default to Singapore
+  }
+
+  return coords;
 },
+
+createDummyParcel(shipment) {
+  const dummyCoords = [1.28478, 103.776222]; // Singapore
+  return {
+    id: shipment.mailId || Date.now(),
+    mailId: shipment.mailId || Date.now(),
+    trackingId: `TRK-${(shipment.mailId || Date.now()).toString().padStart(6, '0')}`,
+    customer: shipment.senderAddress?.name || this.user.email || 'Customer',
+    status: 'Pending',
+    expectedDelivery: shipment.expectedDelivery || new Date().toISOString().split('T')[0],
+    location: dummyCoords,
+    currentLocation: dummyCoords,
+    destination: dummyCoords,
+    progress: 0,
+    service: shipment.service || { name: 'Standard' },
+    totalWeight: shipment.totalWeight || 0,
+    totalValue: shipment.totalValue || 0,
+    hasBeenPaid: shipment.hasBeenPaid || false,
+    createdDate: shipment.createdDate || new Date().toISOString(),
+    rawData: shipment
+  };
+},
+
+getCountryCoordinates(countryCode) {
+  try {
+    if (!countryCode) {
+      return [1.28478, 103.776222]; // Default Singapore
+    }
+
+    // Handle UK/GB country code variation
+    const code = countryCode === 'UK' ? 'GB' : countryCode;
+
+    if (!window.countryData || !Array.isArray(window.countryData)) {
+      console.warn('countryData not available, using default coordinates');
+      return this.getDefaultCoordinates(countryCode);
+    }
+
+    const country = window.countryData.find(c => c.code2 === code);
+    if (country && typeof country.lat === 'number' && typeof country.long === 'number') {
+      console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
+      return [country.lat, country.long];
+    }
+
+    // Fallback to default coordinates based on country code
+    return this.getDefaultCoordinates(countryCode);
+
+  } catch (error) {
+    console.error('Error in getCountryCoordinates:', error);
+    return [1.28478, 103.776222]; // Default Singapore
+  }
+},
+
+getDefaultCoordinates(countryCode) {
+  const defaultCoords = {
+    'SG': [1.28478, 103.776222],
+    'US': [38.883757, -77.025347],
+    'MY': [3.153398, 101.697097],
+    'CN': [39.915494, 116.359857],
+    'UK': [51.525751, -0.111290],
+    'GB': [51.525751, -0.111290],
+    'JP': [35.687015, 139.764585],
+    'KR': [37.561637, 126.982072],
+    'AU': [-37.825337, 144.999122],
+    'CA': [45.381872, -75.690368],
+    'FR': [48.831429, 2.276772],
+    'DE': [50.737742, 7.098077],
+    'IN': [28.622656, 77.213115]
+  };
+
+  return defaultCoords[countryCode] || [1.28478, 103.776222]; // Default to Singapore
+},
+
 
     calculateProgressFromStatus(status) {
       const progressMap = {
@@ -718,40 +813,68 @@ export default {
       }
     },
 
-    // Rest of your existing methods remain the same...
     async initGlobe() {
-      try {
-        console.log('Starting globe initialization...');
+  try {
+    console.log('Starting globe initialization...');
 
-        const container = this.$refs.globeContainer;
-        if (!container) {
-          throw new Error('Globe container not found');
-        }
+    // Wait for DOM to be ready
+    await this.$nextTick();
 
-        const width = container.clientWidth || 800;
-        const height = container.clientHeight || 500;
+    const container = this.$refs.globeContainer;
+    if (!container) {
+      console.error('Globe container not found, retrying...');
+      setTimeout(() => this.initGlobe(), 100);
+      return;
+    }
 
-        console.log('Container dimensions:', width, 'x', height);
+    // Wait a bit more for container to be fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-        this.globe = Globe()
-          .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-          .backgroundColor('#000011')
-          .width(width)
-          .height(height)(container);
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 500;
 
-        console.log('Basic globe created');
+    console.log('Container dimensions:', width, 'x', height);
 
-        this.updateGlobeData();
+    if (width === 0 || height === 0) {
+      console.warn('Container has zero dimensions, retrying...');
+      setTimeout(() => this.initGlobe(), 200);
+      return;
+    }
 
-        this.globeInitialized = true;
-        console.log('Globe initialized successfully');
+    // Check if Globe is available
+    if (typeof Globe === 'undefined') {
+      throw new Error('Globe library not loaded');
+    }
 
-      } catch (error) {
-        console.error('Globe initialization error:', error);
-        this.globeError = true;
-        this.errorMessage = error.message;
+    this.globe = Globe()
+      .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .backgroundColor('#000011')
+      .width(width)
+      .height(height)(container);
+
+    console.log('Basic globe created');
+
+    // Update with data
+    this.updateGlobeData();
+
+    this.globeInitialized = true;
+    this.globeError = false;
+    console.log('Globe initialized successfully');
+
+  } catch (error) {
+    console.error('Globe initialization error:', error);
+    this.globeError = true;
+    this.globeInitialized = false;
+
+    // Try to reinitialize after a delay
+    setTimeout(() => {
+      if (!this.globeInitialized && !this.globeError) {
+        console.log('Attempting to reinitialize globe...');
+        this.initGlobe();
       }
-    },
+    }, 1000);
+  }
+},
 
     updateGlobeData() {
       if (!this.globe) return;
