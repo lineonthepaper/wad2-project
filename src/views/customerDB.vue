@@ -570,90 +570,90 @@ export default {
     },
 
     transformShipmentData(shipments) {
-  if (!shipments || !Array.isArray(shipments)) {
-    console.log('No shipments data found, using empty array');
-    return [];
-  }
-
-  console.log('Transforming', shipments.length, 'shipments');
-
-  return shipments.map(shipment => {
-    try {
-      // Get coordinates with better error handling
-      let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
-      let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
-
-      console.log('Sender coords for', shipment.senderAddress?.countryCode, ':', senderCoords);
-      console.log('Recipient coords for', shipment.recipientAddress?.countryCode, ':', recipientCoords);
-
-      // Ensure coordinates are valid numbers
-      if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
-        console.warn('Invalid sender coordinates, using Singapore default');
-        senderCoords = [1.3521, 103.8198]; // Singapore coordinates
+      if (!shipments || !Array.isArray(shipments)) {
+        console.log('No shipments data found, using empty array');
+        return [];
       }
 
-      if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
-        console.warn('Invalid recipient coordinates, using US default');
-        recipientCoords = [39.8283, -98.5795]; // US center coordinates
-      }
+      console.log('Transforming', shipments.length, 'shipments');
 
-      // Determine current location based on status
-      let currentLocation = senderCoords;
-      const progress = this.calculateProgressFromStatus(shipment.status);
+      return shipments.map(shipment => {
+        try {
+          // Get coordinates with better error handling
+          let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
+          let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
 
-      if (progress > 0 && progress < 100) {
-        // For in-progress shipments, interpolate between start and end
-        currentLocation = [
-          senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
-          senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
-        ];
-      } else if (progress >= 100) {
-        currentLocation = recipientCoords;
-      }
+          console.log('Sender coords for', shipment.senderAddress?.countryCode, ':', senderCoords);
+          console.log('Recipient coords for', shipment.recipientAddress?.countryCode, ':', recipientCoords);
 
-      // Create tracking ID from available data
-      let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
-      if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
-        trackingId = `TRK-${shipment.trackingNumber}`;
-      }
+          // Ensure coordinates are valid numbers
+          if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
+            console.warn('Invalid sender coordinates, using Singapore default');
+            senderCoords = [1.3521, 103.8198]; // Singapore coordinates
+          }
 
-      const transformedParcel = {
-        id: shipment.mailId,
-        mailId: shipment.mailId,
-        trackingId: trackingId,
-        customer: shipment.senderAddress?.name || this.user.email,
-        status: this.mapApiStatus(shipment.status),
-        expectedDelivery: shipment.expectedDelivery,
-        location: senderCoords,
-        currentLocation: currentLocation,
-        destination: recipientCoords,
-        progress: progress,
-        service: shipment.service,
-        totalWeight: shipment.totalWeight,
-        totalValue: shipment.totalValue,
-        hasBeenPaid: shipment.hasBeenPaid,
-        createdDate: shipment.createdDate,
-        rawData: shipment,
-        senderAddress: shipment.senderAddress,
-        recipientAddress: shipment.recipientAddress
-      };
+          if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
+            console.warn('Invalid recipient coordinates, using US default');
+            recipientCoords = [39.8283, -98.5795]; // US center coordinates
+          }
 
-      console.log('Transformed parcel:', {
-        id: transformedParcel.id,
-        trackingId: transformedParcel.trackingId,
-        status: transformedParcel.status,
-        from: this.getLocationName(transformedParcel.location),
-        to: this.getLocationName(transformedParcel.destination),
-        progress: transformedParcel.progress
-      });
-      return transformedParcel;
+          // Determine current location based on status
+          let currentLocation = senderCoords;
+          const progress = this.calculateProgressFromStatus(shipment.status);
 
-    } catch (error) {
-      console.error('Error transforming shipment:', shipment, error);
-      return null;
-    }
-  }).filter(parcel => parcel !== null);
-},
+          if (progress > 0 && progress < 100) {
+            // For in-progress shipments, interpolate between start and end
+            currentLocation = [
+              senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
+              senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
+            ];
+          } else if (progress >= 100) {
+            currentLocation = recipientCoords;
+          }
+
+          // Create tracking ID from available data
+          let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
+          if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
+            trackingId = `TRK-${shipment.trackingNumber}`;
+          }
+
+          const transformedParcel = {
+            id: shipment.mailId,
+            mailId: shipment.mailId,
+            trackingId: trackingId,
+            customer: shipment.senderAddress?.name || this.user.email,
+            status: this.mapApiStatus(shipment.status),
+            expectedDelivery: shipment.expectedDelivery,
+            location: senderCoords,
+            currentLocation: currentLocation,
+            destination: recipientCoords,
+            progress: progress,
+            service: shipment.service,
+            totalWeight: shipment.totalWeight,
+            totalValue: shipment.totalValue,
+            hasBeenPaid: shipment.hasBeenPaid,
+            createdDate: shipment.createdDate,
+            rawData: shipment,
+            senderAddress: shipment.senderAddress,
+            recipientAddress: shipment.recipientAddress
+          };
+
+          console.log('Transformed parcel:', {
+            id: transformedParcel.id,
+            trackingId: transformedParcel.trackingId,
+            status: transformedParcel.status,
+            from: this.getLocationName(transformedParcel.location),
+            to: this.getLocationName(transformedParcel.destination),
+            progress: transformedParcel.progress
+          });
+          return transformedParcel;
+
+        } catch (error) {
+          console.error('Error transforming shipment:', shipment, error);
+          return null;
+        }
+      }).filter(parcel => parcel !== null);
+    },
 
     getCountryCoordinates(countryCode) {
       // Handle UK/GB country code variation
@@ -782,6 +782,7 @@ export default {
         // Set initial view
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
+        // Initialize with points data first
         this.updateGlobeData();
 
         this.globeInitialized = true;
@@ -819,79 +820,79 @@ export default {
           .pointRadius('size')
           .pointLabel('label');
 
-        // Update arcs if a parcel is selected
-        if (this.selectedParcel) {
-          this.updateRouteForParcel(this.selectedParcel);
-        }
-
         console.log('Globe data updated with', this.pointsData.length, 'points');
+
+        // IMPORTANT: Update route for selected parcel AFTER points are set
+        if (this.selectedParcel) {
+          // Small delay to ensure points are rendered first
+          setTimeout(() => {
+            this.updateRouteForParcel(this.selectedParcel);
+          }, 100);
+        }
 
       } catch (error) {
         console.error('Error updating globe data:', error);
       }
     },
 
- showParcelRoute(parcel) {
-  if (!this.globe || !this.globeInitialized) {
-    console.error('Globe not ready');
-    return;
-  }
+    showParcelRoute(parcel) {
+      console.log('🎯 Showing route for parcel:', parcel.trackingId);
 
-  console.log('Showing route for parcel:', {
-    trackingId: parcel.trackingId,
-    status: parcel.status,
-    from: this.getLocationName(parcel.location),
-    to: this.getLocationName(parcel.destination),
-    progress: parcel.progress
-  });
+      // Set the selected parcel - this will make it appear below the globe
+      this.selectedParcel = parcel;
 
-  // Set the selected parcel - this will make it appear below the globe
-  this.selectedParcel = parcel;
+      // Update the globe with the route if globe is ready
+      if (this.globe && this.globeInitialized) {
+        this.updateRouteForParcel(parcel);
+      } else {
+        console.log('Globe not ready yet, route will show when globe initializes');
+      }
+    },
 
-  // Update the globe with the route
-  this.updateRouteForParcel(parcel);
-},
+    updateRouteForParcel(parcel) {
+      if (!this.globe || !this.globeInitialized) return;
 
-updateRouteForParcel(parcel) {
-  if (!this.globe || !this.globeInitialized) return;
+      try {
+        console.log('🔄 Updating route for parcel:', parcel.trackingId);
 
-  try {
-    // Show the full route from start to destination
-    this.arcsData = [{
-      startLat: parcel.location[0],
-      startLng: parcel.location[1],
-      endLat: parcel.destination[0],
-      endLng: parcel.destination[1],
-      color: '#ff4444' // Red line for the full route
-    }];
+        // Show the full route from start to destination
+        this.arcsData = [{
+          startLat: parcel.location[0],
+          startLng: parcel.location[1],
+          endLat: parcel.destination[0],
+          endLng: parcel.destination[1],
+          color: '#ff4444' // Red line for the full route
+        }];
 
-    // Also show current position arc if in transit
-    if (parcel.status === 'In Progress' && parcel.progress > 0) {
-      this.arcsData.push({
-        startLat: parcel.location[0],
-        startLng: parcel.location[1],
-        endLat: parcel.currentLocation[0],
-        endLng: parcel.currentLocation[1],
-        color: '#00ff00' // Green line for traveled path
-      });
-    }
+        // Also show current position arc if in transit
+        if (parcel.status === 'In Progress' && parcel.progress > 0) {
+          this.arcsData.push({
+            startLat: parcel.location[0],
+            startLng: parcel.location[1],
+            endLat: parcel.currentLocation[0],
+            endLng: parcel.currentLocation[1],
+            color: '#00ff00' // Green line for traveled path
+          });
+        }
 
-    this.globe
-      .arcsData(this.arcsData)
-      .arcStartLat(d => d.startLat)
-      .arcStartLng(d => d.startLng)
-      .arcEndLat(d => d.endLat)
-      .arcEndLng(d => d.endLng)
-      .arcColor(d => d.color)
-      .arcStroke(1.5)
-      .arcAltitude(0.05);
+        this.globe
+          .arcsData(this.arcsData)
+          .arcStartLat(d => d.startLat)
+          .arcStartLng(d => d.startLng)
+          .arcEndLat(d => d.endLat)
+          .arcEndLng(d => d.endLng)
+          .arcColor(d => d.color)
+          .arcStroke(1.5)
+          .arcAltitude(0.05);
 
-    this.focusOnRoute(parcel.location, parcel.destination);
+        this.focusOnRoute(parcel.location, parcel.destination);
 
-  } catch (error) {
-    console.error('Error updating route:', error);
-  }
-},
+        console.log('✅ Route updated with', this.arcsData.length, 'arcs');
+
+      } catch (error) {
+        console.error('Error updating route:', error);
+      }
+    },
 
     focusOnRoute(start, end) {
       if (!this.globe) return;
