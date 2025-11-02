@@ -55,7 +55,7 @@
                 </span>
                 <input
                   type="text"
-                  class="form-control"
+                  class="form-control search-input"
                   placeholder="Search by tracking number, service, or destination..."
                   v-model="searchQuery"
                 >
@@ -64,7 +64,7 @@
             <div class="col-md-6">
               <div class="d-flex flex-wrap gap-2">
                 <div class="dropdown">
-                  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <button class="btn btn-outline-grey dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     {{ selectedStatus || 'Status' }}
                   </button>
                   <ul class="dropdown-menu">
@@ -75,7 +75,7 @@
                   </ul>
                 </div>
                 <div class="dropdown">
-                  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <button class="btn btn-outline-grey dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     {{ selectedService || 'Service Type' }}
                   </button>
                   <ul class="dropdown-menu">
@@ -158,7 +158,6 @@
                   class="transaction-card card mb-3 shadow-sm"
                   v-for="transaction in paginatedTransactions"
                   :key="transaction.mailId"
-                  @click="viewTransactionDetails(transaction)"
                   style="cursor: pointer; transition: transform 0.2s;"
                 >
                   <div class="card-body">
@@ -235,16 +234,13 @@
 
                     <!-- Items Preview -->
                     <div class="mt-3 pt-3 border-top">
-                      <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex align-items-center">
                         <div>
                           <small class="text-muted">Items:</small>
                           <span class="ms-2">
                             {{ transaction.mailItems.map(item => item.itemDescription).join(', ') }}
                           </span>
                         </div>
-                        <button class="buttonView btn-sm" @click.stop="viewTransactionDetails(transaction)">
-                          View Details
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -458,10 +454,6 @@ export default {
       currentPage.value = 1
     }
 
-    const viewTransactionDetails = (transaction) => {
-      router.push(`/transaction/${transaction.mailId}`)
-    }
-
     const getStatusBadgeClass = (status) => {
       const statusClasses = {
         'pending': 'bg-warning text-dark',
@@ -601,7 +593,6 @@ export default {
       enhancedStats,
       fetchTransactions,
       clearFilters,
-      viewTransactionDetails,
       getStatusBadgeClass,
       formatStatus,
       formatDate,
@@ -624,6 +615,8 @@ export default {
   --slate-blue: #8796b3;
   --light-pink: #ffe8ee;
   --pink-grey: #f1d9df;
+  --grey-outline: #6c757d;
+  --light-grey: #f8f9fa;
 }
 
 .transaction-history-page {
@@ -854,25 +847,6 @@ export default {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
 }
 
-.buttonView {
-  display: inline-block;
-  padding: 6px 12px;
-  background-color: var(--hot-pink);
-  color: white !important;
-  text-decoration: none;
-  border: 2px solid var(--hot-pink);
-  border-radius: 6px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.buttonView:hover {
-  background-color: white;
-  color: var(--hot-pink) !important;
-}
-
 .route-info {
   border-left: 2px solid var(--pink-grey);
   padding-left: 15px;
@@ -891,37 +865,40 @@ export default {
   font-size: 0.75rem;
 }
 
-/* Form Controls */
+/* Form Controls - Updated Styles */
 .input-group-text {
-  background-color: var(--light-pink);
-  border: 1px solid var(--pink-grey);
-  color: var(--hot-pink);
+  background-color: white;
+  border: 1px solid var(--grey-outline);
+  color: var(--grey-outline);
 }
 
-.form-control {
-  border: 1px solid var(--pink-grey);
-  background-color: var(--light-pink);
+.search-input {
+  border: 1px solid var(--grey-outline);
+  background-color: white;
 }
 
-.form-control:focus {
-  border-color: var(--hot-pink);
-  box-shadow: 0 0 0 0.2rem rgba(255, 66, 117, 0.25);
+.search-input:focus {
+  border-color: var(--grey-outline);
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+  background-color: white;
 }
 
-.btn-outline-secondary {
-  border-color: var(--pink-grey);
-  color: var(--dark-slate-blue);
+.btn-outline-grey {
+  border-color: var(--grey-outline);
+  color: var(--grey-outline);
+  background-color: white;
 }
 
-.btn-outline-secondary:hover {
-  background-color: var(--hot-pink);
-  border-color: var(--hot-pink);
+.btn-outline-grey:hover {
+  background-color: var(--grey-outline);
+  border-color: var(--grey-outline);
   color: white;
 }
 
 .btn-outline-danger {
   border-color: var(--dark-pink);
   color: var(--dark-pink);
+  background-color: white;
 }
 
 .btn-outline-danger:hover {
