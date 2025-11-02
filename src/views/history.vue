@@ -56,14 +56,12 @@
                 <input
                   type="text"
                   class="form-control search-input"
-                  placeholder="Search by tracking number, service, destination, or items..."
+                  placeholder="Search by service, destination, or items..."
                   v-model="searchQuery"
                   @input="handleSearch"
                 >
               </div>
-              <small class="text-muted mt-1 d-block">
-                Search by: Tracking Number, Service Type, Destination Country, or Item Description
-              </small>
+
             </div>
             <div class="col-md-6">
               <div class="d-flex flex-wrap gap-2">
