@@ -100,13 +100,68 @@
                   </div>
                 </div>
 
-                <div v-if="selectedParcel" class="selected-parcel-info">
+                <!-- Parcel Information Section -->
+                <div v-if="selectedParcel" class="parcel-information">
                   <div class="parcel-header">
-                    <h4>Active Tracking: {{ selectedParcel.trackingId }}</h4>
+                    <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
                     <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
                       {{ selectedParcel.status }}
                     </span>
                   </div>
+
+                  <div class="parcel-details-grid">
+                    <div class="detail-section">
+                      <h5><i class="fas fa-route"></i> Route Information</h5>
+                      <div class="detail-item">
+                        <span class="detail-label">From:</span>
+                        <span class="detail-value">{{ getLocationName(selectedParcel.location) }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">To:</span>
+                        <span class="detail-value">{{ getLocationName(selectedParcel.destination) }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Progress:</span>
+                        <span class="detail-value">{{ Math.round(calculateProgress(selectedParcel)) }}% Complete</span>
+                      </div>
+                    </div>
+
+                    <div class="detail-section">
+                      <h5><i class="fas fa-info-circle"></i> Shipment Details</h5>
+                      <div class="detail-item">
+                        <span class="detail-label">Service:</span>
+                        <span class="detail-value">{{ selectedParcel.service?.name || 'Standard' }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Weight:</span>
+                        <span class="detail-value">{{ selectedParcel.totalWeight }} kg</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Value:</span>
+                        <span class="detail-value">${{ selectedParcel.totalValue }}</span>
+                      </div>
+                    </div>
+
+                    <div class="detail-section">
+                      <h5><i class="fas fa-calendar-alt"></i> Timeline</h5>
+                      <div class="detail-item">
+                        <span class="detail-label">Created:</span>
+                        <span class="detail-value">{{ formatDate(selectedParcel.createdDate) }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Expected Delivery:</span>
+                        <span class="detail-value">{{ formatDate(selectedParcel.expectedDelivery) }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Payment:</span>
+                        <span class="detail-value" :class="{ 'paid': selectedParcel.hasBeenPaid, 'unpaid': !selectedParcel.hasBeenPaid }">
+                          {{ selectedParcel.hasBeenPaid ? 'Paid' : 'Pending' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Progress Bar -->
                   <div class="route-progress">
                     <div class="progress-labels">
                       <span class="progress-label">{{ getLocationName(selectedParcel.location) }}</span>
@@ -125,7 +180,7 @@
                 </div>
                 <div v-else class="no-selection">
                   <i class="fas fa-mouse-pointer"></i>
-                  <p>Select a shipment from the list to view its route</p>
+                  <p>Select a shipment from the list to view its details</p>
                 </div>
               </div>
             </div>
@@ -1504,8 +1559,8 @@ export default {
   margin-bottom: 1rem;
 }
 
-/* Selected Parcel Info */
-.selected-parcel-info {
+/* Parcel Information Section */
+.parcel-information {
   background: var(--light-pink);
   border-radius: 12px;
   padding: 1.5rem;
@@ -1515,15 +1570,79 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--pink-grey);
 }
 
 .parcel-header h4 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--dark-slate-blue);
 }
 
+.parcel-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-section {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.detail-section h5 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--hot-pink);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--pink-grey);
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: var(--slate-blue);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  color: var(--dark-slate-blue);
+  font-weight: 600;
+  text-align: right;
+}
+
+.detail-value.paid {
+  color: var(--hot-pink);
+}
+
+.detail-value.unpaid {
+  color: var(--dark-pink);
+}
+
+/* Progress Bar */
 .route-progress {
   margin-top: 1rem;
 }
@@ -1951,6 +2070,10 @@ export default {
   .parcel-icon {
     align-self: flex-start;
   }
+
+  .parcel-details-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1972,6 +2095,12 @@ export default {
 
   .stat-value {
     font-size: 2rem;
+  }
+
+  .parcel-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 }
 </style>
