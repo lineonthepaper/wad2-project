@@ -13,6 +13,7 @@ import customerDB from '../views/customerDB.vue'
 import ConfirmationView from '@/views/ConfirmationView.vue'
 import settings from  '@/views/settings.vue'
 import changePassword from '@/views/changePassword.vue'
+import history from '@/views/history.vue'
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -27,7 +28,8 @@ export const routes = [
   { path: '/CDB',name: 'dashboard', title: 'Dashboard', component: customerDB },
   { path: '/confirmation', name: 'confirmation', title: 'Confirmed!', component: ConfirmationView },
   {path: '/settings',name: 'settings', title: 'settings', component: settings},
-  {path: '/changePassword',name: 'changepw', title: 'changePassword', component: changePassword}
+  {path: '/changePassword',name: 'changepw', title: 'changePassword', component: changePassword},
+  {path: '/history',name: 'history', title: 'History', component: history}
 ]
 
 const router = createRouter({

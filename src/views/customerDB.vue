@@ -1,34 +1,4 @@
-  data() {
-    return {
-      isAuthenticated: false,
-      user: {
-        email: ''
-      },
-      searchQuery: '',
-      selectedParcel: null,
-      globeInitialized: false,
-      globeError: false,
-      errorMessage: "",
-      loading: false,
-      stats: {
-        inProgress: 0,
-        delivered: 0,
-        pending: 0,
-      },
-      parcels: [],
-      notifications: [],
-      globe: null,
-      arcsData: [],
-      pointsData: [],
-      refreshInterval: null,
-      usingFallbackData: false,
-      routeData: null,
-      routeLoading: false,
-      routeError: null,
-      globeInitAttempts: 0,
-      maxGlobeInitAttempts: 3
-    };
-  },<template>
+<template>
   <div>
     <!-- Show dashboard only when authenticated -->
     <div class="dashboard-wrapper" v-if="isAuthenticated">
