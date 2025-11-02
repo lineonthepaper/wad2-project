@@ -1,5 +1,4 @@
 <template>
-  <!-- Add the toggle button - moved to bottom right -->
   <div class="mode-toggle-container">
     <button 
       class="btn mode-toggle-btn"
@@ -353,7 +352,7 @@ export default {
   name: 'TermsAndConditions',
   data() {
     return {
-      currentMode: 0, // 0: original, 1: dark, 2: light perception
+      currentMode: 0,
       modeLabels: ['Original', 'Dark Mode', 'Light Perception'],
       modeIcons: ['bi-palette', 'bi-moon', 'bi-eye']
     }
@@ -376,9 +375,7 @@ export default {
       this.applyMode();
     },
     applyMode() {
-      // Remove all mode classes first
       document.body.classList.remove('mode-0', 'mode-1', 'mode-2');
-      // Add current mode class
       document.body.classList.add(`mode-${this.currentMode}`);
     }
   },
@@ -396,8 +393,6 @@ export default {
         }
       });
     });
-    
-    // Apply initial mode
     this.applyMode();
   }
 }
@@ -412,11 +407,10 @@ export default {
   --lighter-pink: #ffeef2;
 }
 
-/* Mode Toggle Button Styles - MOVED TO BOTTOM RIGHT */
 .mode-toggle-container {
   position: fixed;
   bottom: 20px;
-  right: 20px; /* Changed from left: 20px to right: 20px */
+  right: 20px; 
   z-index: 1000;
 }
 
@@ -445,7 +439,6 @@ export default {
   font-size: 0.9rem;
 }
 
-/* Original Mode (Mode 0) - Your existing styles */
 .terms-container.mode-0 {
   background-color: var(--light-pink);
   min-height: 100vh;
@@ -498,7 +491,6 @@ export default {
   color: #6c757d !important;
 }
 
-/* Dark Mode (Mode 1) */
 .terms-container.mode-1 {
   background-color: #1a1a1a;
   min-height: 100vh;
@@ -592,9 +584,8 @@ export default {
   border-color: rgba(178, 34, 34, 0.4) !important;
 }
 
-/* Light Perception Mode (Mode 2) - High Contrast for Light Sensitivity */
 .terms-container.mode-2 {
-  background-color: #fffff0; /* Ivory background for reduced glare */
+  background-color: #fffff0; 
   min-height: 100vh;
   color: #2c2c2c;
   font-weight: 500;
@@ -710,7 +701,6 @@ export default {
   box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
 }
 
-/* Rest of your existing styles */
 .terms-container {
   background-color: var(--light-pink);
   min-height: 100vh;
@@ -793,7 +783,6 @@ export default {
   border-color: var(--pink);
 }
 
-/* Card and Alert Styling */
 .card.border-0.bg-light {
   background-color: var(--lighter-pink) !important;
   border-left: 4px solid var(--dark-pink) !important;
@@ -808,7 +797,6 @@ export default {
   color: #ffc107;
 }
 
-/* Quick Navigation Card */
 .card .card-header.bg-light {
   background-color: var(--lighter-pink) !important;
   border-bottom: 1px solid var(--pink);
@@ -824,7 +812,6 @@ export default {
   box-shadow: 0 2px 8px rgba(255, 66, 117, 0.2);
 }
 
-/* Danger/Warning Sections */
 .bg-danger.bg-opacity-10 {
   background-color: rgba(255, 66, 117, 0.1) !important;
   border-color: rgba(255, 66, 117, 0.3) !important;
@@ -838,12 +825,10 @@ export default {
   color: var(--hot-pink) !important;
 }
 
-/* Success Icons */
 .bi-check-circle-fill.text-success {
   color: #28a745 !important;
 }
 
-/* Warning Icons */
 .bi-exclamation-triangle.text-warning {
   color: #ffc107 !important;
 }
@@ -852,7 +837,6 @@ export default {
   color: var(--hot-pink) !important;
 }
 
-/* Mobile First Styles */
 @media (max-width: 576px) {
   .terms-section {
     padding: 1rem;
@@ -879,11 +863,10 @@ export default {
   }
   
   .mode-label {
-    display: none; /* Hide label on mobile to save space */
+    display: none; 
   }
 }
 
-/* Tablet Styles */
 @media (min-width: 577px) and (max-width: 768px) {
   .terms-section {
     padding: 1.25rem;
@@ -894,21 +877,18 @@ export default {
   }
 }
 
-/* Desktop Styles */
 @media (min-width: 769px) {
   .terms-section {
     padding: 2rem;
   }
 }
 
-/* Large Desktop */
 @media (min-width: 1200px) {
   .terms-section {
     padding: 2.5rem;
   }
 }
 
-/* Print styles */
 @media print {
   .terms-container {
     background: white;
@@ -930,13 +910,11 @@ export default {
   }
 }
 
-/* Ensure proper spacing for all devices */
 .container {
   padding-left: 15px;
   padding-right: 15px;
 }
 
-/* Improve touch targets for mobile */
 @media (max-width: 768px) {
   .agreement-item, .prohibited-item {
     min-height: 60px;
@@ -947,17 +925,14 @@ export default {
   }
 }
 
-/* Border bottom for header */
 .border-bottom {
   border-bottom-color: var(--pink) !important;
 }
 
-/* Footer border top */
 .border-top {
   border-top-color: var(--pink) !important;
 }
 
-/* Header styles for different modes */
 .terms-container.mode-1 header {
   background-color: #1a1a1a;
   border-color: #444;
