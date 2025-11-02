@@ -400,13 +400,29 @@ export default {
 
     async initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
+
+      // Debug coordinates first
+      this.debugCountryCoordinates();
+
       await this.fetchUserShipments();
       // Wait for DOM to be fully updated before initializing globe
       this.$nextTick(() => {
         setTimeout(() => {
           this.initGlobe();
-        }, 500); // Increased delay to ensure DOM is ready
+        }, 500);
       });
+    },
+
+    debugCountryCoordinates() {
+      const australia = countryData.find(c => c.code2 === 'AU');
+      console.log('Australia coordinates from JSON:', australia);
+
+      const singapore = countryData.find(c => c.code2 === 'SG');
+      console.log('Singapore coordinates from JSON:', singapore);
+
+      // Test the getCountryCoordinates method
+      console.log('getCountryCoordinates("AU"):', this.getCountryCoordinates('AU'));
+      console.log('getCountryCoordinates("SG"):', this.getCountryCoordinates('SG'));
     },
 
     async fetchUserShipments() {
@@ -574,7 +590,7 @@ export default {
             // Fallback to country lookup
             const senderCountry = shipment.senderAddress?.countryCode || 'SG';
             senderCoords = this.getCountryCoordinates(senderCountry);
-            console.log('Using country lookup for sender:', senderCoords);
+            console.log('Using country lookup for sender:', senderCoords, 'for country:', senderCountry);
           }
 
           if (shipment.recipientAddress?.coordinates) {
@@ -585,7 +601,7 @@ export default {
             // Fallback to country lookup
             const recipientCountry = shipment.recipientAddress?.countryCode || 'US';
             recipientCoords = this.getCountryCoordinates(recipientCountry);
-            console.log('Using country lookup for recipient:', recipientCoords);
+            console.log('Using country lookup for recipient:', recipientCoords, 'for country:', recipientCountry);
           }
 
           // Determine current location based on status
@@ -624,10 +640,20 @@ export default {
             totalValue: shipment.totalValue,
             hasBeenPaid: shipment.hasBeenPaid,
             createdDate: shipment.createdDate,
-            rawData: shipment
+            rawData: shipment,
+            // Add address information for display
+            senderAddress: shipment.senderAddress,
+            recipientAddress: shipment.recipientAddress
           };
 
-          console.log('Transformed parcel:', transformedParcel);
+          console.log('Transformed parcel:', {
+            id: transformedParcel.id,
+            trackingId: transformedParcel.trackingId,
+            status: transformedParcel.status,
+            from: this.getLocationName(transformedParcel.location),
+            to: this.getLocationName(transformedParcel.destination),
+            progress: transformedParcel.progress
+          });
           return transformedParcel;
 
         } catch (error) {
@@ -819,6 +845,14 @@ export default {
         return;
       }
 
+      console.log('Showing route for parcel:', {
+        trackingId: parcel.trackingId,
+        status: parcel.status,
+        from: this.getLocationName(parcel.location),
+        to: this.getLocationName(parcel.destination),
+        progress: parcel.progress
+      });
+
       this.selectedParcel = parcel;
       this.updateRouteForParcel(parcel);
     },
@@ -827,13 +861,25 @@ export default {
       if (!this.globe || !this.globeInitialized) return;
 
       try {
+        // Show the full route from start to destination
         this.arcsData = [{
           startLat: parcel.location[0],
           startLng: parcel.location[1],
-          endLat: parcel.currentLocation[0],
-          endLng: parcel.currentLocation[1],
-          color: this.getStatusColor(parcel.status)
+          endLat: parcel.destination[0],
+          endLng: parcel.destination[1],
+          color: '#ff4444' // Red line for the full route
         }];
+
+        // Also show current position arc if in transit
+        if (parcel.status === 'In Progress' && parcel.progress > 0) {
+          this.arcsData.push({
+            startLat: parcel.location[0],
+            startLng: parcel.location[1],
+            endLat: parcel.currentLocation[0],
+            endLng: parcel.currentLocation[1],
+            color: '#00ff00' // Green line for traveled path
+          });
+        }
 
         this.globe
           .arcsData(this.arcsData)
@@ -912,11 +958,22 @@ export default {
         return 'Unknown Location';
       }
 
-      // Find country by coordinates
-      const country = countryData.find(c =>
-        Math.abs(c.lat - coords[0]) < 5 && Math.abs(c.long - coords[1]) < 5
-      );
-      return country ? country.name : 'Unknown Location';
+      const [lat, lng] = coords;
+
+      // Find country by coordinates with a reasonable tolerance
+      const country = countryData.find(c => {
+        const latDiff = Math.abs(c.lat - lat);
+        const lngDiff = Math.abs(c.long - lng);
+        return latDiff < 15 && lngDiff < 15; // Increased tolerance for better matching
+      });
+
+      if (country) {
+        console.log(`Matched coordinates [${lat}, ${lng}] to country: ${country.name}`);
+        return country.name;
+      }
+
+      console.warn(`No country found for coordinates [${lat}, ${lng}]`);
+      return 'Unknown Location';
     },
 
     getStatusColor(status) {
