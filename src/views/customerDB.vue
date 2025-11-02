@@ -474,13 +474,13 @@ export default {
       // Debug coordinates first
       this.debugCountryCoordinates();
 
+      // First initialize the globe
+      await this.$nextTick();
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await this.initGlobe();
+
+      // Then fetch shipments which will update the globe
       await this.fetchUserShipments();
-      // Wait for DOM to be fully updated before initializing globe
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this.initGlobe();
-        }, 500);
-      });
     },
 
     debugCountryCoordinates() {
