@@ -1,3 +1,4 @@
+
 <template>
   <div>
     <!-- Show dashboard only when authenticated -->
@@ -69,122 +70,125 @@
           </div>
         </section>
 
-        <!-- Globe and Tracking -->
-        <section class="tracking-section">
-          <div class="section-column globe-column">
-            <div class="section-card">
-              <div class="card-header">
-                <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
-                <div class="card-actions">
-                  <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
-                    <i class="fas fa-sync-alt"></i>
-                  </button>
-                  <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
+       <!-- Globe and Tracking Section - FIXED -->
+<section class="tracking-section">
+  <div class="section-column globe-column">
+    <div class="section-card">
+      <div class="card-header">
+        <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
+        <div class="card-actions">
+          <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button class="btn-icon" v-show="selectedParcel" @click="clearRoute" title="Clear Route">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Globe Container - Always visible -->
+        <div ref="globeContainer" class="globe-container" style="width: 100%; height: 400px;">
+          <div v-if="globeError" class="globe-error">
+            <div class="error-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <p>Failed to load globe visualization</p>
+            <button class="btn-retry" @click="forceReinit">Retry</button>
+          </div>
+          <div v-else-if="!globeInitialized" class="globe-loading">
+            <div class="loading-spinner"></div>
+            <p>Initializing 3D Globe...</p>
+          </div>
+        </div>
+
+        <!-- Parcel Information - Use v-show instead of v-if -->
+        <div v-show="selectedParcel" class="parcel-information">
+          <div class="parcel-header">
+            <h4>Shipment Details: {{ selectedParcel?.trackingId || 'N/A' }}</h4>
+            <span class="status-badge" :class="`status-${selectedParcel?.status?.toLowerCase().replace(' ', '-')}`">
+              {{ selectedParcel?.status }}
+            </span>
+          </div>
+
+          <div class="parcel-details-grid">
+            <div class="detail-section">
+              <h5><i class="fas fa-route"></i> Route Information</h5>
+              <div class="detail-item">
+                <span class="detail-label">From:</span>
+                <span class="detail-value">{{ getLocationName(selectedParcel?.location) }}</span>
               </div>
-              <div class="card-body">
-                <!-- Fixed Globe Container with explicit dimensions -->
-                <div ref="globeContainer" class="globe-container" style="width: 100%; height: 400px;">
-                  <div v-if="globeError" class="globe-error">
-                    <div class="error-icon">
-                      <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <p>Failed to load globe visualization</p>
-                    <button class="btn-retry" @click="forceReinit">Retry</button>
-                  </div>
-                  <div v-else-if="!globeInitialized" class="globe-loading">
-                    <div class="loading-spinner"></div>
-                    <p>Initializing 3D Globe...</p>
-                  </div>
-                </div>
+              <div class="detail-item">
+                <span class="detail-label">To:</span>
+                <span class="detail-value">{{ getLocationName(selectedParcel?.destination) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Progress:</span>
+                <span class="detail-value">{{ Math.round(calculateProgress(selectedParcel)) }}% Complete</span>
+              </div>
+            </div>
 
-                <!-- Parcel Information Section - MOVED BELOW GLOBE -->
-                <div v-show="selectedParcel" class="parcel-information">
-                  <div class="parcel-header">
-                    <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
-                    <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
-                      {{ selectedParcel.status }}
-                    </span>
-                  </div>
+            <div class="detail-section">
+              <h5><i class="fas fa-info-circle"></i> Shipment Details</h5>
+              <div class="detail-item">
+                <span class="detail-label">Service:</span>
+                <span class="detail-value">{{ selectedParcel?.service?.name || 'Standard' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Weight:</span>
+                <span class="detail-value">{{ selectedParcel?.totalWeight }} kg</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Value:</span>
+                <span class="detail-value">${{ selectedParcel?.totalValue }}</span>
+              </div>
+            </div>
 
-                  <div class="parcel-details-grid">
-                    <div class="detail-section">
-                      <h5><i class="fas fa-route"></i> Route Information</h5>
-                      <div class="detail-item">
-                        <span class="detail-label">From:</span>
-                        <span class="detail-value">{{ getLocationName(selectedParcel.location) }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">To:</span>
-                        <span class="detail-value">{{ getLocationName(selectedParcel.destination) }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Progress:</span>
-                        <span class="detail-value">{{ Math.round(calculateProgress(selectedParcel)) }}% Complete</span>
-                      </div>
-                    </div>
+            <div class="detail-section">
+              <h5><i class="fas fa-calendar-alt"></i> Timeline</h5>
+              <div class="detail-item">
+                <span class="detail-label">Created:</span>
+                <span class="detail-value">{{ formatDate(selectedParcel?.createdDate) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Expected Delivery:</span>
+                <span class="detail-value">{{ formatDate(selectedParcel?.expectedDelivery) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Payment:</span>
+                <span class="detail-value" :class="{ 'paid': selectedParcel?.hasBeenPaid, 'unpaid': !selectedParcel?.hasBeenPaid }">
+                  {{ selectedParcel?.hasBeenPaid ? 'Paid' : 'Pending' }}
+                </span>
+              </div>
+            </div>
+          </div>
 
-                    <div class="detail-section">
-                      <h5><i class="fas fa-info-circle"></i> Shipment Details</h5>
-                      <div class="detail-item">
-                        <span class="detail-label">Service:</span>
-                        <span class="detail-value">{{ selectedParcel.service?.name || 'Standard' }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Weight:</span>
-                        <span class="detail-value">{{ selectedParcel.totalWeight }} kg</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Value:</span>
-                        <span class="detail-value">${{ selectedParcel.totalValue }}</span>
-                      </div>
-                    </div>
-
-                    <div class="detail-section">
-                      <h5><i class="fas fa-calendar-alt"></i> Timeline</h5>
-                      <div class="detail-item">
-                        <span class="detail-label">Created:</span>
-                        <span class="detail-value">{{ formatDate(selectedParcel.createdDate) }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Expected Delivery:</span>
-                        <span class="detail-value">{{ formatDate(selectedParcel.expectedDelivery) }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Payment:</span>
-                        <span class="detail-value" :class="{ 'paid': selectedParcel.hasBeenPaid, 'unpaid': !selectedParcel.hasBeenPaid }">
-                          {{ selectedParcel.hasBeenPaid ? 'Paid' : 'Pending' }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Progress Bar -->
-                  <div class="route-progress">
-                    <div class="progress-labels">
-                      <span class="progress-label">{{ getLocationName(selectedParcel.location) }}</span>
-                      <span class="progress-percent">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
-                      <span class="progress-label">{{ getLocationName(selectedParcel.destination) }}</span>
-                    </div>
-                    <div class="progress-track">
-                      <div class="progress-bar">
-                        <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
-                        <div class="progress-marker" :style="{ left: calculateProgress(selectedParcel) + '%' }">
-                          <i class="fas fa-shipping-fast"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div v-show="!selectedParcel" class="no-selection">
-                  <i class="fas fa-mouse-pointer"></i>
-                  <p>Select a shipment from the list to view its details</p>
+          <!-- Progress Bar -->
+          <div class="route-progress">
+            <div class="progress-labels">
+              <span class="progress-label">{{ getLocationName(selectedParcel?.location) }}</span>
+              <span class="progress-percent">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
+              <span class="progress-label">{{ getLocationName(selectedParcel?.destination) }}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
+                <div class="progress-marker" :style="{ left: calculateProgress(selectedParcel) + '%' }">
+                  <i class="fas fa-shipping-fast"></i>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- No selection message - Also use v-show -->
+        <div v-show="!selectedParcel" class="no-selection">
+          <i class="fas fa-mouse-pointer"></i>
+          <p>Select a shipment from the list to view its details</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
           <div class="section-column parcels-column">
             <div class="section-card">
@@ -893,10 +897,13 @@ export default {
       console.log('🎯 Selected parcel:', parcel.trackingId);
       this.selectedParcel = parcel;
 
-      // Update globe to show the selected parcel route
-      if (this.globe && this.globeInitialized) {
-        this.updateGlobeRoute(parcel);
-      }
+      // Use nextTick to ensure DOM is updated before updating globe
+      this.$nextTick(() => {
+        // Update globe to show the selected parcel route
+        if (this.globe && this.globeInitialized) {
+          this.updateGlobeRoute(parcel);
+        }
+      });
     },
 
     updateGlobeRoute(parcel) {
@@ -967,6 +974,8 @@ export default {
     },
 
     calculateProgress(parcel) {
+      if (!parcel) return 0;
+
       // Use the stored progress if available
       if (parcel.progress !== undefined) {
         return parcel.progress;
@@ -978,6 +987,11 @@ export default {
       const start = parcel.location;
       const current = parcel.currentLocation || parcel.location;
       const end = parcel.destination;
+
+      // Check if coordinates are valid
+      if (!start || !end || !Array.isArray(start) || !Array.isArray(end)) {
+        return 0;
+      }
 
       const totalDistance = this.calculateDistance(start, end);
       const traveledDistance = this.calculateDistance(start, current);
@@ -1013,16 +1027,10 @@ export default {
       const country = countryData.find(c => {
         const latDiff = Math.abs(c.lat - lat);
         const lngDiff = Math.abs(c.long - lng);
-        return latDiff < 15 && lngDiff < 15; // Increased tolerance for better matching
+        return latDiff < 15 && lngDiff < 15;
       });
 
-      if (country) {
-        console.log(`Matched coordinates [${lat}, ${lng}] to country: ${country.name}`);
-        return country.name;
-      }
-
-      console.warn(`No country found for coordinates [${lat}, ${lng}]`);
-      return 'Unknown Location';
+      return country ? country.name : 'Unknown Location';
     },
 
     getStatusColor(status) {
@@ -1044,6 +1052,17 @@ export default {
         });
       } catch (error) {
         return 'Invalid Date';
+      }
+    },
+
+    ensureGlobeVisibility() {
+      if (this.globe && this.globeInitialized) {
+        // Force a resize/render to ensure globe stays visible
+        setTimeout(() => {
+          if (this.globe && typeof this.globe._onResize === 'function') {
+            this.globe._onResize();
+          }
+        }, 100);
       }
     },
 
