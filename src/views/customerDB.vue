@@ -280,7 +280,10 @@ export default {
       arcsData: [],
       pointsData: [],
       refreshInterval: null,
-      usingFallbackData: false
+      usingFallbackData: false,
+      routeData: null,
+      routeLoading: false,
+      routeError: null
     };
   },
   computed: {
@@ -339,6 +342,9 @@ export default {
           chartData: [50, 55, 60, 65, 70, 75, 80]
         }
       ];
+    },
+    hasRouteData() {
+      return this.routeData && this.routeData.waypoints && this.routeData.waypoints.length > 0;
     }
   },
   mounted() {
@@ -395,6 +401,7 @@ export default {
         this.notifications = [];
         this.stats = { inProgress: 0, delivered: 0, pending: 0 };
         this.usingFallbackData = false;
+        this.routeData = null;
       }
     },
 
@@ -822,38 +829,75 @@ export default {
 
         console.log('Globe data updated with', this.pointsData.length, 'points');
 
-        // IMPORTANT: Update route for selected parcel AFTER points are set
-        if (this.selectedParcel) {
-          // Small delay to ensure points are rendered first
-          setTimeout(() => {
-            this.updateRouteForParcel(this.selectedParcel);
-          }, 100);
-        }
-
       } catch (error) {
         console.error('Error updating globe data:', error);
       }
     },
 
-    showParcelRoute(parcel) {
+    async showParcelRoute(parcel) {
       console.log('🎯 Showing route for parcel:', parcel.trackingId);
 
-      // Set the selected parcel - this will make it appear below the globe
+      // Set the selected parcel
       this.selectedParcel = parcel;
+      this.routeLoading = true;
+      this.routeError = null;
 
-      // Update the globe with the route if globe is ready
+      try {
+        // Call backend API to get route data
+        const response = await axios.post('/api/dashboard.php', {
+          method: 'getParcelRoute',
+          trackingId: parcel.trackingId,
+          mailId: parcel.mailId
+        });
+
+        console.log('Route API Response:', response.data);
+
+        if (response.data.success) {
+          this.routeData = response.data.routeData;
+          console.log('Route data loaded successfully:', this.routeData);
+        } else {
+          throw new Error(response.data.error || 'Failed to load route data');
+        }
+      } catch (error) {
+        console.error('Error fetching route data:', error);
+        this.routeError = 'Failed to load route information. Please try again.';
+
+        // Fallback to basic route data using coordinates
+        this.routeData = {
+          waypoints: [
+            {
+              location: this.getLocationName(parcel.location),
+              coordinates: parcel.location,
+              timestamp: parcel.createdDate,
+              status: 'Departure',
+              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
+            },
+            {
+              location: this.getLocationName(parcel.destination),
+              coordinates: parcel.destination,
+              timestamp: parcel.expectedDelivery,
+              status: 'Destination',
+              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
+            }
+          ],
+          estimatedDuration: '3-5 days',
+          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
+        };
+      } finally {
+        this.routeLoading = false;
+      }
+
+      // Update the globe separately if needed (keeping globe functionality intact)
       if (this.globe && this.globeInitialized) {
-        this.updateRouteForParcel(parcel);
-      } else {
-        console.log('Globe not ready yet, route will show when globe initializes');
+        this.updateGlobeRoute(parcel);
       }
     },
 
-    updateRouteForParcel(parcel) {
+    updateGlobeRoute(parcel) {
       if (!this.globe || !this.globeInitialized) return;
 
       try {
-        console.log('🔄 Updating route for parcel:', parcel.trackingId);
+        console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
 
         // Show the full route from start to destination
         this.arcsData = [{
@@ -861,7 +905,7 @@ export default {
           startLng: parcel.location[1],
           endLat: parcel.destination[0],
           endLng: parcel.destination[1],
-          color: '#ff4444' // Red line for the full route
+          color: '#ff4444'
         }];
 
         // Also show current position arc if in transit
@@ -871,7 +915,7 @@ export default {
             startLng: parcel.location[1],
             endLat: parcel.currentLocation[0],
             endLng: parcel.currentLocation[1],
-            color: '#00ff00' // Green line for traveled path
+            color: '#00ff00'
           });
         }
 
@@ -887,10 +931,10 @@ export default {
 
         this.focusOnRoute(parcel.location, parcel.destination);
 
-        console.log('✅ Route updated with', this.arcsData.length, 'arcs');
+        console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
 
       } catch (error) {
-        console.error('Error updating route:', error);
+        console.error('Error updating globe route:', error);
       }
     },
 
@@ -904,9 +948,12 @@ export default {
     },
 
     clearRoute() {
+      this.selectedParcel = null;
+      this.routeData = null;
+      this.routeError = null;
+
       if (this.globe && this.globeInitialized) {
         this.arcsData = [];
-        this.selectedParcel = null;
         this.globe.arcsData(this.arcsData);
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
         this.updateGlobeData();
@@ -1009,6 +1056,7 @@ export default {
 
       this.arcsData = [];
       this.selectedParcel = null;
+      this.routeData = null;
 
       // Reinitialize after a short delay
       this.$nextTick(() => {
