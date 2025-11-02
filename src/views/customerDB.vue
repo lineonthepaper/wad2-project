@@ -100,66 +100,13 @@
                   </div>
                 </div>
 
-                <!-- Parcel Information Section -->
+                <!-- Parcel Information Section
                 <div v-if="selectedParcel" class="parcel-information">
                   <div class="parcel-header">
                     <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
                     <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
                       {{ selectedParcel.status }}
                     </span>
-                  </div>
-
-                  <!-- Loading state for route data -->
-                  <div v-if="routeLoading" class="route-loading">
-                    <div class="loading-spinner"></div>
-                    <p>Loading route information...</p>
-                  </div>
-
-                  <!-- Error state -->
-                  <div v-else-if="routeError" class="route-error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>{{ routeError }}</p>
-                  </div>
-
-                  <!-- Route information when available -->
-                  <div v-else class="route-details">
-                    <div class="route-header">
-                      <h5><i class="fas fa-route"></i> Route Information</h5>
-                      <span v-if="routeError" class="fallback-badge">Estimated Route</span>
-                    </div>
-                    <div class="waypoints-list">
-                      <div v-for="(waypoint, index) in routeData.waypoints" :key="index"
-                           class="waypoint-item" :class="{
-                             'active': waypoint.status === 'In Transit',
-                             'completed': waypoint.status === 'Departure' || waypoint.status === 'Delivered'
-                           }">
-                        <div class="waypoint-marker">
-                          <div class="marker-dot" :class="waypoint.status.toLowerCase().replace(' ', '-')"></div>
-                          <div class="marker-line" v-if="index < routeData.waypoints.length - 1"></div>
-                        </div>
-                        <div class="waypoint-content">
-                          <div class="waypoint-status">{{ waypoint.status }}</div>
-                          <div class="waypoint-location">{{ waypoint.location }}</div>
-                          <div class="waypoint-description">{{ waypoint.description }}</div>
-                          <div class="waypoint-time">{{ formatDate(waypoint.timestamp) }}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="route-summary">
-                      <div class="summary-item">
-                        <span class="summary-label">Estimated Duration:</span>
-                        <span class="summary-value">{{ routeData.estimatedDuration }}</span>
-                      </div>
-                      <div class="summary-item">
-                        <span class="summary-label">Distance:</span>
-                        <span class="summary-value">{{ routeData.distance }}</span>
-                      </div>
-                      <div class="summary-item" v-if="routeData.progress">
-                        <span class="summary-label">Current Progress:</span>
-                        <span class="summary-value">{{ Math.round(routeData.progress) }}%</span>
-                      </div>
-                    </div>
                   </div>
 
                   <div class="parcel-details-grid">
@@ -237,7 +184,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <div class="section-column parcels-column">
             <div class="section-card">
@@ -259,7 +206,7 @@
                     v-for="parcel in filteredParcels"
                     :key="parcel.id"
                     class="parcel-item"
-                    :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id, 'loading': parcelSelectionInProgress && selectedParcel && selectedParcel.id === parcel.id }"
+                    :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
                     @click="showParcelRoute(parcel)"
                   >
                     <div class="parcel-icon">
@@ -391,9 +338,7 @@ export default {
       usingFallbackData: false,
       routeData: null,
       routeLoading: false,
-      routeError: null,
-      isGlobeUpdating: false,
-      parcelSelectionInProgress: false
+      routeError: null
     };
   },
   computed: {
@@ -458,12 +403,10 @@ export default {
     }
   },
   mounted() {
-    window.addEventListener('error', this.handleGlobalError);
-    window.addEventListener('unhandledrejection', this.handleGlobalError);
-
     this.checkAuthentication();
     if (this.isAuthenticated) {
       this.initializeDashboard();
+      // Refresh every 30 seconds for real-time updates
       this.refreshInterval = setInterval(() => {
         if (this.isAuthenticated) {
           this.fetchUserShipments();
@@ -478,22 +421,12 @@ export default {
       clearInterval(this.refreshInterval);
     }
     if (this.globe) {
-      const container = this.$refs.globeContainer;
-      if (container) {
-        container.innerHTML = '';
-      }
+      // Clean up globe instance
       this.globe = null;
     }
-
-    window.removeEventListener('error', this.handleGlobalError);
-    window.removeEventListener('unhandledrejection', this.handleGlobalError);
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
-    handleGlobalError(error) {
-      console.error('Global error caught:', error);
-    },
-
     checkAuthentication() {
       const userData = sessionStorage.getItem('currentUser');
       if (userData) {
@@ -518,19 +451,40 @@ export default {
       if (this.isAuthenticated) {
         this.initializeDashboard();
       } else {
+        // Clear data when logging out
         this.parcels = [];
         this.notifications = [];
         this.stats = { inProgress: 0, delivered: 0, pending: 0 };
         this.usingFallbackData = false;
         this.routeData = null;
-        this.selectedParcel = null;
       }
     },
 
     async initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
-      await this.initGlobe();
+
+      // Debug coordinates first
+      this.debugCountryCoordinates();
+
       await this.fetchUserShipments();
+      // Wait for DOM to be fully updated before initializing globe
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.initGlobe();
+        }, 500);
+      });
+    },
+
+    debugCountryCoordinates() {
+      const australia = countryData.find(c => c.code2 === 'AU');
+      console.log('Australia coordinates from JSON:', australia);
+
+      const singapore = countryData.find(c => c.code2 === 'SG');
+      console.log('Singapore coordinates from JSON:', singapore);
+
+      // Test the getCountryCoordinates method
+      console.log('getCountryCoordinates("AU"):', this.getCountryCoordinates('AU'));
+      console.log('getCountryCoordinates("SG"):', this.getCountryCoordinates('SG'));
     },
 
     async fetchUserShipments() {
@@ -549,6 +503,7 @@ export default {
         console.log('API Response:', response.data);
 
         if (response.data.success) {
+          // Check if we're using fallback data
           if (response.data.note) {
             this.usingFallbackData = true;
             console.log('Using fallback data:', response.data.note);
@@ -559,14 +514,19 @@ export default {
           this.generateNotifications();
           console.log('Successfully loaded', this.parcels.length, 'shipments');
 
-          this.updateGlobeData();
+          // Update globe data if globe is already initialized
+          if (this.globeInitialized) {
+            this.updateGlobeData();
+          }
 
         } else {
           console.error('Failed to fetch shipments:', response.data.error);
+          // Fallback to example data if API fails
           this.useFallbackData();
         }
       } catch (error) {
         console.error('Error fetching shipments:', error);
+        // Fallback to example data on network error
         this.useFallbackData();
       } finally {
         this.loading = false;
@@ -578,11 +538,16 @@ export default {
       this.usingFallbackData = true;
       this.errorMessage = 'Connected to demo data. Real shipments will appear here once you create them.';
 
+      // Use the example data directly
       const exampleData = this.getExampleShipments(this.user.email);
       this.parcels = this.transformShipmentData(exampleData);
       this.updateStats();
       this.generateNotifications();
-      this.updateGlobeData();
+
+      // Update globe data if globe is already initialized
+      if (this.globeInitialized) {
+        this.updateGlobeData();
+      }
     },
 
     getExampleShipments(customerEmail) {
@@ -676,23 +641,30 @@ export default {
 
       return shipments.map(shipment => {
         try {
+          // Get coordinates with better error handling
           let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
           let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
 
+          console.log('Sender coords for', shipment.senderAddress?.countryCode, ':', senderCoords);
+          console.log('Recipient coords for', shipment.recipientAddress?.countryCode, ':', recipientCoords);
+
+          // Ensure coordinates are valid numbers
           if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
             console.warn('Invalid sender coordinates, using Singapore default');
-            senderCoords = [1.3521, 103.8198];
+            senderCoords = [1.3521, 103.8198]; // Singapore coordinates
           }
 
           if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
             console.warn('Invalid recipient coordinates, using US default');
-            recipientCoords = [39.8283, -98.5795];
+            recipientCoords = [39.8283, -98.5795]; // US center coordinates
           }
 
+          // Determine current location based on status
           let currentLocation = senderCoords;
           const progress = this.calculateProgressFromStatus(shipment.status);
 
           if (progress > 0 && progress < 100) {
+            // For in-progress shipments, interpolate between start and end
             currentLocation = [
               senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
               senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
@@ -701,12 +673,13 @@ export default {
             currentLocation = recipientCoords;
           }
 
+          // Create tracking ID from available data
           let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
           if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
             trackingId = `TRK-${shipment.trackingNumber}`;
           }
 
-          return {
+          const transformedParcel = {
             id: shipment.mailId,
             mailId: shipment.mailId,
             trackingId: trackingId,
@@ -727,6 +700,16 @@ export default {
             recipientAddress: shipment.recipientAddress
           };
 
+          console.log('Transformed parcel:', {
+            id: transformedParcel.id,
+            trackingId: transformedParcel.trackingId,
+            status: transformedParcel.status,
+            from: this.getLocationName(transformedParcel.location),
+            to: this.getLocationName(transformedParcel.destination),
+            progress: transformedParcel.progress
+          });
+          return transformedParcel;
+
         } catch (error) {
           console.error('Error transforming shipment:', shipment, error);
           return null;
@@ -735,11 +718,16 @@ export default {
     },
 
     getCountryCoordinates(countryCode) {
+      // Handle UK/GB country code variation
       const code = countryCode === 'UK' ? 'GB' : countryCode;
+
       const country = countryData.find(c => c.code2 === code);
       if (country) {
+        console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
         return [country.lat, country.long];
       }
+
+      // Default to Singapore if not found
       console.warn(`Country code ${countryCode} not found, using Singapore as default`);
       return [1.28478, 103.776222];
     },
@@ -771,6 +759,7 @@ export default {
     },
 
     generateNotifications() {
+      // Create notifications from recent shipments
       this.notifications = this.parcels
         .slice(0, 4)
         .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
@@ -831,21 +820,17 @@ export default {
 
         const container = this.$refs.globeContainer;
         if (!container) {
-          console.warn('Globe container not found, retrying...');
-          await this.$nextTick();
-          return this.initGlobe();
+          throw new Error('Globe container not found');
         }
 
-        if (container && container.innerHTML) {
-          container.innerHTML = '';
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 100));
-
+        // Ensure container has proper dimensions
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 400;
 
-        console.log('Creating globe with dimensions:', width, 'x', height);
+        console.log('Container dimensions:', width, 'x', height);
+
+        // Clear any existing content
+        container.innerHTML = '';
 
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
@@ -854,9 +839,13 @@ export default {
           .height(height)
           (container);
 
-        if (this.globe.pointOfView) {
-          this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 });
-        }
+        console.log('Basic globe created');
+
+        // Set initial view
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
+
+        // Initialize with points data first
+        this.updateGlobeData();
 
         this.globeInitialized = true;
         this.globeError = false;
@@ -866,21 +855,14 @@ export default {
         console.error('Globe initialization error:', error);
         this.globeError = true;
         this.globeInitialized = false;
-
-        setTimeout(() => {
-          if (!this.globeInitialized) {
-            this.initGlobe();
-          }
-        }, 2000);
       }
     },
 
     updateGlobeData() {
-      if (!this.globe || !this.globeInitialized || this.isGlobeUpdating) return;
-
-      this.isGlobeUpdating = true;
+      if (!this.globe || !this.globeInitialized) return;
 
       try {
+        // Create points data for all parcels
         this.pointsData = this.parcels.map(parcel => ({
           ...parcel,
           lat: parcel.currentLocation[0],
@@ -890,6 +872,7 @@ export default {
           label: `${parcel.trackingId}: ${parcel.status}`
         }));
 
+        // Update globe with points
         this.globe
           .pointsData(this.pointsData)
           .pointLat('lat')
@@ -897,33 +880,25 @@ export default {
           .pointColor('color')
           .pointAltitude(0.1)
           .pointRadius('size')
-          .pointLabel('label')
-          .arcsData([]);
+          .pointLabel('label');
 
         console.log('Globe data updated with', this.pointsData.length, 'points');
 
       } catch (error) {
         console.error('Error updating globe data:', error);
-      } finally {
-        this.isGlobeUpdating = false;
       }
     },
 
     async showParcelRoute(parcel) {
-      if (this.parcelSelectionInProgress) return;
-
-      this.parcelSelectionInProgress = true;
       console.log('🎯 Showing route for parcel:', parcel.trackingId);
 
-      // SET BOTH SIMULTANEOUSLY - This is the key change!
-      this.selectedParcel = parcel; // Show parcel details immediately
+      // Set the selected parcel
+      this.selectedParcel = parcel;
       this.routeLoading = true;
       this.routeError = null;
 
-      // Update globe immediately with the selected parcel highlighted
-      this.highlightSelectedParcel(parcel);
-
       try {
+        // Call backend API to get route data
         const response = await axios.post('/api/dashboard.php', {
           method: 'getParcelRoute',
           trackingId: parcel.trackingId,
@@ -936,129 +911,50 @@ export default {
           this.routeData = response.data.routeData;
           console.log('Route data loaded successfully:', this.routeData);
         } else {
-          throw new Error('Route method not available, using fallback data');
+          throw new Error(response.data.error || 'Failed to load route data');
         }
       } catch (error) {
-        console.log('Using fallback route data:', error.message);
-        this.routeError = 'Using estimated route information';
-        this.routeData = this.generateFallbackRouteData(parcel);
+        console.error('Error fetching route data:', error);
+        this.routeError = 'Failed to load route information. Please try again.';
+
+        // Fallback to basic route data using coordinates
+        this.routeData = {
+          waypoints: [
+            {
+              location: this.getLocationName(parcel.location),
+              coordinates: parcel.location,
+              timestamp: parcel.createdDate,
+              status: 'Departure',
+              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
+            },
+            {
+              location: this.getLocationName(parcel.destination),
+              coordinates: parcel.destination,
+              timestamp: parcel.expectedDelivery,
+              status: 'Destination',
+              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
+            }
+          ],
+          estimatedDuration: '3-5 days',
+          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
+        };
       } finally {
         this.routeLoading = false;
-        this.parcelSelectionInProgress = false;
+      }
 
-        // Update globe with full route after data is loaded
+      // Update the globe separately if needed (keeping globe functionality intact)
+      if (this.globe && this.globeInitialized) {
         this.updateGlobeRoute(parcel);
       }
     },
 
-    // NEW METHOD: Immediately highlight selected parcel without changing globe data
-    highlightSelectedParcel(parcel) {
-      if (!this.globe || !this.globeInitialized || this.isGlobeUpdating) return;
-
-      this.isGlobeUpdating = true;
-
-      try {
-        console.log('🔦 Highlighting selected parcel:', parcel.trackingId);
-
-        // Create updated points data with the selected parcel highlighted
-        const highlightedPointsData = this.pointsData.map(point => ({
-          ...point,
-          size: point.id === parcel.id ? 0.5 : 0.3, // Make selected larger
-          color: point.id === parcel.id ? '#ff0000' : this.getStatusColor(point.status) // Make selected red
-        }));
-
-        // Update points WITHOUT clearing arcs or reinitializing globe
-        this.globe
-          .pointsData(highlightedPointsData)
-          .pointLat('lat')
-          .pointLng('lng')
-          .pointColor('color')
-          .pointAltitude(0.1)
-          .pointRadius('size')
-          .pointLabel('label');
-
-        // Focus on the selected parcel
-        this.focusOnLocation(parcel.currentLocation);
-
-        console.log('✅ Selected parcel highlighted');
-
-      } catch (error) {
-        console.error('Error highlighting selected parcel:', error);
-      } finally {
-        this.isGlobeUpdating = false;
-      }
-    },
-
-    // NEW METHOD: Focus on a specific location
-    focusOnLocation(coords) {
-      if (!this.globe) return;
-
-      const [lat, lng] = coords;
-
-      if (this.globe.pointOfView) {
-        this.globe.pointOfView({ lat: lat, lng: lng, altitude: 2.0 }, 800);
-      }
-    },
-
-    generateFallbackRouteData(parcel) {
-      const startLocation = this.getLocationName(parcel.location);
-      const endLocation = this.getLocationName(parcel.destination);
-      const distance = this.calculateDistance(parcel.location, parcel.destination);
-
-      const waypoints = [
-        {
-          location: startLocation,
-          coordinates: parcel.location,
-          timestamp: parcel.createdDate,
-          status: 'Departure',
-          description: `Shipment departed from ${startLocation}`
-        }
-      ];
-
-      if (parcel.status === 'In Progress' && parcel.progress > 0 && parcel.progress < 100) {
-        waypoints.push({
-          location: 'In Transit',
-          coordinates: parcel.currentLocation,
-          timestamp: new Date().toISOString(),
-          status: 'In Transit',
-          description: `Shipment is currently in transit (${Math.round(parcel.progress)}% complete)`
-        });
-      }
-
-      waypoints.push({
-        location: endLocation,
-        coordinates: parcel.destination,
-        timestamp: parcel.expectedDelivery,
-        status: parcel.status === 'Delivered' ? 'Delivered' : 'Destination',
-        description: parcel.status === 'Delivered'
-          ? `Shipment delivered to ${endLocation}`
-          : `Expected delivery at ${endLocation}`
-      });
-
-      return {
-        waypoints: waypoints,
-        estimatedDuration: this.calculateEstimatedDuration(distance),
-        distance: Math.round(distance) + ' km',
-        progress: parcel.progress
-      };
-    },
-
-    calculateEstimatedDuration(distance) {
-      if (distance < 1000) return '1-2 days';
-      if (distance < 5000) return '3-5 days';
-      if (distance < 10000) return '5-7 days';
-      return '7-10 days';
-    },
-
     updateGlobeRoute(parcel) {
-      if (!this.globe || !this.globeInitialized || this.isGlobeUpdating) return;
-
-      this.isGlobeUpdating = true;
+      if (!this.globe || !this.globeInitialized) return;
 
       try {
         console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
 
-        // Create route arcs - show the journey
+        // Show the full route from start to destination
         this.arcsData = [{
           startLat: parcel.location[0],
           startLng: parcel.location[1],
@@ -1067,7 +963,7 @@ export default {
           color: '#ff4444'
         }];
 
-        // Show progress arc for in-transit shipments
+        // Also show current position arc if in transit
         if (parcel.status === 'In Progress' && parcel.progress > 0) {
           this.arcsData.push({
             startLat: parcel.location[0],
@@ -1078,7 +974,6 @@ export default {
           });
         }
 
-        // Add arcs to the existing globe (points remain visible)
         this.globe
           .arcsData(this.arcsData)
           .arcStartLat(d => d.startLat)
@@ -1089,15 +984,12 @@ export default {
           .arcStroke(1.5)
           .arcAltitude(0.05);
 
-        // Focus on the full route
         this.focusOnRoute(parcel.location, parcel.destination);
 
         console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
 
       } catch (error) {
         console.error('Error updating globe route:', error);
-      } finally {
-        this.isGlobeUpdating = false;
       }
     },
 
@@ -1107,46 +999,24 @@ export default {
       const midLat = (start[0] + end[0]) / 2;
       const midLng = (start[1] + end[1]) / 2;
 
-      if (this.globe.pointOfView) {
-        this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 }, 1000);
-      }
+      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 });
     },
 
     clearRoute() {
-      console.log('Clearing route...');
       this.selectedParcel = null;
       this.routeData = null;
       this.routeError = null;
 
       if (this.globe && this.globeInitialized) {
-        // Clear only arcs, keep points
         this.arcsData = [];
         this.globe.arcsData(this.arcsData);
-
-        // Reset points to original state
-        const resetPointsData = this.pointsData.map(point => ({
-          ...point,
-          size: 0.3,
-          color: this.getStatusColor(point.status)
-        }));
-
-        this.globe
-          .pointsData(resetPointsData)
-          .pointLat('lat')
-          .pointLng('lng')
-          .pointColor('color')
-          .pointAltitude(0.1)
-          .pointRadius('size')
-          .pointLabel('label');
-
-        // Reset to default view
-        if (this.globe.pointOfView) {
-          this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
-        }
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
+        this.updateGlobeData();
       }
     },
 
     calculateProgress(parcel) {
+      // Use the stored progress if available
       if (parcel.progress !== undefined) {
         return parcel.progress;
       }
@@ -1188,13 +1058,20 @@ export default {
 
       const [lat, lng] = coords;
 
+      // Find country by coordinates with a reasonable tolerance
       const country = countryData.find(c => {
         const latDiff = Math.abs(c.lat - lat);
         const lngDiff = Math.abs(c.long - lng);
-        return latDiff < 15 && lngDiff < 15;
+        return latDiff < 15 && lngDiff < 15; // Increased tolerance for better matching
       });
 
-      return country ? country.name : 'Unknown Location';
+      if (country) {
+        console.log(`Matched coordinates [${lat}, ${lng}] to country: ${country.name}`);
+        return country.name;
+      }
+
+      console.warn(`No country found for coordinates [${lat}, ${lng}]`);
+      return 'Unknown Location';
     },
 
     getStatusColor(status) {
@@ -1220,10 +1097,10 @@ export default {
     },
 
     forceReinit() {
-      console.log('Force reinitializing globe...');
       this.globeInitialized = false;
       this.globeError = false;
 
+      // Clean up existing globe
       if (this.globe) {
         const container = this.$refs.globeContainer;
         if (container) {
@@ -1236,12 +1113,11 @@ export default {
       this.selectedParcel = null;
       this.routeData = null;
 
+      // Reinitialize after a short delay
       this.$nextTick(() => {
         setTimeout(() => {
-          this.initGlobe().then(() => {
-            this.updateGlobeData();
-          });
-        }, 500);
+          this.initGlobe();
+        }, 300);
       });
     },
 
@@ -1251,7 +1127,6 @@ export default {
   }
 };
 </script>
-
 <style scoped>
 /* Your existing CSS styles remain exactly the same */
 /* Import Font Awesome */
@@ -1706,140 +1581,6 @@ export default {
   color: var(--dark-slate-blue);
 }
 
-/* Route Loading and Error States */
-.route-loading, .route-error {
-  text-align: center;
-  padding: 2rem;
-  background: var(--light-pink);
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.route-error {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
-}
-
-.route-error i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.fallback-badge {
-  background: var(--pink);
-  color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.waypoints-list {
-  margin: 1rem 0;
-}
-
-.waypoint-item {
-  display: flex;
-  gap: 1rem;
-  padding: 0.5rem 0;
-  position: relative;
-}
-
-.waypoint-marker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 20px;
-}
-
-.marker-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--hot-pink);
-  z-index: 2;
-}
-
-.marker-dot.departure {
-  background: var(--hot-pink);
-}
-
-.marker-dot.in-transit {
-  background: #ffa500;
-}
-
-.marker-dot.delivered, .marker-dot.destination {
-  background: #00ff00;
-}
-
-.marker-line {
-  flex: 1;
-  width: 2px;
-  background: var(--pink);
-  margin-top: 2px;
-}
-
-.waypoint-content {
-  flex: 1;
-  padding-bottom: 1rem;
-}
-
-.waypoint-status {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--hot-pink);
-  margin-bottom: 0.2rem;
-  text-transform: uppercase;
-}
-
-.waypoint-item.active .waypoint-status {
-  color: #ffa500;
-  animation: pulse 2s infinite;
-}
-
-.waypoint-location {
-  font-weight: 600;
-  color: var(--dark-slate-blue);
-  margin-bottom: 0.25rem;
-}
-
-.waypoint-description {
-  font-size: 0.9rem;
-  color: var(--slate-blue);
-  margin-bottom: 0.25rem;
-}
-
-.waypoint-time {
-  font-size: 0.8rem;
-  color: var(--pink);
-}
-
-.route-summary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--pink-grey);
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-label {
-  font-size: 0.9rem;
-  color: var(--slate-blue);
-}
-
-.summary-value {
-  font-weight: 600;
-  color: var(--dark-slate-blue);
-}
-
 .parcel-details-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1988,7 +1729,6 @@ export default {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
 }
 
 .parcel-item:hover {
@@ -1999,20 +1739,6 @@ export default {
 .parcel-item.active {
   border-color: var(--hot-pink);
   background: var(--light-pink);
-}
-
-.parcel-item.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
-  border: 2px solid var(--pink-grey);
-  border-top: 2px solid var(--hot-pink);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
 }
 
 .parcel-icon {
@@ -2282,7 +2008,7 @@ export default {
 /* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.5; }
   100% { opacity: 1; }
 }
 
@@ -2346,10 +2072,6 @@ export default {
   }
 
   .parcel-details-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .route-summary {
     grid-template-columns: 1fr;
   }
 }
