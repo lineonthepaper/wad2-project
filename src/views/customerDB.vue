@@ -100,119 +100,36 @@
                   </div>
                 </div>
 
-             <div v-if="selectedParcel" class="selected-parcel-info">
-  <div class="parcel-header">
-    <h4>Shipment Details: {{ selectedParcel.trackingId }}</h4>
-    <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
-      {{ selectedParcel.status }}
-    </span>
-  </div>
-
-  <div class="shipment-details-grid">
-    <!-- Sender Information -->
-    <div class="detail-section">
-      <h5><i class="fas fa-paper-plane"></i> Sender Information</h5>
-      <div class="detail-item">
-        <label>Name:</label>
-        <span>{{ selectedParcel.senderAddress?.name || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Location:</label>
-        <span>{{ getLocationName(selectedParcel.location) }}</span>
-      </div>
-      <div class="detail-item" v-if="selectedParcel.senderAddress?.countryCode">
-        <label>Country:</label>
-        <span>{{ selectedParcel.senderAddress.countryCode }}</span>
-      </div>
-    </div>
-
-    <!-- Recipient Information -->
-    <div class="detail-section">
-      <h5><i class="fas fa-map-marker-alt"></i> Recipient Information</h5>
-      <div class="detail-item">
-        <label>Name:</label>
-        <span>{{ selectedParcel.recipientAddress?.name || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Destination:</label>
-        <span>{{ getLocationName(selectedParcel.destination) }}</span>
-      </div>
-      <div class="detail-item" v-if="selectedParcel.recipientAddress?.countryCode">
-        <label>Country:</label>
-        <span>{{ selectedParcel.recipientAddress.countryCode }}</span>
-      </div>
-    </div>
-
-    <!-- Shipment Details -->
-    <div class="detail-section">
-      <h5><i class="fas fa-info-circle"></i> Shipment Details</h5>
-      <div class="detail-item">
-        <label>Service Type:</label>
-        <span>{{ selectedParcel.service?.name || 'Standard' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Total Weight:</label>
-        <span>{{ selectedParcel.totalWeight }} kg</span>
-      </div>
-      <div class="detail-item">
-        <label>Declared Value:</label>
-        <span>${{ selectedParcel.totalValue?.toFixed(2) || '0.00' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Payment Status:</label>
-        <span :class="selectedParcel.hasBeenPaid ? 'status-paid' : 'status-unpaid'">
-          {{ selectedParcel.hasBeenPaid ? 'Paid' : 'Unpaid' }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Delivery Information -->
-    <div class="detail-section">
-      <h5><i class="fas fa-calendar-alt"></i> Delivery Information</h5>
-      <div class="detail-item">
-        <label>Created Date:</label>
-        <span>{{ formatDate(selectedParcel.createdDate) }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Expected Delivery:</label>
-        <span>{{ formatDate(selectedParcel.expectedDelivery) }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Progress:</label>
-        <div class="progress-container">
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
+                <div v-if="selectedParcel" class="selected-parcel-info">
+                  <div class="parcel-header">
+                    <h4>Active Tracking: {{ selectedParcel.trackingId }}</h4>
+                    <span class="status-badge" :class="`status-${selectedParcel.status.toLowerCase().replace(' ', '-')}`">
+                      {{ selectedParcel.status }}
+                    </span>
+                  </div>
+                  <div class="route-progress">
+                    <div class="progress-labels">
+                      <span class="progress-label">{{ getLocationName(selectedParcel.location) }}</span>
+                      <span class="progress-percent">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
+                      <span class="progress-label">{{ getLocationName(selectedParcel.destination) }}</span>
+                    </div>
+                    <div class="progress-track">
+                      <div class="progress-bar">
+                        <div class="progress-fill" :style="{ width: calculateProgress(selectedParcel) + '%' }"></div>
+                        <div class="progress-marker" :style="{ left: calculateProgress(selectedParcel) + '%' }">
+                          <i class="fas fa-shipping-fast"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="no-selection">
+                  <i class="fas fa-mouse-pointer"></i>
+                  <p>Select a shipment from the list to view its route</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <span class="progress-text">{{ Math.round(calculateProgress(selectedParcel)) }}%</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Package Items -->
-  <div class="package-items" v-if="selectedParcel.mailItems && selectedParcel.mailItems.length > 0">
-    <h5><i class="fas fa-box-open"></i> Package Contents</h5>
-    <div class="items-list">
-      <div v-for="(item, index) in selectedParcel.mailItems" :key="index" class="item-card">
-        <div class="item-icon">
-          <i class="fas fa-box"></i>
-        </div>
-        <div class="item-details">
-          <h6>{{ item.itemDescription || 'Unnamed Item' }}</h6>
-          <div class="item-specs">
-            <span class="spec">Weight: {{ item.itemWeight }} kg</span>
-            <span class="spec">Value: ${{ item.declaredValue?.toFixed(2) || '0.00' }}</span>
-            <span class="spec">Qty: {{ item.itemQuantity || 1 }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<div v-else class="no-selection">
-  <i class="fas fa-mouse-pointer"></i>
-  <p>Select a shipment from the list to view details</p>
-</div>
 
           <div class="section-column parcels-column">
             <div class="section-card">
@@ -725,8 +642,7 @@ export default {
             createdDate: shipment.createdDate,
             rawData: shipment,
             senderAddress: shipment.senderAddress,
-            recipientAddress: shipment.recipientAddress,
-            mailItems: this.formatMailItems(shipment.mailItems || [])
+            recipientAddress: shipment.recipientAddress
           };
 
           console.log('Transformed parcel:', {
@@ -744,30 +660,6 @@ export default {
           return null;
         }
       }).filter(parcel => parcel !== null);
-    },
-
-    formatMailItems(mailItems) {
-      if (!mailItems || !Array.isArray(mailItems)) {
-        return [];
-      }
-
-      return mailItems.map(item => ({
-        itemId: item.itemId || Math.random().toString(36).substr(2, 9),
-        itemDescription: item.itemDescription || 'Unnamed Item',
-        declaredValue: parseFloat(item.declaredValue) || 0,
-        itemWeight: parseFloat(item.itemWeight) || 0,
-        itemQuantity: parseInt(item.itemQuantity) || 1
-      }));
-    },
-
-    formatAddress(address) {
-      if (!address) return null;
-
-      return {
-        name: address.name || 'Unknown',
-        countryCode: address.countryCode || 'SG',
-        coordinates: address.coordinates || this.getCountryCoordinates(address.countryCode || 'SG')
-      };
     },
 
     getCountryCoordinates(countryCode) {
@@ -943,7 +835,7 @@ export default {
     },
 
     async showParcelRoute(parcel) {
-      console.log('📦 Showing details for parcel:', parcel.trackingId);
+      console.log('🎯 Showing route for parcel:', parcel.trackingId);
 
       // Set the selected parcel
       this.selectedParcel = parcel;
@@ -951,108 +843,108 @@ export default {
       this.routeError = null;
 
       try {
-        // Try to fetch additional parcel details from backend
+        // Call backend API to get route data
         const response = await axios.post('/api/dashboard.php', {
-          method: 'getParcelDetails',
+          method: 'getParcelRoute',
           trackingId: parcel.trackingId,
           mailId: parcel.mailId
         });
 
-        console.log('Parcel Details API Response:', response.data);
+        console.log('Route API Response:', response.data);
 
-        if (response.data.success && response.data.parcelDetails) {
-          // Enhance the parcel data with additional details
-          this.selectedParcel = {
-            ...parcel,
-            ...response.data.parcelDetails,
-            // Ensure we have mailItems array
-            mailItems: this.formatMailItems(response.data.parcelDetails.mailItems || parcel.mailItems || [])
-          };
-          console.log('Enhanced parcel details loaded successfully');
+        if (response.data.success) {
+          this.routeData = response.data.routeData;
+          console.log('Route data loaded successfully:', this.routeData);
         } else {
-          // If no additional details, enhance with existing data
-          this.enhanceParcelData(parcel);
+          throw new Error(response.data.error || 'Failed to load route data');
         }
       } catch (error) {
-        console.error('Error fetching parcel details:', error);
-        // Fallback to enhancing existing data
-        this.enhanceParcelData(parcel);
+        console.error('Error fetching route data:', error);
+        this.routeError = 'Failed to load route information. Please try again.';
+
+        // Fallback to basic route data using coordinates
+        this.routeData = {
+          waypoints: [
+            {
+              location: this.getLocationName(parcel.location),
+              coordinates: parcel.location,
+              timestamp: parcel.createdDate,
+              status: 'Departure',
+              description: `Shipment departed from ${this.getLocationName(parcel.location)}`
+            },
+            {
+              location: this.getLocationName(parcel.destination),
+              coordinates: parcel.destination,
+              timestamp: parcel.expectedDelivery,
+              status: 'Destination',
+              description: `Expected delivery at ${this.getLocationName(parcel.destination)}`
+            }
+          ],
+          estimatedDuration: '3-5 days',
+          distance: this.calculateDistance(parcel.location, parcel.destination).toFixed(0) + ' km'
+        };
       } finally {
         this.routeLoading = false;
       }
 
-      // Update the globe to show the selected parcel's location
+      // Update the globe separately if needed (keeping globe functionality intact)
       if (this.globe && this.globeInitialized) {
-        this.updateGlobeForSelectedParcel(parcel);
+        this.updateGlobeRoute(parcel);
       }
     },
 
-    enhanceParcelData(parcel) {
-      // Ensure the parcel has all necessary properties for the details view
-      this.selectedParcel = {
-        ...parcel,
-        // Ensure mailItems exists and is properly formatted
-        mailItems: this.formatMailItems(parcel.mailItems || parcel.rawData?.mailItems || []),
-        // Ensure addresses are properly structured
-        senderAddress: this.formatAddress(parcel.senderAddress || parcel.rawData?.senderAddress),
-        recipientAddress: this.formatAddress(parcel.recipientAddress || parcel.rawData?.recipientAddress),
-        // Ensure service information
-        service: parcel.service || parcel.rawData?.service || { name: 'Standard Service' },
-        // Ensure financial data
-        totalWeight: parcel.totalWeight || parcel.rawData?.totalWeight || 0,
-        totalValue: parcel.totalValue || parcel.rawData?.totalValue || 0,
-        hasBeenPaid: parcel.hasBeenPaid !== undefined ? parcel.hasBeenPaid : (parcel.rawData?.hasBeenPaid || false),
-        // Ensure dates
-        createdDate: parcel.createdDate || parcel.rawData?.createdDate || new Date().toISOString(),
-        expectedDelivery: parcel.expectedDelivery || parcel.rawData?.expectedDelivery || this.calculateExpectedDelivery()
-      };
-
-      console.log('Enhanced parcel data for details view');
-    },
-
-    calculateExpectedDelivery() {
-      const date = new Date();
-      date.setDate(date.getDate() + 5); // Default 5 days from now
-      return date.toISOString().split('T')[0];
-    },
-
-    updateGlobeForSelectedParcel(parcel) {
+    updateGlobeRoute(parcel) {
       if (!this.globe || !this.globeInitialized) return;
 
       try {
-        console.log('🔄 Updating globe for selected parcel:', parcel.trackingId);
+        console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
 
-        // Highlight the selected parcel on the globe
-        this.pointsData = this.parcels.map(p => ({
-          ...p,
-          lat: p.currentLocation[0],
-          lng: p.currentLocation[1],
-          color: p.id === parcel.id ? '#ff4444' : this.getStatusColor(p.status),
-          size: p.id === parcel.id ? 0.5 : 0.3,
-          label: `${p.trackingId}: ${p.status}`
-        }));
+        // Show the full route from start to destination
+        this.arcsData = [{
+          startLat: parcel.location[0],
+          startLng: parcel.location[1],
+          endLat: parcel.destination[0],
+          endLng: parcel.destination[1],
+          color: '#ff4444'
+        }];
+
+        // Also show current position arc if in transit
+        if (parcel.status === 'In Progress' && parcel.progress > 0) {
+          this.arcsData.push({
+            startLat: parcel.location[0],
+            startLng: parcel.location[1],
+            endLat: parcel.currentLocation[0],
+            endLng: parcel.currentLocation[1],
+            color: '#00ff00'
+          });
+        }
 
         this.globe
-          .pointsData(this.pointsData)
-          .pointLat('lat')
-          .pointLng('lng')
-          .pointColor('color')
-          .pointAltitude(0.1)
-          .pointRadius('size')
-          .pointLabel('label');
+          .arcsData(this.arcsData)
+          .arcStartLat(d => d.startLat)
+          .arcStartLng(d => d.startLng)
+          .arcEndLat(d => d.endLat)
+          .arcEndLng(d => d.endLng)
+          .arcColor(d => d.color)
+          .arcStroke(1.5)
+          .arcAltitude(0.05);
 
-        // Focus on the selected parcel
-        this.globe.pointOfView({
-          lat: parcel.currentLocation[0],
-          lng: parcel.currentLocation[1],
-          altitude: 1.5
-        });
+        this.focusOnRoute(parcel.location, parcel.destination);
 
-        console.log('✅ Globe updated for selected parcel');
+        console.log('✅ Globe route updated with', this.arcsData.length, 'arcs');
 
       } catch (error) {
-        console.error('Error updating globe for selected parcel:', error);
+        console.error('Error updating globe route:', error);
       }
+    },
+
+    focusOnRoute(start, end) {
+      if (!this.globe) return;
+
+      const midLat = (start[0] + end[0]) / 2;
+      const midLng = (start[1] + end[1]) / 2;
+
+      this.globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.5 });
     },
 
     clearRoute() {
@@ -1993,197 +1885,7 @@ export default {
   background: var(--dark-pink);
   transform: translateY(-2px);
 }
-/* Shipment Details Styles */
-.shipment-details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
 
-.detail-section {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 12px;
-  border: 1px solid var(--pink-grey);
-}
-
-.detail-section h5 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  color: var(--dark-slate-blue);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-section h5 i {
-  color: var(--hot-pink);
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--pink-grey);
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.detail-item label {
-  font-weight: 600;
-  color: var(--slate-blue);
-  font-size: 0.85rem;
-}
-
-.detail-item span {
-  color: var(--dark-slate-blue);
-  font-size: 0.9rem;
-  text-align: right;
-}
-
-.status-paid {
-  color: var(--hot-pink);
-  font-weight: 600;
-}
-
-.status-unpaid {
-  color: var(--dark-pink);
-  font-weight: 600;
-}
-
-.progress-container {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.progress-container .progress-bar {
-  flex: 1;
-  height: 6px;
-  background: var(--pink-grey);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-container .progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
-  transition: width 0.5s ease;
-}
-
-.progress-text {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--hot-pink);
-  min-width: 40px;
-}
-
-/* Package Items */
-.package-items {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 12px;
-  border: 1px solid var(--pink-grey);
-}
-
-.package-items h5 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  color: var(--dark-slate-blue);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.package-items h5 i {
-  color: var(--hot-pink);
-}
-
-.items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.item-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--light-pink);
-  border-radius: 8px;
-  border: 1px solid var(--pink-grey);
-}
-
-.item-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1rem;
-}
-
-.item-details {
-  flex: 1;
-}
-
-.item-details h6 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
-  color: var(--dark-slate-blue);
-}
-
-.item-specs {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.spec {
-  font-size: 0.8rem;
-  color: var(--slate-blue);
-  background: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  border: 1px solid var(--pink-grey);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .shipment-details-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .detail-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-  .progress-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .progress-container .progress-bar {
-    width: 100%;
-  }
-
-  .item-specs {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-}
 /* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
