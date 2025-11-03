@@ -203,26 +203,41 @@ function getCoordinatesForAddress($address) {
     $addressData = $address->getAddress();
     $countryCode = $addressData['countryCode'] ?? 'SG';
     
+    // Load country data from JSON file
+    $countryDataFile = __DIR__ . '/countryData.json';
+    $countryCoordinates = [];
     
-    $countryCoordinates = [
-        'SG' => ['lat' => 1.28478, 'lng' => 103.776222],
-        'MY' => ['lat' => 3.153398, 'lng' => 101.697097],
-        'US' => ['lat' => 38.883757, 'lng' => -77.025347],
-        'UK' => ['lat' => 51.525751, 'lng' => -0.111290],
-        'CN' => ['lat' => 39.915494, 'lng' => 116.359857],
-        'JP' => ['lat' => 35.687015, 'lng' => 139.764585],
-        'KR' => ['lat' => 37.561637, 'lng' => 126.982072],
-        'AU' => ['lat' => -37.825337, 'lng' => 144.999122],
-        'CA' => ['lat' => 45.381872, 'lng' => -75.690368],
-        'FR' => ['lat' => 48.831429, 'lng' => 2.276772],
-        'DE' => ['lat' => 50.737742, 'lng' => 7.098077],
-        'IT' => ['lat' => 41.830555, 'lng' => 12.467820],
-        'IN' => ['lat' => 28.622656, 'lng' => 77.213115],
-        'TH' => ['lat' => 13.889791, 'lng' => 100.569561],
-        'VN' => ['lat' => 21.028398, 'lng' => 105.833947],
-        'PH' => ['lat' => 14.595453, 'lng' => 120.979232],
-        'ID' => ['lat' => 1.153575, 'lng' => 104.004398]
-    ];
+    if (file_exists($countryDataFile)) {
+        $countryData = json_decode(file_get_contents($countryDataFile), true);
+        foreach ($countryData as $country) {
+            $countryCoordinates[$country['code2']] = [
+                'lat' => $country['lat'],
+                'lng' => $country['long'] // Note: your JSON uses 'long' instead of 'lng'
+            ];
+        }
+    } else {
+        // Fallback to hardcoded data if JSON file doesn't exist
+        error_log("Country data file not found: " . $countryDataFile);
+        $countryCoordinates = [
+            'SG' => ['lat' => 1.28478, 'lng' => 103.776222],
+            'MY' => ['lat' => 3.153398, 'lng' => 101.697097],
+            'US' => ['lat' => 38.883757, 'lng' => -77.025347],
+            'UK' => ['lat' => 51.525751, 'lng' => -0.111290],
+            'CN' => ['lat' => 39.915494, 'lng' => 116.359857],
+            'JP' => ['lat' => 35.687015, 'lng' => 139.764585],
+            'KR' => ['lat' => 37.561637, 'lng' => 126.982072],
+            'AU' => ['lat' => -37.825337, 'lng' => 144.999122],
+            'CA' => ['lat' => 45.381872, 'lng' => -75.690368],
+            'FR' => ['lat' => 48.831429, 'lng' => 2.276772],
+            'DE' => ['lat' => 50.737742, 'lng' => 7.098077],
+            'IT' => ['lat' => 41.830555, 'lng' => 12.467820],
+            'IN' => ['lat' => 28.622656, 'lng' => 77.213115],
+            'TH' => ['lat' => 13.889791, 'lng' => 100.569561],
+            'VN' => ['lat' => 21.028398, 'lng' => 105.833947],
+            'PH' => ['lat' => 14.595453, 'lng' => 120.979232],
+            'ID' => ['lat' => 1.153575, 'lng' => 104.004398]
+        ];
+    }
     
     return $countryCoordinates[$countryCode] ?? ['lat' => 1.28478, 'lng' => 103.776222];
 }

@@ -14,7 +14,7 @@ Raksha: tbc
 <br>
 Zachary: tbc
 <br>
-Jessica: tbc
+Jessica: Chatgpt for explanation of code and Generation of template/starter code. Understanding of logic
 <br>
 Sheryn: tbc
 <br>

@@ -1,6 +1,6 @@
 <template>
   <div class="history-detail-page">
-    
+
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
         <div class="message-icon">
@@ -17,13 +17,13 @@
       </div>
     </div>
 
-    
+
     <div v-else-if="loading" class="text-center py-5">
       <div class="loading-spinner-large"></div>
       <p class="mt-3 text-muted">Loading transaction details...</p>
     </div>
 
-   
+
     <div v-else-if="error" class="text-center py-5">
       <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
       <h4 class="text-danger">Failed to load transaction details</h4>
@@ -44,17 +44,17 @@
         </div>
       </div>
       <hr />
-      
+
 <br>
-      <div class="d-flex align-items-center justify-content-between mb-3">
-  <button @click="goBack" class="btn btn-outline-light">
+    <div class="shipment-header">
+  <button @click="goBack" class="back-btn">
     <i class="fas fa-arrow-left"></i> Back
   </button>
 
-  <h4 class="text-white mb-0 fw-bold text-decoration-underline flex-grow-1 text-center">
+  <div class="tracking-number">
     TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
-  </h4>
-
+  </div>
+</div>
   <!-- Empty div to balance spacing on the right -->
   <div style="width: 80px;"></div>
 </div>
@@ -62,9 +62,9 @@
 
       <div class="container mt-4">
         <div class="row">
-          
+
           <div class="col-lg-8">
-            
+
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
@@ -513,6 +513,39 @@ export default {
 
 <style scoped>
 /* Your existing CSS remains the same */
+.shipment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid #fff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tracking-number {
+  flex-grow: 1;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.25rem;
+  text-decoration: underline;
+}
 .history-detail-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
