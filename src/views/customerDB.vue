@@ -1,22 +1,18 @@
 
 <template>
   <div>
-    <!-- Show dashboard only when authenticated -->
     <div class="dashboard-wrapper" v-if="isAuthenticated">
-      <!-- Loading Overlay -->
       <div v-if="loading" class="loading-overlay">
         <div class="loading-spinner-large"></div>
         <p>Loading your shipments...</p>
       </div>
 
-      <!-- Error Banner -->
       <div v-if="errorMessage" class="error-banner">
         <i class="fas fa-exclamation-circle"></i>
         {{ errorMessage }}
         <button @click="fetchUserShipments" class="btn-retry">Retry</button>
       </div>
 
-      <!-- Header -->
       <div class="dashboard-header">
         <div class="header-background">
           <div class="header-content">
@@ -41,9 +37,7 @@
         </div>
       </div>
 
-      <!-- Main Content -->
       <div class="main-content" v-if="!loading">
-        <!-- Stats Overview -->
         <section class="stats-overview">
           <div class="stats-grid">
             <div class="stat-card" :class="`stat-${stat.key}`" v-for="stat in enhancedStats" :key="stat.key">
@@ -85,10 +79,8 @@
 
         </section>
 
-        <!-- Globe and Tracking - RESTRUCTURED -->
         <section class="tracking-section">
           <div class="section-column globe-column">
-            <!-- Globe Card - Always Present -->
             <div class="section-card">
               <div class="card-header">
                 <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
@@ -105,7 +97,6 @@
                 </div>
               </div>
               <div class="card-body">
-                <!-- Globe Container - Always Rendered -->
                 <div ref="globeContainer" class="globe-container" style="width: 100%; height: 400px;">
                   <div v-if="globeError" class="globe-error">
                     <div class="error-icon">
@@ -180,7 +171,6 @@
                     </div>
                   </div>
 
-                  <!-- Empty state -->
                   <div v-if="filteredParcels.length === 0" class="empty-state">
                     <i class="fas fa-box-open"></i>
                     <p>No shipments found</p>
@@ -192,7 +182,6 @@
           </div>
         </section>
 
-        <!-- Notifications Section Only -->
         <section class="notifications-section">
           <div class="section-column notifications-column">
             <div class="section-card">
@@ -211,7 +200,6 @@
                     </div>
                   </div>
 
-                  <!-- Empty notifications -->
                   <div v-if="notifications.length === 0" class="empty-notifications">
                     <i class="fas fa-bell-slash"></i>
                     <p>No recent activity</p>
@@ -224,7 +212,6 @@
       </div>
     </div>
 
-    <!-- Show login prompt when not authenticated -->
     <div v-else class="login-required">
       <div class="login-message">
         <div class="message-icon">
@@ -345,7 +332,6 @@ export default {
     this.checkAuthentication();
     if (this.isAuthenticated) {
       this.initializeDashboard();
-      // Refresh every 30 seconds for real-time updates
       this.refreshInterval = setInterval(() => {
         if (this.isAuthenticated) {
           this.fetchUserShipments();
@@ -363,7 +349,6 @@ export default {
       clearTimeout(this.globeUpdateTimeout);
     }
     if (this.globe) {
-      // Clean up globe instance
       this.globe = null;
     }
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
@@ -393,7 +378,6 @@ export default {
       if (this.isAuthenticated) {
         this.initializeDashboard();
       } else {
-        // Clear data when logging out
         this.parcels = [];
         this.notifications = [];
         this.stats = { inProgress: 0, delivered: 0, pending: 0 };
@@ -405,13 +389,10 @@ export default {
     async initializeDashboard() {
       console.log('Initializing dashboard for authenticated user...');
 
-      // Debug coordinates first
       this.debugCountryCoordinates();
 
-      // Fetch shipments first
       await this.fetchUserShipments();
 
-      // Then initialize the globe after DOM is ready and data is loaded
       await this.$nextTick();
       await new Promise(resolve => setTimeout(resolve, 800));
       await this.initGlobe();
@@ -424,7 +405,6 @@ export default {
       const singapore = countryData.find(c => c.code2 === 'SG');
       console.log('Singapore coordinates from JSON:', singapore);
 
-      // Test the getCountryCoordinates method
       console.log('getCountryCoordinates("AU"):', this.getCountryCoordinates('AU'));
       console.log('getCountryCoordinates("SG"):', this.getCountryCoordinates('SG'));
     },
@@ -445,7 +425,6 @@ export default {
         console.log('API Response:', response.data);
 
         if (response.data.success) {
-          // Check if we're using fallback data
           if (response.data.note) {
             this.usingFallbackData = true;
             console.log('Using fallback data:', response.data.note);
@@ -456,7 +435,6 @@ export default {
           this.generateNotifications();
           console.log('Successfully loaded', this.parcels.length, 'shipments');
 
-          // Update globe data if globe is already initialized
           if (this.globeInitialized && this.globe) {
             console.log('Updating globe with new shipment data');
             this.updateGlobeData();
@@ -466,12 +444,10 @@ export default {
 
         } else {
           console.error('Failed to fetch shipments:', response.data.error);
-          // Fallback to example data if API fails
           this.useFallbackData();
         }
       } catch (error) {
         console.error('Error fetching shipments:', error);
-        // Fallback to example data on network error
         this.useFallbackData();
       } finally {
         this.loading = false;
@@ -483,13 +459,11 @@ export default {
       this.usingFallbackData = true;
       this.errorMessage = 'Connected to demo data. Real shipments will appear here once you create them.';
 
-      // Use the example data directly
       const exampleData = this.getExampleShipments(this.user.email);
       this.parcels = this.transformShipmentData(exampleData);
       this.updateStats();
       this.generateNotifications();
 
-      // Update globe data if globe is already initialized
       if (this.globeInitialized && this.globe) {
         console.log('Updating globe after using fallback data');
         this.updateGlobeData();
@@ -589,30 +563,26 @@ export default {
 
       return shipments.map(shipment => {
         try {
-          // Get coordinates with better error handling
           let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
           let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
 
           console.log('Sender coords for', shipment.senderAddress?.countryCode, ':', senderCoords);
           console.log('Recipient coords for', shipment.recipientAddress?.countryCode, ':', recipientCoords);
 
-          // Ensure coordinates are valid numbers
           if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
             console.warn('Invalid sender coordinates, using Singapore default');
-            senderCoords = [1.3521, 103.8198]; // Singapore coordinates
+            senderCoords = [1.3521, 103.8198]; 
           }
 
           if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
             console.warn('Invalid recipient coordinates, using US default');
-            recipientCoords = [39.8283, -98.5795]; // US center coordinates
+            recipientCoords = [39.8283, -98.5795]; 
           }
 
-          // Determine current location based on status
           let currentLocation = senderCoords;
           const progress = this.calculateProgressFromStatus(shipment.status);
 
           if (progress > 0 && progress < 100) {
-            // For in-progress shipments, interpolate between start and end
             currentLocation = [
               senderCoords[0] + (recipientCoords[0] - senderCoords[0]) * (progress / 100),
               senderCoords[1] + (recipientCoords[1] - senderCoords[1]) * (progress / 100)
@@ -621,7 +591,6 @@ export default {
             currentLocation = recipientCoords;
           }
 
-          // Create tracking ID from available data
           let trackingId = `TRK-${shipment.mailId.toString().padStart(6, '0')}`;
           if (shipment.trackingNumber && shipment.trackingNumber !== 0) {
             trackingId = `TRK-${shipment.trackingNumber}`;
@@ -666,7 +635,6 @@ export default {
     },
 
     getCountryCoordinates(countryCode) {
-      // Handle UK/GB country code variation
       const code = countryCode === 'UK' ? 'GB' : countryCode;
 
       const country = countryData.find(c => c.code2 === code);
@@ -675,7 +643,6 @@ export default {
         return [country.lat, country.long];
       }
 
-      // Default to Singapore if not found
       console.warn(`Country code ${countryCode} not found, using Singapore as default`);
       return [1.28478, 103.776222];
     },
@@ -707,7 +674,6 @@ export default {
     },
 
     generateNotifications() {
-      // Create notifications from recent shipments
       this.notifications = this.parcels
         .slice(0, 4)
         .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
@@ -774,7 +740,6 @@ export default {
 
         console.log('✅ Globe container found');
 
-        // Ensure container has proper dimensions
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 400;
 
@@ -785,7 +750,6 @@ export default {
           throw new Error('Container has invalid dimensions');
         }
 
-        // Clear any existing content
         container.innerHTML = '';
 
         console.log('🚀 Creating Globe instance...');
@@ -799,10 +763,8 @@ export default {
 
         console.log('✅ Globe instance created');
 
-        // Set initial view
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
-        // Enable controls
         this.globe.controls().enableZoom = true;
         this.globe.controls().autoRotate = false;
         this.globe.controls().autoRotateSpeed = 0.5;
@@ -811,13 +773,11 @@ export default {
         this.globeError = false;
         console.log('✅ Globe initialized successfully');
 
-        // Now update with any existing parcel data
         if (this.parcels && this.parcels.length > 0) {
           console.log('📦 Loading', this.parcels.length, 'parcels into globe');
           await this.$nextTick();
           this.updateGlobeData();
 
-          // If there's a selected parcel, show its route
           if (this.selectedParcel) {
             console.log('🗺️ Restoring route for selected parcel:', this.selectedParcel.trackingId);
             await this.$nextTick();
@@ -842,7 +802,6 @@ export default {
 
       if (!this.parcels || this.parcels.length === 0) {
         console.log('⚠️ No parcels to display on globe');
-        // Clear any existing data
         this.globe.pointsData([]);
         this.globe.arcsData([]);
         return;
@@ -851,7 +810,6 @@ export default {
       try {
         console.log('📦 Updating globe with', this.parcels.length, 'parcels');
 
-        // Create points data for all parcels
         this.pointsData = this.parcels.map(parcel => {
           const point = {
             id: parcel.id,
@@ -865,7 +823,6 @@ export default {
           return point;
         });
 
-        // Update globe with points
         this.globe
           .pointsData(this.pointsData)
           .pointLat('lat')
@@ -874,7 +831,7 @@ export default {
           .pointAltitude('altitude')
           .pointRadius('size')
           .pointLabel('label')
-          .pointsMerge(false); // Force complete update
+          .pointsMerge(false); 
 
         console.log('✅ Globe data updated with', this.pointsData.length, 'points');
 
@@ -886,16 +843,13 @@ export default {
     selectParcel(parcel) {
       console.log('🎯 Parcel clicked:', parcel.trackingId);
 
-      // Always update the selected parcel immediately for UI responsiveness
       this.selectedParcel = parcel;
       console.log('✅ Shipment details updated for:', this.selectedParcel.trackingId);
 
-      // Clear any pending globe updates to prevent conflicts
       if (this.globeUpdateTimeout) {
         clearTimeout(this.globeUpdateTimeout);
       }
 
-      // Update globe route if globe is ready (with debouncing for rapid clicks)
       if (this.globe && this.globeInitialized) {
         console.log('🗺️ Scheduling globe route update for:', parcel.trackingId);
 
@@ -903,7 +857,7 @@ export default {
           requestAnimationFrame(() => {
             this.updateGlobeRoute(parcel);
           });
-        }, 100); // Small delay to handle rapid clicking
+        }, 100); 
       } else {
         console.warn('⚠️ Globe not ready yet, but shipment details are showing');
       }
@@ -918,10 +872,8 @@ export default {
       try {
         console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
 
-        // Clear existing arcs first
         this.arcsData = [];
 
-        // Show the full route from start to destination (red dashed line)
         const mainRoute = {
           startLat: parcel.location[0],
           startLng: parcel.location[1],
@@ -932,7 +884,6 @@ export default {
 
         this.arcsData.push(mainRoute);
 
-        // Also show current position arc if in transit (green line)
         if (parcel.status === 'In Progress' && parcel.progress > 0 && parcel.progress < 100) {
           const progressRoute = {
             startLat: parcel.location[0],
@@ -944,7 +895,6 @@ export default {
           this.arcsData.push(progressRoute);
         }
 
-        // Update the globe with new arcs
         this.globe
           .arcsData(this.arcsData)
           .arcStartLat(d => d.startLat)
@@ -958,10 +908,8 @@ export default {
           .arcDashAnimateTime(2000)
           .arcAltitude(0.1);
 
-        // Focus on the route
         this.focusOnRoute(parcel.location, parcel.destination);
 
-        // Clear the timeout indicator
         this.globeUpdateTimeout = null;
 
         console.log('✅ Globe route updated successfully with', this.arcsData.length, 'arcs');
@@ -979,16 +927,14 @@ export default {
         const midLat = (start[0] + end[0]) / 2;
         const midLng = (start[1] + end[1]) / 2;
 
-        // Calculate appropriate altitude based on distance
         const distance = this.calculateDistance(start, end);
         const altitude = Math.min(2.5, Math.max(1.5, distance / 5000));
 
-        // Smooth transition to the route
         this.globe.pointOfView({
           lat: midLat,
           lng: midLng,
           altitude: altitude
-        }, 1000); // 1 second transition
+        }, 1000); 
 
         console.log('🎥 Camera focused on route');
       } catch (error) {
@@ -999,19 +945,16 @@ export default {
     clearRoute() {
       console.log('🧹 Clearing route and selection');
 
-      // Clear selection immediately for UI responsiveness
       this.selectedParcel = null;
       this.routeData = null;
       this.routeError = null;
 
-      // Clear globe arcs if globe is ready (non-blocking)
       if (this.globe && this.globeInitialized) {
         try {
           this.arcsData = [];
           this.globe.arcsData(this.arcsData);
           this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 }, 1000);
 
-          // Restore all points
           this.updateGlobeData();
 
           console.log('✅ Route cleared from globe');
@@ -1020,7 +963,6 @@ export default {
         }
       }
 
-      // Clear any pending updates
       if (this.globeUpdateTimeout) {
         clearTimeout(this.globeUpdateTimeout);
         this.globeUpdateTimeout = null;
@@ -1028,7 +970,6 @@ export default {
     },
 
     calculateDistance(start, end) {
-      // Simple distance calculation for camera positioning
       const latDiff = Math.abs(start[0] - end[0]);
       const lngDiff = Math.abs(start[1] - end[1]);
       return Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
@@ -1048,7 +989,7 @@ export default {
         return 'Unknown Location';
       }
 
-      // Find the closest country to these coordinates
+
       const closestCountry = countryData.reduce((closest, country) => {
         const distance = Math.sqrt(
           Math.pow(country.lat - coords[0], 2) +
@@ -1061,7 +1002,6 @@ export default {
     },
 
     calculateProgress(parcel) {
-      // Use the pre-calculated progress from transformation
       return parcel.progress || 0;
     },
 
@@ -1084,12 +1024,10 @@ export default {
       this.globeInitialized = false;
       this.globeError = false;
 
-      // Clear any existing globe instance
       if (this.globe) {
         this.globe = null;
       }
 
-      // Reinitialize after a brief delay
       setTimeout(() => {
         this.initGlobe();
       }, 500);
@@ -1097,7 +1035,6 @@ export default {
 
     redirectToLogin() {
       console.log('Redirecting to login...');
-      // Dispatch event to show login modal
       window.dispatchEvent(new CustomEvent('showLoginModal'));
     },
     goToHistory() {
@@ -1108,11 +1045,8 @@ export default {
 </script>
 
 <style scoped>
-/* Your existing CSS styles remain exactly the same */
-/* Import Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
-/* Pink Color Palette */
 :root {
   --hot-pink: #ff4275;
   --dark-pink: #ff759e;
@@ -1123,14 +1057,12 @@ export default {
   --pink-grey: #f1d9df;
 }
 
-/* Base Styles */
 .dashboard-wrapper {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Loading Overlay */
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -1155,7 +1087,6 @@ export default {
   margin-bottom: 1rem;
 }
 
-/* Error Banner */
 .error-banner {
   background: var(--dark-pink);
   color: white;
@@ -1184,7 +1115,6 @@ export default {
   color: white;
 }
 
-/* Header */
 .dashboard-header {
   margin-bottom: 2rem;
 }
@@ -1256,14 +1186,12 @@ export default {
   letter-spacing: 0.5px;
 }
 
-/* Main Content */
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem 2rem;
 }
 
-/* Stats Overview */
 .stats-overview {
   margin-bottom: 2rem;
 }
@@ -1394,7 +1322,6 @@ export default {
   min-height: 2px;
 }
 
-/* History Card - Added to match your stat cards */
 .history-card {
   background: white;
   border-radius: 16px;
@@ -1455,7 +1382,6 @@ export default {
   font-size: 1.2rem;
 }
 
-/* Tracking Section */
 .tracking-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -1557,7 +1483,6 @@ export default {
   flex-direction: column;
 }
 
-/* Globe Container */
 .globe-container {
   width: 100%;
   height: 400px;
@@ -1600,7 +1525,6 @@ export default {
   margin-bottom: 1rem;
 }
 
-/* Parcel Information Section */
 .parcel-information {
   background: var(--light-pink);
   border-radius: 12px;
@@ -1683,7 +1607,6 @@ export default {
   color: var(--dark-pink);
 }
 
-/* Progress Bar */
 .route-progress {
   margin-top: 1rem;
 }
@@ -1753,7 +1676,6 @@ export default {
   font-size: 1rem;
 }
 
-/* Parcels List */
 .parcels-list {
   display: flex;
   flex-direction: column;
@@ -1859,7 +1781,6 @@ export default {
   min-width: 35px;
 }
 
-/* Empty States */
 .empty-state, .empty-notifications {
   text-align: center;
   padding: 3rem 1rem;
@@ -1883,7 +1804,6 @@ export default {
   opacity: 0.7;
 }
 
-/* Status Badges */
 .status-badge {
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
@@ -1908,7 +1828,6 @@ export default {
   color: var(--dark-pink);
 }
 
-/* Notifications Section */
 .notifications-section {
   margin-bottom: 2rem;
 }
@@ -1977,7 +1896,6 @@ export default {
   color: var(--slate-blue);
 }
 
-/* Login Required Styles */
 .login-required {
   display: flex;
   justify-content: center;
@@ -2046,7 +1964,6 @@ export default {
   transform: translateY(-2px);
 }
 
-/* Animations */
 @keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -2058,7 +1975,6 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .tracking-section {
     grid-template-columns: 1fr;

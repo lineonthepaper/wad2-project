@@ -16,7 +16,6 @@ if ($method === "POST") {
 
    if ($method == "addAccount") {
     try {
-        // Server-side password validation
         if (!isset($payload['password']) || !isset($payload['confirmPassword'])) {
             http_response_code(400);
             echo json_encode(["message" => "Password and confirmation are required."]);
@@ -35,7 +34,6 @@ if ($method === "POST") {
             exit;
         }
 
-        // Check if email already exists
         $accountDAO = new AccountDAO($useServer);
         $existingAccount = $accountDAO->getAccountByEmail($payload['email']);
         if ($existingAccount) {
@@ -44,10 +42,8 @@ if ($method === "POST") {
             exit;
         }
 
-        // Handle isStaff value properly for PostgreSQL
         $isStaff = $payload['isStaff'] ?? false;
 
-        // Convert to proper PostgreSQL boolean format
         if (is_string($isStaff)) {
             $isStaff = ($isStaff === 'true' || $isStaff === '1');
         } else {
@@ -131,7 +127,6 @@ if ($method === "POST") {
 
             $accountDAO = new AccountDAO($useServer);
             
-            // Verify password using the existing method in AccountDAO
             if ($accountDAO->verifyPassword($payload['email'], $payload['password'])) {
                 $account = $accountDAO->getAccountByEmail($payload['email']);
                 if ($account) {
@@ -263,7 +258,6 @@ if ($method === "POST") {
                 exit;
             }
 
-            // Check if email already exists
             $accountDAO = new AccountDAO($useServer);
             $existingAccount = $accountDAO->getAccountByEmail($newEmail);
             if ($existingAccount && $existingAccount->getAccountId() !== $accountId) {
@@ -300,7 +294,6 @@ if ($method === "POST") {
 
             $accountDAO = new AccountDAO($useServer);
             
-            // Get account to verify password and email
             $account = $accountDAO->getAccountById($accountId);
             if (!$account) {
                 http_response_code(404);
@@ -308,14 +301,12 @@ if ($method === "POST") {
                 exit;
             }
 
-            // Verify password
             if (!$accountDAO->verifyPassword($account->getEmail(), $password)) {
                 http_response_code(401);
                 echo json_encode(["message" => "Invalid password."]);
                 exit;
             }
 
-            // Delete account from database using AccountDAO method
             $success = $accountDAO->deleteAccount($accountId);
 
             if ($success) {
