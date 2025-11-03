@@ -25,13 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $input = json_decode(file_get_contents('php://input'), true);
 $method = $input['method'] ?? '';
 
-// Log the request for debugging
+
 error_log("Dashboard API Request: " . print_r($input, true));
 
 try {
     switch ($method) {
         case 'getAllMailByCustomerEmail':
-            // Support both 'email' and 'customerEmail' parameters
+       
             $customerEmail = $input['customerEmail'] ?? $input['email'] ?? '';
             error_log("Fetching shipments for email: " . $customerEmail);
             
@@ -45,7 +45,7 @@ try {
             
             error_log("Found " . count($mails) . " shipments for " . $customerEmail);
             
-            // If no shipments found, provide example data
+     
             if (empty($mails)) {
                 error_log("No shipments found, using example data");
                 $enhancedMails = getExampleShipments($customerEmail);
@@ -58,15 +58,15 @@ try {
                 exit;
             }
             
-            // Enhance the mail data with address information
+           
             $enhancedMails = [];
             foreach ($mails as $mail) {
                 try {
-                    // Get addresses for coordinates
+             
                     $senderAddress = $mailDAO->getAddressById($mail->getSenderAddressId());
                     $recipientAddress = $mailDAO->getAddressById($mail->getRecipientAddressId());
                     
-                    // Get latest status - with error handling
+    
                     $latestStatus = null;
                     try {
                         $statuses = $mailDAO->getMailStatusesByMailId($mail->getMailId());
@@ -76,17 +76,17 @@ try {
                         $latestStatus = null;
                     }
                     
-                    // Calculate total value from mail items
+        
                     $totalValue = 0;
                     foreach ($mail->getMailItems() as $item) {
                         $totalValue += $item->getDeclaredValue();
                     }
                     
-                    // Get payment status and tracking number
+         
                     $isPaid = $mailDAO->isMailPaid($mail->getMailId());
                     $trackingNum = $mailDAO->getMailTrackingNum($mail->getMailId());
                     
-                    // Get coordinates for addresses
+       
                     $senderCoords = getCoordinatesForAddress($senderAddress);
                     $recipientCoords = getCoordinatesForAddress($recipientAddress);
                     
@@ -129,7 +129,7 @@ try {
                     $enhancedMails[] = $enhancedMail;
                 } catch (Exception $e) {
                     error_log("Error processing mail ID " . $mail->getMailId() . ": " . $e->getMessage());
-                    continue; // Skip this mail and continue with others
+                    continue; 
                 }
             }
             
@@ -146,7 +146,7 @@ try {
 } catch (Exception $e) {
     error_log("Customer Dashboard API Error: " . $e->getMessage());
     
-    // If there's an error, return example data
+    
     $customerEmail = $input['customerEmail'] ?? $input['email'] ?? 'raksha@xx.com';
     $exampleData = getExampleShipments($customerEmail);
     echo json_encode([
@@ -157,28 +157,28 @@ try {
     ]);
 }
 
-// Helper functions
+
 function determineStatus($latestStatus) {
     if (!$latestStatus) return 'pending';
     
     $statusCode = $latestStatus->getStatusCode();
     
-    // Map your status codes to dashboard statuses
+    
     $statusMap = [
-        1 => 'pending',      // Created
-        2 => 'in_transit',   // In Transit
-        3 => 'in_transit',   // Processed
-        4 => 'delivered',    // Delivered
-        5 => 'pending'       // Awaiting Pickup
+        1 => 'pending',      
+        2 => 'in_transit',   
+        3 => 'in_transit',   
+        4 => 'delivered',    
+        5 => 'pending'       
     ];
     
     return $statusMap[$statusCode] ?? 'pending';
 }
 
 function calculateExpectedDelivery($service) {
-    $minDays = 5; // Default minimum days
+    $minDays = 5; 
     
-    // Calculate expected delivery based on service type
+    
     if (isset($service['name'])) {
         $serviceName = $service['name'];
         if (strpos($serviceName, 'Registered') !== false) {
@@ -203,7 +203,7 @@ function getCoordinatesForAddress($address) {
     $addressData = $address->getAddress();
     $countryCode = $addressData['countryCode'] ?? 'SG';
     
-    // Country coordinates mapping
+    
     $countryCoordinates = [
         'SG' => ['lat' => 1.28478, 'lng' => 103.776222],
         'MY' => ['lat' => 3.153398, 'lng' => 101.697097],

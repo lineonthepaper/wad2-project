@@ -1,6 +1,6 @@
 <template>
   <div class="history-detail-page">
-    <!-- Authentication Check -->
+    
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
         <div class="message-icon">
@@ -17,13 +17,13 @@
       </div>
     </div>
 
-    <!-- Loading State -->
+    
     <div v-else-if="loading" class="text-center py-5">
       <div class="loading-spinner-large"></div>
       <p class="mt-3 text-muted">Loading transaction details...</p>
     </div>
 
-    <!-- Error State -->
+   
     <div v-else-if="error" class="text-center py-5">
       <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
       <h4 class="text-danger">Failed to load transaction details</h4>
@@ -36,26 +36,23 @@
       </button>
     </div>
 
-    <!-- Main Content -->
+    
     <div v-else-if="transaction" class="dashboard-wrapper">
-      <!-- Header -->
+      
       <div class="row bg-light-pink justify-content-center airplane-header">
         <div class="col-lg-8 col-md-10 col-sm-12 py-3 text-center">
           <div class="d-flex justify-content-between align-items-center">
-            <button @click="goBack" class="btn btn-outline-light">
-              <i class="fas fa-arrow-left"></i> Back
-            </button>
+          
             <h1 class="jua text-hot-pink mb-0">Shipment Details</h1>
-            <div class="status-display">
-              <span class="badge status-badge" :class="getStatusBadgeClass(transaction.status)">
-                {{ formatStatus(transaction.status) }}
-              </span>
-            </div>
+  
           </div>
         </div>
       </div>
-
+<br>
       <div class="text-center mb-3">
+          <button @click="goBack" class="btn btn-outline-light">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
         <h4 class="text-white mb-2 fw-bold text-decoration-underline">
           TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
         </h4>
@@ -63,9 +60,9 @@
 
       <div class="container mt-4">
         <div class="row">
-          <!-- Main Content -->
+          
           <div class="col-lg-8">
-            <!-- Route Information Card -->
+            
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">

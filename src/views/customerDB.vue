@@ -25,7 +25,7 @@
                 <span class="title-main">Parcel Tracking</span>
                 <span class="title-sub">Dashboard</span>
               </h1>
-              <p class="welcome-message">Welcome back, <strong>{{user.email}}</strong>! Track your shipments in real-time.</p>
+              <p class="welcome-message">Welcome back, <strong>{{user.displayName}}</strong>! Track your shipments in real-time.</p>
             </div>
             <div class="header-stats">
               <div class="header-stat">
