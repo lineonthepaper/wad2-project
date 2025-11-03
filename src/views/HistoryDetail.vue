@@ -250,30 +250,53 @@
               </div>
             </div>
 
-            <!-- Customer Information Card -->
-            <div class="detail-card card mb-4">
-              <div class="card-header bg-light-pink">
-                <h4 class="mb-0">
-                  <i class="fas fa-user me-2"></i>
-                  Customer Information
-                </h4>
-              </div>
-              <div class="card-body">
-                <div class="customer-info">
-                  <p class="mb-2">
-                    <strong>Email:</strong><br>
-                    {{ user.email }}
-                  </p>
-                  <p class="mb-0">
-                    <strong>Customer ID:</strong><br>
-                    {{ transaction.customerEmail }}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <!-- Sender Information Card -->
+<div class="detail-card card mb-4">
+  <div class="card-header bg-light-pink">
+    <h4 class="mb-0">
+      <i class="fas fa-user me-2"></i>
+      Sender Information
+    </h4>
+  </div>
+  <div class="card-body">
+    <div class="customer-info">
+      <p class="mb-2">
+        <strong>Name:</strong><br>
+        {{ transaction.senderAddress?.name || 'N/A' }}
+      </p>
+      <p class="mb-2">
+        <strong>Country:</strong><br>
+        {{ getCountryName(transaction.senderAddress?.countryCode) }}
+      </p>
+      <p class="mb-0">
+        <strong>Email:</strong><br>
+        {{ transaction.customerEmail }}
+      </p>
+    </div>
+  </div>
+</div>
 
-
-          </div>
+<div class="detail-card card mb-4">
+  <div class="card-header bg-light-pink">
+    <h4 class="mb-0">
+      <i class="fas fa-user-tag me-2"></i>
+      Recipient Information
+    </h4>
+  </div>
+  <div class="card-body">
+    <div class="customer-info">
+      <p class="mb-2">
+        <strong>Name:</strong><br>
+        {{ transaction.recipientAddress?.name || 'N/A' }}
+      </p>
+      <p class="mb-0">
+        <strong>Country:</strong><br>
+        {{ getCountryName(transaction.recipientAddress?.countryCode) }}
+      </p>
+    </div>
+  </div>
+</div>
+     </div>
         </div>
       </div>
     </div>
