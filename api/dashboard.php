@@ -204,7 +204,7 @@ function getCoordinatesForAddress($address) {
     $countryCode = $addressData['countryCode'] ?? 'SG';
     
     // Load country data from JSON file
-    $countryDataFile = __DIR__ . '/countryData.json';
+    $countryDataFile = __DIR__ . '/../json/countryData.json';
     $countryCoordinates = [];
     
     if (file_exists($countryDataFile)) {
