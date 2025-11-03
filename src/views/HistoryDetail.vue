@@ -46,7 +46,7 @@
       <hr />
 
 <br>
-    <div class="shipment-header">
+   <div class="shipment-header">
   <button @click="goBack" class="back-btn">
     <i class="fas fa-arrow-left"></i> Back
   </button>
@@ -54,9 +54,6 @@
   <div class="tracking-number">
     TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
   </div>
-</div>
-  <!-- Empty div to balance spacing on the right -->
-  <div style="width: 80px;"></div>
 </div>
 
 
