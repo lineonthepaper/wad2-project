@@ -102,8 +102,27 @@ onUnmounted(() => {
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li>
                       <button class="dropdown-item" @click="$router.push('/settings')">
-                        Settings
+                        Quick Action
                       </button>
+                       <button class="dropdown-item" @click="$router.push('/changePassword')">
+                        Update Account
+                      </button>
+                       <button class="dropdown-item" @click="$router.push('/CDB')">
+                        Customer Dashboard
+                      </button>
+                       <button class="dropdown-item" @click="$router.push('/shipment')">
+                        Create Shipment
+                      </button>
+                       <button class="dropdown-item" @click="$router.push('/services')">
+                        Catalogue
+                      </button>
+                      <button class="dropdown-item" @click="$router.push('/history')">
+                        History
+                      </button>
+                       <button class="dropdown-item" @click="$router.push('/help')">
+                        Terms and Condition
+                      </button>
+
                     </li>
                     <li>
                       <button class="dropdown-item" @click="handleLogout">Logout</button>

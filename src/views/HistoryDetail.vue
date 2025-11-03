@@ -40,23 +40,29 @@
     <div v-else-if="transaction" class="dashboard-wrapper">
       
       <div class="row bg-light-pink justify-content-center airplane-header">
-        <div class="col-lg-8 col-md-10 col-sm-12 py-3 text-center">
+        <div class="col-lg-8 col-md-10 col-sm-12 text-center">
           <div class="d-flex justify-content-between align-items-center">
           
-            <h1 class="jua text-hot-pink mb-0">Shipment Details</h1>
+            <h1 class="text-center text-pink-500 font-jua mb-0">Shipment Details</h1>
+
   
           </div>
         </div>
       </div>
 <br>
-      <div class="text-center mb-3">
-          <button @click="goBack" class="btn btn-outline-light">
-              <i class="fas fa-arrow-left"></i> Back
-            </button>
-        <h4 class="text-white mb-2 fw-bold text-decoration-underline">
-          TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
-        </h4>
-      </div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+  <button @click="goBack" class="btn btn-outline-light">
+    <i class="fas fa-arrow-left"></i> Back
+  </button>
+
+  <h4 class="text-white mb-0 fw-bold text-decoration-underline flex-grow-1 text-center">
+    TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}
+  </h4>
+
+  <!-- Empty div to balance spacing on the right -->
+  <div style="width: 80px;"></div>
+</div>
+
 
       <div class="container mt-4">
         <div class="row">

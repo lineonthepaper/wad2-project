@@ -21,7 +21,7 @@
                 <span class="title-main">Parcel Tracking</span>
                 <span class="title-sub">Dashboard</span>
               </h1>
-              <p class="welcome-message">Welcome back, <strong>{{user.displayName}}</strong>! Track your shipments in real-time.</p>
+              <p class="welcome-message">Welcome back, <strong>{{user.display_name}}</strong>! Track your shipments in real-time.</p>
             </div>
             <div class="header-stats">
               <div class="header-stat">
@@ -66,10 +66,7 @@
         <div class="history-icon">
           <i class="fas fa-history"></i>
         </div>
-        <div class="history-text">
-          <h3>Shipment History</h3>
-          <p>View complete tracking history</p>
-        </div>
+       
         <div class="history-arrow">
           <i class="fas fa-chevron-right"></i>
         </div>
@@ -78,6 +75,14 @@
   </div>
 
         </section>
+
+         <div class="text-center my-3">
+  <button @click="viewHistory" class="btn btn-outline-light">
+    <h3 class="mb-0">Shipment History</h3>
+    <p class="mb-0">View complete tracking history</p>
+  </button>
+</div>
+
 
         <section class="tracking-section">
           <div class="section-column globe-column">
@@ -354,6 +359,10 @@ export default {
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
+      viewHistory() {
+    // Example action — navigate to history page or show modal
+    this.$router.push('/history');
+  },
     checkAuthentication() {
       const userData = sessionStorage.getItem('currentUser');
       if (userData) {
@@ -1359,23 +1368,6 @@ export default {
   background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
 }
 
-.history-text {
-  flex: 1;
-}
-
-.history-text h3 {
-  font-size: 0.9rem;
-  color: var(--dark-slate-blue);
-  margin: 0 0 0.3rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.history-text p {
-  font-size: 0.8rem;
-  color: var(--slate-blue);
-  margin: 0;
-}
 
 .history-arrow {
   color: var(--slate-blue);
