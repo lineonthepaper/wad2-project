@@ -21,7 +21,7 @@
                 <span class="title-main">Parcel Tracking</span>
                 <span class="title-sub">Dashboard</span>
               </h1>
-              <p class="welcome-message">Welcome back, <strong>{{user.display_name}}</strong>! Track your shipments in real-time.</p>
+              <p> Track your shipments in real-time.</p>
             </div>
             <div class="header-stats">
               <div class="header-stat">
@@ -61,25 +61,17 @@
                 </div>
               </div>
             </div>
-          <div class="history-card" @click="goToHistory">
-      <div class="history-content">
-        <div class="history-icon">
-          <i class="fas fa-history"></i>
-        </div>
-       
-        <div class="history-arrow">
-          <i class="fas fa-chevron-right"></i>
-        </div>
-      </div>
-    </div>
   </div>
 
         </section>
 
          <div class="text-center my-3">
-  <button @click="viewHistory" class="btn btn-outline-light">
+   <button @click="viewHistory" 
+          style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
+          onmouseover="this.style.background='#ff4d8d'" 
+          onmouseout="this.style.background='#ff6b9d'">
     <h3 class="mb-0">Shipment History</h3>
-    <p class="mb-0">View complete tracking history</p>
+    <p class="mb-0">Click to view more</p>
   </button>
 </div>
 
