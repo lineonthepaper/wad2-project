@@ -18,11 +18,14 @@
     </div>
 
     <!-- Main Content for Authenticated Users -->
-     <div class="row justify-content-center airplane-header">
-  <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-    <h1 class="jua text-hot-pink">Transaction History</h1>
-  </div>
-</div>
+    <div v-else class="dashboard-wrapper">
+      <hr />
+      <div class="row justify-content-center airplane-header">
+        <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+          <h1 class="jua text-hot-pink">Transaction History</h1>
+        </div>
+      </div>
+      <hr />
 
       <div class="container mt-4">
         <!-- Loading State -->
@@ -58,7 +61,6 @@
                   @input="handleSearch"
                 >
               </div>
-
             </div>
             <div class="col-md-6">
               <div class="d-flex flex-wrap gap-2">
@@ -127,27 +129,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Stats Overview -->
-          <section class="stats-overview mb-4">
-            <div class="stats-grid">
-              <div class="stat-card" :class="`stat-${stat.key}`" v-for="stat in enhancedStats" :key="stat.key">
-                <div class="stat-content">
-                  <div class="stat-icon">
-                    <i :class="stat.icon"></i>
-                  </div>
-                  <div class="stat-data">
-                    <h3 class="stat-title">{{ stat.title }}</h3>
-                    <p class="stat-number">{{ stat.value }}</p>
-                    <div class="stat-trend" :class="stat.trend">
-                      <i :class="stat.trendIcon"></i>
-                      <span>{{ stat.trendValue }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <!-- Transactions List -->
           <div class="row">
@@ -415,52 +396,6 @@ export default {
       return filteredTransactions.value.slice(start, end)
     })
 
-    const enhancedStats = computed(() => {
-      const inProgress = transactions.value.filter(t => t.status === 'in_transit').length
-      const delivered = transactions.value.filter(t => t.status === 'delivered').length
-      const pending = transactions.value.filter(t => t.status === 'pending').length
-      const total = transactions.value.length
-
-      return [
-        {
-          key: 'in-progress',
-          title: 'In Transit',
-          value: inProgress,
-          icon: 'fas fa-shipping-fast',
-          trend: 'up',
-          trendIcon: 'fas fa-arrow-up',
-          trendValue: '+2 today'
-        },
-        {
-          key: 'delivered',
-          title: 'Delivered',
-          value: delivered,
-          icon: 'fas fa-check-circle',
-          trend: 'up',
-          trendIcon: 'fas fa-arrow-up',
-          trendValue: '+12%'
-        },
-        {
-          key: 'pending',
-          title: 'Pending',
-          value: pending,
-          icon: 'fas fa-clock',
-          trend: 'down',
-          trendIcon: 'fas fa-arrow-down',
-          trendValue: '-1 today'
-        },
-        {
-          key: 'total',
-          title: 'Total Shipments',
-          value: total,
-          icon: 'fas fa-boxes',
-          trend: 'up',
-          trendIcon: 'fas fa-arrow-up',
-          trendValue: '+8%'
-        }
-      ]
-    })
-
     // Methods
     const fetchTransactions = async () => {
       if (!isAuthenticated.value) return
@@ -606,7 +541,6 @@ export default {
       filteredTransactions,
       totalPages,
       paginatedTransactions,
-      enhancedStats,
       fetchTransactions,
       clearFilters,
       handleSearch,
@@ -628,22 +562,6 @@ export default {
 .history-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-:root {
-  --hot-pink: #ff4275;
-  --dark-pink: #ff759e;
-  --pink: #ff9096;
-  --dark-slate-blue: #455a64;
-  --slate-blue: #8796b3;
-  --light-pink: #ffe8ee;
-  --pink-grey: #f1d9df;
-  --grey-outline: #6c757d;
-  --light-grey: #f8f9fa;
-}
-
-.transaction-history-page {
-  min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -715,23 +633,12 @@ export default {
 }
 
 /* Header Styles */
-.bg-light-pink {
-  background-color: var(--light-pink) !important;
-}
-
 .text-hot-pink {
   color: var(--hot-pink) !important;
 }
 
 .jua {
   font-family: 'Jua', sans-serif;
-}
-
-.airplane-header {
-  background: linear-gradient(135deg, var(--hot-pink) 0%, var(--dark-pink) 100%);
-  color: white;
-  border-radius: 0 0 20px 20px;
-  box-shadow: 0 4px 20px rgba(255, 66, 117, 0.3);
 }
 
 /* Loading Styles */
@@ -748,119 +655,6 @@ export default {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-/* Stats Overview */
-.stats-overview {
-  margin-bottom: 2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-left: 4px solid;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-.stat-card.stat-in-progress {
-  border-left-color: var(--hot-pink);
-}
-
-.stat-card.stat-delivered {
-  border-left-color: var(--pink);
-}
-
-.stat-card.stat-pending {
-  border-left-color: var(--dark-pink);
-}
-
-.stat-card.stat-total {
-  border-left-color: var(--slate-blue);
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-}
-
-.stat-in-progress .stat-icon {
-  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
-}
-
-.stat-delivered .stat-icon {
-  background: linear-gradient(135deg, var(--pink), var(--dark-pink));
-}
-
-.stat-pending .stat-icon {
-  background: linear-gradient(135deg, var(--dark-pink), var(--hot-pink));
-}
-
-.stat-total .stat-icon {
-  background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
-}
-
-.stat-data {
-  flex: 1;
-}
-
-.stat-title {
-  font-size: 0.9rem;
-  color: var(--dark-slate-blue);
-  margin: 0 0 0.3rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 0.3rem;
-  color: var(--dark-slate-blue);
-}
-
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.stat-trend.up {
-  color: var(--hot-pink);
-}
-
-.stat-trend.down {
-  color: var(--dark-pink);
 }
 
 /* Transaction Cards */
@@ -962,10 +756,6 @@ export default {
 
   .transaction-card .card-body .row > div:last-child {
     margin-bottom: 0;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
   }
 
   .action-buttons {
