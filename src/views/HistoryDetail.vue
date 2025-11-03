@@ -36,19 +36,15 @@
       </button>
     </div>
 
-    
     <div v-else-if="transaction" class="dashboard-wrapper">
-      
+      <hr />
       <div class="row bg-light-pink justify-content-center airplane-header">
-        <div class="col-lg-8 col-md-10 col-sm-12 text-center">
-          <div class="d-flex justify-content-between align-items-center">
-          
-            <h1 class="text-center text-pink-500 font-jua mb-0">Shipment Details</h1>
-
-  
-          </div>
+        <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+          <h1 class="jua text-hot-pink">Shipment Details</h1>
         </div>
       </div>
+      <hr />
+      
 <br>
       <div class="d-flex align-items-center justify-content-between mb-3">
   <button @click="goBack" class="btn btn-outline-light">

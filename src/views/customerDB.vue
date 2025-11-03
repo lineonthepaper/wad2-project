@@ -937,14 +937,14 @@ export default {
           altitude: altitude
         }, 1000); 
 
-        console.log('🎥 Camera focused on route');
+        console.log(' Camera focused on route');
       } catch (error) {
-        console.error('❌ Error focusing on route:', error);
+        console.error(' Error focusing on route:', error);
       }
     },
 
     clearRoute() {
-      console.log('🧹 Clearing route and selection');
+      console.log('Clearing route and selection');
 
       this.selectedParcel = null;
       this.routeData = null;
@@ -958,9 +958,9 @@ export default {
 
           this.updateGlobeData();
 
-          console.log('✅ Route cleared from globe');
+          console.log('Route cleared from globe');
         } catch (error) {
-          console.error('❌ Error clearing route:', error);
+          console.error('Error clearing route:', error);
         }
       }
 
@@ -1021,7 +1021,7 @@ export default {
     },
 
     forceReinit() {
-      console.log('🔄 Force reinitializing globe...');
+      console.log('Force reinitializing globe...');
       this.globeInitialized = false;
       this.globeError = false;
 
