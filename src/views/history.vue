@@ -630,7 +630,6 @@ export default {
 <style scoped>
 .history-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 :root {

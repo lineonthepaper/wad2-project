@@ -79,7 +79,10 @@ onUnmounted(() => {
                   <RouterLink :to="{ name: 'cart' }">Cart</RouterLink>
                 </li>
                 <li class="nav-item text-end">
-                  <RouterLink :to="{ name: 'help' }">Help</RouterLink>
+                  <RouterLink :to="{ name: 'help' }">Terms and Conditions</RouterLink>
+                </li>
+                   <li class="nav-item text-end">
+                  <RouterLink :to="{ name: 'faq' }">faq</RouterLink>
                 </li>
                 <li class="nav-item" v-if="!isLoggedIn">
                   <button type="button" class="btn btn-pink quicksand-semibold">
