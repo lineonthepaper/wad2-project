@@ -77,7 +77,7 @@
       <input
         type="text"
         class="form-control form-control-lg"
-        style="max-width: 5em"
+        style="max-width: 7em"
         v-model="inputs[5].input"
         @change="updateItemRow(rowId, inputs[5].name, inputs[5].input)"
         placeholder="opt."
