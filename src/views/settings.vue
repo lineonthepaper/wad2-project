@@ -19,7 +19,7 @@
           <div class="card-body">
             <div class="actions-grid">
               <button class="action-btn" @click="navigateTo('/shipment')">
-                <i class="fas fa-plus-circle"></i>
+                <i class="fas fa-box"></i>
                 <span>New Shipment</span>
               </button>
               <button class="action-btn" @click="navigateTo('/faq')">
@@ -27,11 +27,11 @@
                 <span>FAQ</span>
               </button>
               <button class="action-btn" @click="navigateTo('/cdb')">
-                <i class="fas fa-life-ring"></i>
+                <i class="fas fa-users-cog"></i>
                 <span>Customer Dashboard</span>
               </button>
               <button class="action-btn" @click="navigateTo('/changePassword')">
-                <i class="fas fa-key"></i>
+                <i class="fas fa-user-cog"></i>
                 <span>Accounts</span>
               </button>
             </div>
