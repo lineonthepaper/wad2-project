@@ -308,21 +308,7 @@ const SpeechToTextPlugin = {
       initObserver();
     };
 
-    app.mixin({
-      mounted() {
-        this.$nextTick(() => {
-          initializePlugin();
-        });
-      },
-      beforeUnmount() {
-        // Clean up when component unmounts
-        if (observer) {
-          observer.disconnect();
-        }
-      }
-    });
-
-    // ✅ FIX: Add Vue Router integration
+    // ✅ FIXED: Vue 3 Router Integration
     if (app.config.globalProperties.$router) {
       // Watch for route changes
       app.config.globalProperties.$router.afterEach((to, from) => {
@@ -332,13 +318,19 @@ const SpeechToTextPlugin = {
         }, 100);
       });
 
-      // Also watch for initial route load
-      const unwatch = app.config.globalProperties.$router.onReady(() => {
+      // For Vue 3, use isReady() instead of onReady()
+      if (app.config.globalProperties.$router.isReady) {
+        app.config.globalProperties.$router.isReady().then(() => {
+          setTimeout(() => {
+            initializePlugin();
+          }, 100);
+        });
+      } else {
+        // Fallback for initial load
         setTimeout(() => {
           initializePlugin();
-        }, 100);
-        unwatch();
-      });
+        }, 500);
+      }
     }
 
     // Initial initialization
@@ -364,8 +356,9 @@ const SpeechToTextPlugin = {
   }
 };
 
-if (typeof window !== 'undefined' && window.Vue) {
-  window.Vue.use(SpeechToTextPlugin);
-}
+// Remove Vue 2 auto-install since you're using Vue 3
+// if (typeof window !== 'undefined' && window.Vue) {
+//   window.Vue.use(SpeechToTextPlugin);
+// }
 
 export default SpeechToTextPlugin;
