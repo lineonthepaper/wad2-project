@@ -154,7 +154,7 @@
                       <!-- Tracking and Basic Info -->
                       <div class="col-md-4">
                         <div class="d-flex align-items-center mb-2">
-                          <h6 class="mb-0 me-2">TRK-{{ transaction.trackingNumber.toString().padStart(6, '0') }}</h6>
+                          <h6 class="mb-0 me-2">{{ formatTrackingNumber(transaction.trackingNumber) }}</h6>
                           <span class="badge" :class="getStatusBadgeClass(transaction.status)">
                             {{ formatStatus(transaction.status) }}
                           </span>
@@ -362,7 +362,7 @@ export default {
         // Search across multiple fields
         const matchesSearch =
           // Search by tracking number
-          (transaction.trackingNumber?.toString().toLowerCase().includes(query)) ||
+          (formatTrackingNumber(transaction.trackingNumber).toLowerCase().includes(query)) ||
           // Search by service name
           (transaction.service?.name?.toLowerCase().includes(query)) ||
           // Search by destination country code
@@ -483,6 +483,21 @@ export default {
       }
     }
 
+    const formatTrackingNumber = (trackingNumber) => {
+      if (!trackingNumber) return 'N/A'
+      
+      // Handle both string and number tracking numbers
+      const trackingStr = trackingNumber.toString()
+      
+      // If it's already formatted as TRK-XXXXXX, return as is
+      if (trackingStr.startsWith('TRK-')) {
+        return trackingStr
+      }
+      
+      // Otherwise format it as TRK-XXXXXX
+      return `TRK-${trackingStr.padStart(6, '0')}`
+    }
+
     const getProgressWidth = (status) => {
       const progressMap = {
         'pending': '25%',
@@ -548,6 +563,7 @@ export default {
       getStatusBadgeClass,
       formatStatus,
       formatDate,
+      formatTrackingNumber,
       getProgressWidth,
       getProgressBarClass,
       getProgressText,
