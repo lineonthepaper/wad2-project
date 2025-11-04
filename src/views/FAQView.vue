@@ -1,6 +1,6 @@
 <template>
   <div class="mode-toggle-container">
-    <button 
+    <button
       class="btn mode-toggle-btn"
       @click="cycleMode"
       :title="`Current mode: ${modeLabels[currentMode]}. Click to switch to ${modeLabels[(currentMode + 1) % 3]}`"
@@ -64,7 +64,7 @@
             </li>
           </ul>
         </div>
-        
+
         <div class="col-12">
           <ul class="nav nav-tabs nav-justified" role="tablist">
             <li class="nav-item" v-for="tab in secondRowTabs" :key="tab.id">
@@ -119,7 +119,7 @@
     </div>
 
     <div class="fixed-bottom text-end p-3">
-      <a href="quickguide.pdf" download class="text-decoration-none">
+      <a href="User_guide.pdf" download class="text-decoration-none">
         <button class="btn btn-primary btn-lg shadow">
           <i class="bi bi-download me-2"></i>Download Quick Guide
         </button>
@@ -136,7 +136,7 @@ export default {
       searchQuery: '',
       activeTab: 'gettingStarted',
       openItems: new Set(),
-      currentMode: 0, 
+      currentMode: 0,
       modeLabels: ['Original', 'Dark Mode', 'Light Perception'],
       tabs: [
         { id: 'gettingStarted', name: 'Getting Started' },
@@ -273,8 +273,8 @@ export default {
 .mode-toggle-container {
   position: fixed;
   bottom: 20px;
-  left: 20px; 
-  z-index: 10000; 
+  left: 20px;
+  z-index: 10000;
 }
 
 .mode-toggle-btn {
@@ -776,17 +776,17 @@ li {
 @media (max-width: 768px) {
   .mode-toggle-container {
     bottom: 15px;
-    left: 15px; 
+    left: 15px;
   }
-  
+
   .mode-toggle-btn {
     padding: 10px 15px;
     min-width: 120px;
     font-size: 0.85rem;
   }
-  
+
   .mode-label {
-    font-size: 0.8rem; 
+    font-size: 0.8rem;
   }
 
   .accordion-button {
@@ -813,15 +813,15 @@ li {
 @media (max-width: 480px) {
   .mode-toggle-container {
     bottom: 10px;
-    left: 10px; 
+    left: 10px;
   }
-  
+
   .mode-toggle-btn {
     padding: 8px 12px;
     min-width: 100px;
     font-size: 0.75rem;
   }
-  
+
   .mode-label {
     font-size: 0.75rem;
   }
