@@ -29,7 +29,17 @@
             <th>Declared Value</th>
             <th>Item Weight</th>
             <th>Item Quantity</th>
-            <th>HS Code</th>
+            <th>
+              <a
+                href="https://www.customs.gov.sg/businesses/harmonized-system-hs-classification-of-goods/find-my-code/"
+                data-bs-toggle="tooltip"
+                data-bs-title="Classification of traded product. Click here to learn more!"
+                id="hsCode"
+                target="_blank"
+              >
+                HS Code
+              </a>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -59,8 +69,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 import ItemRow from './ItemRow.vue'
+
+import { Tooltip } from 'bootstrap'
 </script>
 
 <script>
@@ -128,13 +140,22 @@ export default {
     },
   },
   props: ['props'],
+  mounted() {
+    new Tooltip(document.body, { selector: '#hsCode', trigger: 'hover' })
+  },
 }
 </script>
 
 <style scoped>
-@media screen and (max-width: 540px) {
+@media screen and (max-width: 520px) {
   .table {
     transform: scale(0.8);
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .table {
+    transform: scale(0.75);
   }
 }
 

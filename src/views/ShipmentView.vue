@@ -405,7 +405,11 @@ export default {
 </script>
 
 <template>
-  <div class="progress fixed-bottom bg-light border-danger-subtle border" role="progressbar" aria-label="Completion Percentage">
+  <div
+    class="progress fixed-bottom bg-light border-danger-subtle border"
+    role="progressbar"
+    aria-label="Completion Percentage"
+  >
     <div class="progress-bar bg-pink" :style="'width:' + overallCompletion + '%'"></div>
   </div>
   <div class="container-fluid">
@@ -487,6 +491,11 @@ export default {
 </template>
 
 <style scoped>
+::v-deep(.choices__item),
+::v-deep(.form-control) {
+  color: var(--dark-slate-blue);
+}
+
 #briefInfo ::v-deep(.choices__list) {
   padding: 4px;
   word-break: normal;
@@ -521,7 +530,32 @@ export default {
   padding: 6px !important;
 }
 
+#shipment ::v-deep(.form-control-lg) {
+  padding: 6px !important;
+}
+
 #shipment ::v-deep(.choices__placeholder) {
   padding: 1px;
+}
+
+@media screen and (max-width: 700px) {
+  #shipment ::v-deep(.choices__item),
+  #shipment ::v-deep(.form-control) {
+    font-size: 8px;
+    line-height: 16px;
+  }
+
+  #shipment ::v-deep(.choices__input) {
+    padding: 6px !important;
+  }
+
+  #shipment ::v-deep(.choices__item),
+  #shipment ::v-deep(.choices__list) {
+    padding: 0px;
+  }
+
+  #shipment ::v-deep(.form-control) {
+    min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2));
+  }
 }
 </style>
