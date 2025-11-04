@@ -50,9 +50,7 @@
           <div class="row mb-4">
             <div class="col-md-6">
               <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-search"></i>
-                </span>
+
                 <input
                   type="text"
                   class="form-control search-input"
@@ -691,22 +689,11 @@ export default {
   font-size: 0.75rem;
 }
 
-/* Form Controls - Updated Styles */
+
+
 .input-group-text {
-  background-color: white;
-  border: 1px solid var(--grey-outline);
-  color: var(--grey-outline);
-}
-
-.search-input {
-  border: 1px solid var(--grey-outline);
-  background-color: white;
-}
-
-.search-input:focus {
-  border-color: var(--grey-outline);
-  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
-  background-color: white;
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
 }
 
 .btn-outline-grey {
