@@ -66,9 +66,9 @@
         </section>
 
          <div class="text-center my-3">
-   <button @click="viewHistory" 
+   <button @click="viewHistory"
           style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
-          onmouseover="this.style.background='#ff4d8d'" 
+          onmouseover="this.style.background='#ff4d8d'"
           onmouseout="this.style.background='#ff6b9d'">
     <h3 class="mb-0">Shipment History</h3>
     <p class="mb-0">Click to view more</p>
@@ -115,11 +115,10 @@
           <div class="section-column parcels-column">
             <div class="section-card">
               <div class="card-header">
-                <h3><i class="fas fa-boxes"></i> Recent Shipments</h3>
                 <div class="card-actions">
                   <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search shipments..." v-model="searchQuery">
+                    <input type="text" placeholder="Search recent shipments..." v-model="searchQuery">
                   </div>
                   <button class="btn-icon" title="Filter">
                     <i class="fas fa-filter"></i>
@@ -269,14 +268,18 @@ export default {
       return this.stats.inProgress + this.stats.delivered + this.stats.pending;
     },
     filteredParcels() {
-      if (!this.searchQuery) return this.parcels;
-      const query = this.searchQuery.toLowerCase();
-      return this.parcels.filter(parcel =>
-        parcel.trackingId.toLowerCase().includes(query) ||
-        (parcel.customer && parcel.customer.toLowerCase().includes(query)) ||
-        this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query)
-      );
-    },
+    if (!this.searchQuery.trim()) return this.parcels;
+
+    const query = this.searchQuery.trim().toLowerCase();
+    return this.parcels.filter(parcel => {
+      const trackingMatch = parcel.trackingId.toLowerCase().includes(query);
+      const customerMatch = parcel.customer && parcel.customer.toLowerCase().includes(query);
+      const locationMatch = this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query);
+      const rawTrackingMatch = parcel.trackingId.replace('TRK-', '').toLowerCase().includes(query.replace('trk-', ''));
+      const mailIdMatch = parcel.mailId && parcel.mailId.toString().includes(query);
+      return trackingMatch || customerMatch || locationMatch || rawTrackingMatch || mailIdMatch;
+    });
+  },
     enhancedStats() {
       return [
         {
@@ -352,7 +355,7 @@ export default {
   },
   methods: {
       viewHistory() {
-    // Example action — navigate to history page or show modal
+
     this.$router.push('/history');
   },
     checkAuthentication() {
@@ -572,12 +575,12 @@ export default {
 
           if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
             console.warn('Invalid sender coordinates, using Singapore default');
-            senderCoords = [1.3521, 103.8198]; 
+            senderCoords = [1.3521, 103.8198];
           }
 
           if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
             console.warn('Invalid recipient coordinates, using US default');
-            recipientCoords = [39.8283, -98.5795]; 
+            recipientCoords = [39.8283, -98.5795];
           }
 
           let currentLocation = senderCoords;
@@ -731,29 +734,29 @@ export default {
 
     async initGlobe() {
       try {
-        console.log('🌍 Starting globe initialization...');
+        console.log('Starting globe initialization...');
 
         const container = this.$refs.globeContainer;
         if (!container) {
-          console.error('❌ Globe container not found in DOM');
+          console.error('Globe container not found in DOM');
           throw new Error('Globe container not found');
         }
 
-        console.log('✅ Globe container found');
+        console.log('Globe container found');
 
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 400;
 
-        console.log('📐 Container dimensions:', width, 'x', height);
+        console.log(' Container dimensions:', width, 'x', height);
 
         if (width === 0 || height === 0) {
-          console.error('❌ Container has zero dimensions');
+          console.error('Container has zero dimensions');
           throw new Error('Container has invalid dimensions');
         }
 
         container.innerHTML = '';
 
-        console.log('🚀 Creating Globe instance...');
+        console.log('Creating Globe instance...');
 
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
@@ -762,7 +765,7 @@ export default {
           .height(height)
           (container);
 
-        console.log('✅ Globe instance created');
+        console.log(' Globe instance created');
 
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
@@ -772,24 +775,24 @@ export default {
 
         this.globeInitialized = true;
         this.globeError = false;
-        console.log('✅ Globe initialized successfully');
+        console.log(' Globe initialized successfully');
 
         if (this.parcels && this.parcels.length > 0) {
-          console.log('📦 Loading', this.parcels.length, 'parcels into globe');
+          console.log(' Loading', this.parcels.length, 'parcels into globe');
           await this.$nextTick();
           this.updateGlobeData();
 
           if (this.selectedParcel) {
-            console.log('🗺️ Restoring route for selected parcel:', this.selectedParcel.trackingId);
+            console.log('Restoring route for selected parcel:', this.selectedParcel.trackingId);
             await this.$nextTick();
             this.updateGlobeRoute(this.selectedParcel);
           }
         } else {
-          console.log('⚠️ No parcel data yet');
+          console.log('No parcel data yet');
         }
 
       } catch (error) {
-        console.error('❌ Globe initialization error:', error);
+        console.error(' Globe initialization error:', error);
         this.globeError = true;
         this.globeInitialized = false;
       }
@@ -797,19 +800,19 @@ export default {
 
     updateGlobeData() {
       if (!this.globe || !this.globeInitialized) {
-        console.log('⚠️ Cannot update globe data - globe not initialized');
+        console.log(' Cannot update globe data - globe not initialized');
         return;
       }
 
       if (!this.parcels || this.parcels.length === 0) {
-        console.log('⚠️ No parcels to display on globe');
+        console.log(' No parcels to display on globe');
         this.globe.pointsData([]);
         this.globe.arcsData([]);
         return;
       }
 
       try {
-        console.log('📦 Updating globe with', this.parcels.length, 'parcels');
+        console.log(' Updating globe with', this.parcels.length, 'parcels');
 
         this.pointsData = this.parcels.map(parcel => {
           const point = {
@@ -832,46 +835,46 @@ export default {
           .pointAltitude('altitude')
           .pointRadius('size')
           .pointLabel('label')
-          .pointsMerge(false); 
+          .pointsMerge(false);
 
-        console.log('✅ Globe data updated with', this.pointsData.length, 'points');
+        console.log(' Globe data updated with', this.pointsData.length, 'points');
 
       } catch (error) {
-        console.error('❌ Error updating globe data:', error);
+        console.error(' Error updating globe data:', error);
       }
     },
 
     selectParcel(parcel) {
-      console.log('🎯 Parcel clicked:', parcel.trackingId);
+      console.log(' Parcel clicked:', parcel.trackingId);
 
       this.selectedParcel = parcel;
-      console.log('✅ Shipment details updated for:', this.selectedParcel.trackingId);
+      console.log('Shipment details updated for:', this.selectedParcel.trackingId);
 
       if (this.globeUpdateTimeout) {
         clearTimeout(this.globeUpdateTimeout);
       }
 
       if (this.globe && this.globeInitialized) {
-        console.log('🗺️ Scheduling globe route update for:', parcel.trackingId);
+        console.log('Scheduling globe route update for:', parcel.trackingId);
 
         this.globeUpdateTimeout = setTimeout(() => {
           requestAnimationFrame(() => {
             this.updateGlobeRoute(parcel);
           });
-        }, 100); 
+        }, 100);
       } else {
-        console.warn('⚠️ Globe not ready yet, but shipment details are showing');
+        console.warn(' Globe not ready yet, but shipment details are showing');
       }
     },
 
     updateGlobeRoute(parcel) {
       if (!this.globe || !this.globeInitialized) {
-        console.warn('⚠️ Globe not ready, skipping route update');
+        console.warn(' Globe not ready, skipping route update');
         return;
       }
 
       try {
-        console.log('🔄 Updating globe route for parcel:', parcel.trackingId);
+        console.log(' Updating globe route for parcel:', parcel.trackingId);
 
         this.arcsData = [];
 
@@ -913,10 +916,10 @@ export default {
 
         this.globeUpdateTimeout = null;
 
-        console.log('✅ Globe route updated successfully with', this.arcsData.length, 'arcs');
+        console.log(' Globe route updated successfully with', this.arcsData.length, 'arcs');
 
       } catch (error) {
-        console.error('❌ Error updating globe route:', error);
+        console.error(' Error updating globe route:', error);
         this.globeUpdateTimeout = null;
       }
     },
@@ -935,7 +938,7 @@ export default {
           lat: midLat,
           lng: midLng,
           altitude: altitude
-        }, 1000); 
+        }, 1000);
 
         console.log(' Camera focused on route');
       } catch (error) {
