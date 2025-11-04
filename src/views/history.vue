@@ -154,7 +154,7 @@
                       <!-- Tracking and Basic Info -->
                       <div class="col-md-4">
                         <div class="d-flex align-items-center mb-2">
-                          <h6 class="mb-0 me-2">{{ formatTrackingNumber(transaction.trackingNumber) }}</h6>
+                          <h6 class="mb-0 me-2">{{ getTrackingId(transaction) }}</h6>
                           <span class="badge" :class="getStatusBadgeClass(transaction.status)">
                             {{ formatStatus(transaction.status) }}
                           </span>
@@ -362,7 +362,7 @@ export default {
         // Search across multiple fields
         const matchesSearch =
           // Search by tracking number
-          (formatTrackingNumber(transaction.trackingNumber).toLowerCase().includes(query)) ||
+          (getTrackingId(transaction).toLowerCase().includes(query)) ||
           // Search by service name
           (transaction.service?.name?.toLowerCase().includes(query)) ||
           // Search by destination country code
@@ -452,6 +452,15 @@ export default {
       currentPage.value = 1
     }
 
+    // Get tracking ID exactly like in customerDB
+    const getTrackingId = (transaction) => {
+      let trackingId = `TRK-${transaction.mailId.toString().padStart(6, '0')}`;
+      if (transaction.trackingNumber && transaction.trackingNumber !== 0) {
+        trackingId = `TRK-${transaction.trackingNumber}`;
+      }
+      return trackingId;
+    }
+
     const getStatusBadgeClass = (status) => {
       const statusClasses = {
         'pending': 'bg-warning text-dark',
@@ -481,21 +490,6 @@ export default {
       } catch (error) {
         return 'Invalid Date'
       }
-    }
-
-    const formatTrackingNumber = (trackingNumber) => {
-      if (!trackingNumber) return 'N/A'
-      
-      // Handle both string and number tracking numbers
-      const trackingStr = trackingNumber.toString()
-      
-      // If it's already formatted as TRK-XXXXXX, return as is
-      if (trackingStr.startsWith('TRK-')) {
-        return trackingStr
-      }
-      
-      // Otherwise format it as TRK-XXXXXX
-      return `TRK-${trackingStr.padStart(6, '0')}`
     }
 
     const getProgressWidth = (status) => {
@@ -560,10 +554,10 @@ export default {
       clearFilters,
       handleSearch,
       viewTransactionDetails,
+      getTrackingId,
       getStatusBadgeClass,
       formatStatus,
       formatDate,
-      formatTrackingNumber,
       getProgressWidth,
       getProgressBarClass,
       getProgressText,

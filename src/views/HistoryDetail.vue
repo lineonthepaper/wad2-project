@@ -52,7 +52,7 @@
   </button>
 
   <div class="tracking-number">
-    {{ formatTrackingNumber(transaction.trackingNumber) }}
+    {{ getTrackingId(transaction) }}
   </div>
 </div>
 
@@ -238,62 +238,65 @@
                     <div class="timeline-marker"></div>
                     <div class="timeline-content">
                       <h6>Delivered</h6>
-                      <p class="text-muted mb-0" v-if="transaction.status === 'delivered'">Successfully delivered</p>
+                      <p class="text-muted mb-0" v-if="transaction.status === 'delivered'">
+                        Delivered on {{ formatDate(transaction.expectedDelivery) }}
+                      </p>
+                      <p class="text-muted mb-0" v-else>
+                        Expected: {{ formatDate(transaction.expectedDelivery) }}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Status Card -->
-            <div class="detail-card card mb-4">
-              <div class="card-header bg-light-pink">
-                <h4 class="mb-0">
-                  <i class="fas fa-truck me-2"></i>
-                  Current Status
-                </h4>
-              </div>
-              <div class="card-body text-center">
-                <div class="status-indicator mb-3">
-                  <div class="status-icon" :class="transaction.status">
-                    <i class="fas" :class="getStatusIcon(transaction.status)"></i>
-                  </div>
-                </div>
-                <h4 :class="getStatusTextClass(transaction.status)">
-                  {{ formatStatus(transaction.status) }}
-                </h4>
-                <p class="text-muted mb-0">
-                  {{ getStatusDescription(transaction.status) }}
-                </p>
-              </div>
-            </div>
+            <!-- Sender Information Card -->
+<div class="detail-card card mb-4">
+  <div class="card-header bg-light-pink">
+    <h4 class="mb-0">
+      <i class="fas fa-user me-2"></i>
+      Sender Information
+    </h4>
+  </div>
+  <div class="card-body">
+    <div class="customer-info">
+      <p class="mb-2">
+        <strong>Name:</strong><br>
+        {{ transaction.senderAddress?.name || 'N/A' }}
+      </p>
+      <p class="mb-2">
+        <strong>Country:</strong><br>
+        {{ getCountryName(transaction.senderAddress?.countryCode) }}
+      </p>
+      <p class="mb-0">
+        <strong>Email:</strong><br>
+        {{ transaction.customerEmail }}
+      </p>
+    </div>
+  </div>
+</div>
 
-            <!-- Actions Card -->
-            <div class="detail-card card">
-              <div class="card-header bg-light-pink">
-                <h4 class="mb-0">
-                  <i class="fas fa-cog me-2"></i>
-                  Actions
-                </h4>
-              </div>
-              <div class="card-body">
-                <div class="d-grid gap-2">
-                  <button class="btn btn-outline-primary" @click="downloadInvoice">
-                    <i class="fas fa-download me-2"></i>
-                    Download Invoice
-                  </button>
-                  <button class="btn btn-outline-secondary" @click="shareTracking">
-                    <i class="fas fa-share-alt me-2"></i>
-                    Share Tracking
-                  </button>
-                  <button class="btn btn-outline-info" @click="contactSupport">
-                    <i class="fas fa-headset me-2"></i>
-                    Contact Support
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+<div class="detail-card card mb-4">
+  <div class="card-header bg-light-pink">
+    <h4 class="mb-0">
+      <i class="fas fa-user-tag me-2"></i>
+      Recipient Information
+    </h4>
+  </div>
+  <div class="card-body">
+    <div class="customer-info">
+      <p class="mb-2">
+        <strong>Name:</strong><br>
+        {{ transaction.recipientAddress?.name || 'N/A' }}
+      </p>
+      <p class="mb-0">
+        <strong>Country:</strong><br>
+        {{ getCountryName(transaction.recipientAddress?.countryCode) }}
+      </p>
+    </div>
+  </div>
+</div>
+     </div>
         </div>
       </div>
     </div>
@@ -334,7 +337,7 @@ export default {
       }
     }
 
-    // Fetch transaction details
+    // Methods
     const fetchTransactionDetails = async () => {
       if (!isAuthenticated.value) return
 
@@ -342,100 +345,94 @@ export default {
       error.value = null
 
       try {
-        // Try to get transaction from session storage first
+        const transactionId = parseInt(route.params.id)
+
+        // First try to get from session storage (from click)
         const storedTransaction = sessionStorage.getItem('selectedTransaction')
         if (storedTransaction) {
           transaction.value = JSON.parse(storedTransaction)
           console.log('Loaded transaction from session storage:', transaction.value)
-          loading.value = false
-          return
-        }
-
-        // If not in session storage, try to fetch from API
-        const mailId = route.params.id
-        if (!mailId) {
-          throw new Error('No transaction ID provided')
-        }
-
-        console.log('Fetching transaction details for mailId:', mailId)
-
-        const response = await fetch('/api/dashboard.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            method: 'getMailById',
-            mailId: mailId
-          })
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log('API Response for transaction details:', data)
-
-        if (data.success && data.shipment) {
-          transaction.value = data.shipment
-          console.log('Successfully loaded transaction details:', transaction.value)
         } else {
-          throw new Error(data.error || 'Failed to load transaction details from server')
+          // If not in session storage, fetch all transactions and find the specific one
+          console.log('Fetching transactions from dashboard API for user:', user.value.email)
+
+          const response = await fetch('/api/dashboard.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              method: 'getAllMailByCustomerEmail',
+              customerEmail: user.value.email
+            })
+          })
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+
+          const data = await response.json()
+          console.log('Dashboard API Response:', data)
+
+          if (data.success && data.shipments) {
+            // Find the specific transaction by ID
+            const foundTransaction = data.shipments.find(
+              shipment => shipment.mailId === transactionId
+            )
+
+            if (foundTransaction) {
+              transaction.value = foundTransaction
+              console.log('Found transaction:', foundTransaction)
+            } else {
+              throw new Error(`Transaction with ID ${transactionId} not found in your shipments`)
+            }
+          } else {
+            throw new Error(data.error || 'Failed to load shipments')
+          }
         }
+
       } catch (err) {
         console.error('Error loading transaction details:', err)
         error.value = `Failed to load transaction details: ${err.message}`
+
+        // Fallback: try to get from transaction history data
+        try {
+          const transactionsData = sessionStorage.getItem('userTransactions')
+          if (transactionsData) {
+            const transactions = JSON.parse(transactionsData)
+            const foundTransaction = transactions.find(
+              t => t.mailId === parseInt(route.params.id)
+            )
+            if (foundTransaction) {
+              transaction.value = foundTransaction
+              error.value = null
+              console.log('Found transaction in fallback data:', foundTransaction)
+            }
+          }
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError)
+        }
       } finally {
         loading.value = false
       }
     }
 
-    // Navigation methods
-    const goBack = () => {
-      router.push('/history')
-    }
-
-    const redirectToLogin = () => {
-      router.push('/login')
-    }
-
-    // Action methods
-    const downloadInvoice = () => {
-      alert('Invoice download feature would be implemented here')
-      // Implementation for invoice download
-    }
-
-    const shareTracking = () => {
-      if (transaction.value?.trackingNumber) {
-        const trackingUrl = `${window.location.origin}/tracking/${formatTrackingNumber(transaction.value.trackingNumber)}`
-        navigator.clipboard.writeText(trackingUrl).then(() => {
-          alert('Tracking link copied to clipboard!')
-        }).catch(() => {
-          alert(`Tracking Number: ${formatTrackingNumber(transaction.value.trackingNumber)}`)
-        })
+    // Get tracking ID exactly like in customerDB
+    const getTrackingId = (transaction) => {
+      let trackingId = `TRK-${transaction.mailId.toString().padStart(6, '0')}`;
+      if (transaction.trackingNumber && transaction.trackingNumber !== 0) {
+        trackingId = `TRK-${transaction.trackingNumber}`;
       }
+      return trackingId;
     }
 
-    const contactSupport = () => {
-      alert('Contact support feature would be implemented here')
-      // Implementation for contact support
-    }
-
-    // Formatting methods
-    const formatTrackingNumber = (trackingNumber) => {
-      if (!trackingNumber) return 'N/A'
-      
-      // Handle both string and number tracking numbers
-      const trackingStr = trackingNumber.toString()
-      
-      // If it's already formatted as TRK-XXXXXX, return as is
-      if (trackingStr.startsWith('TRK-')) {
-        return trackingStr
+    const getStatusBadgeClass = (status) => {
+      const statusClasses = {
+        'pending': 'bg-warning text-dark',
+        'in_transit': 'bg-info',
+        'delivered': 'bg-success'
       }
-      
-      // Otherwise format it as TRK-XXXXXX
-      return `TRK-${trackingStr.padStart(6, '0')}`
+      return statusClasses[status] || 'bg-secondary'
     }
 
     const formatStatus = (status) => {
@@ -452,27 +449,12 @@ export default {
       try {
         return new Date(dateString).toLocaleDateString('en-US', {
           year: 'numeric',
-          month: 'long',
+          month: 'short',
           day: 'numeric'
         })
       } catch (error) {
         return 'Invalid Date'
       }
-    }
-
-    const getCountryName = (countryCode) => {
-      if (!countryCode) return 'Unknown'
-      const countryNames = {
-        'SG': 'Singapore',
-        'MY': 'Malaysia',
-        'ID': 'Indonesia',
-        'TH': 'Thailand',
-        'VN': 'Vietnam',
-        'PH': 'Philippines',
-        'US': 'United States',
-        'GB': 'United Kingdom'
-      }
-      return countryNames[countryCode] || countryCode
     }
 
     const getProgressWidth = (status) => {
@@ -484,31 +466,48 @@ export default {
       return progressMap[status] || 0
     }
 
-    const getStatusIcon = (status) => {
-      const iconMap = {
-        'pending': 'fa-clock',
-        'in_transit': 'fa-shipping-fast',
-        'delivered': 'fa-check-circle'
+    const getCountryName = (countryCode) => {
+      const countryMap = {
+        'SG': 'Singapore',
+        'US': 'United States',
+        'MY': 'Malaysia',
+        'UK': 'United Kingdom',
+        'CN': 'China',
+        'JP': 'Japan',
+        'KR': 'South Korea',
+        'AU': 'Australia',
+        'CA': 'Canada',
+        'FR': 'France',
+        'DE': 'Germany',
+        'IT': 'Italy',
+        'IN': 'India',
+        'TH': 'Thailand',
+        'VN': 'Vietnam',
+        'PH': 'Philippines',
+        'ID': 'Indonesia'
       }
-      return iconMap[status] || 'fa-question-circle'
+      return countryMap[countryCode] || countryCode || 'Unknown Country'
     }
 
-    const getStatusTextClass = (status) => {
-      const classMap = {
-        'pending': 'text-warning',
-        'in_transit': 'text-info',
-        'delivered': 'text-success'
-      }
-      return classMap[status] || 'text-secondary'
+    // Action methods
+    const downloadLabel = () => {
+      alert('Downloading shipping label for ' + getTrackingId(transaction.value))
     }
 
-    const getStatusDescription = (status) => {
-      const descriptionMap = {
-        'pending': 'Your shipment is being processed',
-        'in_transit': 'Your shipment is on the way',
-        'delivered': 'Your shipment has been delivered'
-      }
-      return descriptionMap[status] || 'Status information not available'
+    const trackPackage = () => {
+      alert('Opening live tracking for ' + getTrackingId(transaction.value))
+    }
+
+    const makePayment = () => {
+      alert('Redirecting to payment for ' + getTrackingId(transaction.value))
+    }
+
+    const goBack = () => {
+      router.back()
+    }
+
+    const redirectToLogin = () => {
+      router.push('/login')
     }
 
     // Lifecycle
@@ -525,243 +524,82 @@ export default {
       transaction,
       loading,
       error,
-      goBack,
-      redirectToLogin,
       fetchTransactionDetails,
-      downloadInvoice,
-      shareTracking,
-      contactSupport,
-      formatTrackingNumber,
+      getTrackingId,
+      getStatusBadgeClass,
       formatStatus,
       formatDate,
-      getCountryName,
       getProgressWidth,
-      getStatusIcon,
-      getStatusTextClass,
-      getStatusDescription
+      getCountryName,
+      downloadLabel,
+      trackPackage,
+      makePayment,
+      goBack,
+      redirectToLogin
     }
   }
 }
 </script>
 
 <style scoped>
-.history-detail-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Authentication Styles */
-.login-required {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
-}
-
-.login-message {
-  text-align: center;
-  background: white;
-  padding: 3rem;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(255, 66, 117, 0.2);
-  max-width: 400px;
-  width: 90%;
-}
-
-.message-icon {
-  font-size: 4rem;
-  color: var(--hot-pink);
-  margin-bottom: 1.5rem;
-}
-
-.login-message h2 {
-  color: var(--dark-slate-blue);
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
-}
-
-.login-message p {
-  color: var(--slate-blue);
-  margin-bottom: 2rem;
-  font-size: 1.1rem;
-  line-height: 1.5;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-primary {
-  background: var(--hot-pink);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--dark-pink);
-  transform: translateY(-2px);
-}
-
-/* Header Styles */
-.text-hot-pink {
-  color: var(--hot-pink) !important;
-}
-
-.jua {
-  font-family: 'Jua', sans-serif;
-}
-
-.bg-light-pink {
-  background-color: var(--light-pink) !important;
-}
-
-/* Loading Styles */
-.loading-spinner-large {
-  width: 60px;
-  height: 60px;
-  border: 6px solid var(--light-pink);
-  border-top: 6px solid var(--hot-pink);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Shipment Header */
+/* Your existing CSS remains the same */
 .shipment-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
-  padding: 0 1rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(219, 112, 147, 0.7); /* Darker pink with transparency */
+  border-radius: 8px;
+  border: 1px solid rgba(199, 92, 127, 0.8); /* Even darker pink border */
 }
 
 .back-btn {
-  background: var(--light-pink);
-  border: 2px solid var(--hot-pink);
-  color: var(--hot-pink);
+  background: transparent;
+  border: 1px solid #fff;
+  color: white;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .back-btn:hover {
-  background: var(--hot-pink);
-  color: white;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .tracking-number {
-  font-size: 1.5rem;
+  flex-grow: 1;
+  text-align: center;
+  color: white;
   font-weight: bold;
-  color: var(--dark-slate-blue);
-  background: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-size: 1.25rem;
+  text-decoration: underline;
 }
 
-/* Detail Cards */
+.history-detail-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
+}
+
 .detail-card {
   border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .detail-card .card-header {
-  border-bottom: 2px solid var(--pink-grey);
-  padding: 1rem 1.5rem;
+  border-radius: 12px 12px 0 0 !important;
+  border: none;
 }
 
-.detail-card .card-body {
-  padding: 1.5rem;
-}
-
-/* Route Information */
 .address-section {
-  background: var(--pink-grey);
+  background: var(--light-pink);
   padding: 1rem;
   border-radius: 8px;
-  margin-bottom: 1rem;
+  border-left: 4px solid var(--hot-pink);
 }
 
-/* Progress Bar */
-.route-progress {
-  margin-top: 2rem;
-}
-
-.progress-labels {
-  margin-bottom: 0.5rem;
-}
-
-.progress-label {
-  font-size: 0.875rem;
-  color: var(--slate-blue);
-  font-weight: 500;
-}
-
-.progress-percent {
-  font-size: 0.875rem;
-  color: var(--hot-pink);
-  font-weight: bold;
-}
-
-.progress-track {
-  position: relative;
-  height: 8px;
-  background: var(--pink-grey);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--dark-pink));
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.progress-marker {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  border: 3px solid var(--hot-pink);
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  color: var(--hot-pink);
-}
-
-/* Detail Items */
 .detail-item {
   display: flex;
   justify-content: space-between;
@@ -775,50 +613,38 @@ export default {
 }
 
 .detail-label {
-  color: var(--slate-blue);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--dark-slate-blue);
 }
 
 .detail-value {
-  color: var(--dark-slate-blue);
-  font-weight: 600;
+  color: var(--slate-blue);
+  text-align: right;
 }
 
-/* Timeline */
 .timeline {
   position: relative;
   padding-left: 2rem;
 }
 
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 0.75rem;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--pink-grey);
-}
-
 .timeline-item {
   position: relative;
-  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
 }
 
 .timeline-item:last-child {
-  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .timeline-marker {
   position: absolute;
   left: -2rem;
-  top: 0.25rem;
-  width: 1rem;
-  height: 1rem;
+  top: 0;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--pink-grey);
   border: 3px solid white;
-  z-index: 1;
 }
 
 .timeline-item.active .timeline-marker {
@@ -830,77 +656,53 @@ export default {
   color: var(--dark-slate-blue);
 }
 
-/* Status Indicator */
-.status-indicator {
-  display: flex;
-  justify-content: center;
+.route-progress {
+  margin-top: 2rem;
 }
 
-.status-icon {
-  width: 80px;
-  height: 80px;
+.progress-track {
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--pink-grey);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink), var(--dark-pink));
+  transition: width 0.5s ease;
+}
+
+.progress-marker {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 2px solid var(--hot-pink);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  color: white;
+  font-size: 0.7rem;
+  color: var(--hot-pink);
 }
 
-.status-icon.pending {
-  background: var(--warning);
+.status-badge {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
 }
 
-.status-icon.in_transit {
-  background: var(--info);
-}
-
-.status-icon.delivered {
-  background: var(--success);
-}
-
-/* Table Styles */
-.table th {
+.customer-info {
   background: var(--light-pink);
-  border-bottom: 2px solid var(--pink-grey);
-  color: var(--dark-slate-blue);
-  font-weight: 600;
-}
-
-.table td {
-  border-color: var(--pink-grey);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .shipment-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-
-  .detail-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-  .progress-labels {
-    flex-direction: column;
-    gap: 0.5rem;
-    text-align: center;
-  }
-
-  .timeline {
-    padding-left: 1.5rem;
-  }
-
-  .timeline::before {
-    left: 0.5rem;
-  }
-
-  .timeline-marker {
-    left: -1.5rem;
-  }
+  padding: 1rem;
+  border-radius: 8px;
 }
 </style>
