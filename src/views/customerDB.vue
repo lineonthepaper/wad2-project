@@ -364,9 +364,9 @@ export default {
           const user = JSON.parse(userData);
           this.user.email = user.email || user.display_name || 'User';
           this.isAuthenticated = true;
-          console.log('User authenticated:', this.user.email);
+          // console.log('User authenticated:', this.user.email);
         } catch (error) {
-          console.error('Error parsing user data:', error);
+          // console.error('Error parsing user data:', error);
           this.isAuthenticated = false;
         }
       } else {
@@ -376,7 +376,7 @@ export default {
     },
 
     handleLoginStatusChange() {
-      console.log('Login status changed, rechecking authentication...');
+      // console.log('Login status changed, rechecking authentication...');
       this.checkAuthentication();
       if (this.isAuthenticated) {
         this.initializeDashboard();
@@ -390,9 +390,9 @@ export default {
     },
 
     async initializeDashboard() {
-      console.log('Initializing dashboard for authenticated user...');
+      // console.log('Initializing');
 
-      this.debugCountryCoordinates();
+      // this.debugCountryCoordinates();
 
       await this.fetchUserShipments();
 
@@ -401,16 +401,16 @@ export default {
       await this.initGlobe();
     },
 
-    debugCountryCoordinates() {
-      const australia = countryData.find(c => c.code2 === 'AU');
-      console.log('Australia coordinates from JSON:', australia);
+    // debugCountryCoordinates() {
+    //   const australia = countryData.find(c => c.code2 === 'AU');
+    //   console.log('Australia coordinates:', australia);
 
-      const singapore = countryData.find(c => c.code2 === 'SG');
-      console.log('Singapore coordinates from JSON:', singapore);
+    //   const singapore = countryData.find(c => c.code2 === 'SG');
+    //   console.log('Singapore coordinates :', singapore);
 
-      console.log('getCountryCoordinates("AU"):', this.getCountryCoordinates('AU'));
-      console.log('getCountryCoordinates("SG"):', this.getCountryCoordinates('SG'));
-    },
+    //   console.log('getCountryCoordinates("AU"):', this.getCountryCoordinates('AU'));
+    //   console.log('getCountryCoordinates("SG"):', this.getCountryCoordinates('SG'));
+    // },
 
     async fetchUserShipments() {
       this.loading = true;
@@ -418,7 +418,7 @@ export default {
       this.usingFallbackData = false;
 
       try {
-        console.log('Fetching shipments for:', this.user.email);
+        // console.log('Fetching shipments for:', this.user.email);
 
         const response = await axios.post('/api/dashboard.php', {
           method: 'getAllMailByCustomerEmail',
@@ -733,29 +733,29 @@ export default {
 
     async initGlobe() {
       try {
-        console.log('Starting globe initialization...');
+        // console.log('Starting initialization');
 
         const container = this.$refs.globeContainer;
         if (!container) {
-          console.error('Globe container not found in DOM');
-          throw new Error('Globe container not found');
+
+          throw new Error('Globe not found');
         }
 
-        console.log('Globe container found');
+        console.log('Globe found');
 
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 400;
 
-        console.log(' Container dimensions:', width, 'x', height);
+        // console.log(' Container dimensions:', width, 'x', height);
 
         if (width === 0 || height === 0) {
-          console.error('Container has zero dimensions');
+          // console.error('Container has zero dimensions');
           throw new Error('Container has invalid dimensions');
         }
 
         container.innerHTML = '';
 
-        console.log('Creating Globe instance...');
+        // console.log('Creating Globe');
 
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
@@ -764,7 +764,7 @@ export default {
           .height(height)
           (container);
 
-        console.log(' Globe instance created');
+        // console.log(' Globe instance created');
 
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
@@ -777,7 +777,7 @@ export default {
         console.log(' Globe initialized successfully');
 
         if (this.parcels && this.parcels.length > 0) {
-          console.log(' Loading', this.parcels.length, 'parcels into globe');
+
           await this.$nextTick();
           this.updateGlobeData();
 
@@ -960,9 +960,9 @@ export default {
 
           this.updateGlobeData();
 
-          console.log('Route cleared from globe');
+          // console.log('Route cleared');
         } catch (error) {
-          console.error('Error clearing route:', error);
+          // console.error('Error :', error);
         }
       }
 
@@ -1023,7 +1023,6 @@ export default {
     },
 
     forceReinit() {
-      console.log('Force reinitializing globe...');
       this.globeInitialized = false;
       this.globeError = false;
 
@@ -1037,7 +1036,6 @@ export default {
     },
 
     redirectToLogin() {
-      console.log('Redirecting to login...');
       window.dispatchEvent(new CustomEvent('showLoginModal'));
     },
     goToHistory() {

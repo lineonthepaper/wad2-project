@@ -1,6 +1,6 @@
 <template>
   <div class="history-page">
-    <!-- Authentication Check -->
+
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
         <div class="message-icon">
@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <!-- Main Content for Authenticated Users -->
+
     <div v-else class="dashboard-wrapper">
       <hr />
       <div class="row justify-content-center airplane-header">
@@ -44,9 +44,9 @@
           </button>
         </div>
 
-        <!-- Main Content -->
+
         <div v-else>
-          <!-- Search and Filter Section -->
+
           <div class="row mb-4">
             <div class="col-md-6">
               <div class="input-group">
@@ -95,7 +95,7 @@
             </div>
           </div>
 
-          <!-- Active Filters Display -->
+
           <div class="row mb-3" v-if="hasActiveFilters">
             <div class="col-12">
               <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -128,7 +128,7 @@
             </div>
           </div>
 
-          <!-- Transactions List -->
+
           <div class="row">
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center mb-3">
@@ -138,7 +138,7 @@
                 </div>
               </div>
 
-              <!-- Transactions Grid -->
+
               <div class="transaction-grid">
                 <div
                   class="transaction-card card mb-3 shadow-sm"
@@ -149,7 +149,7 @@
                 >
                   <div class="card-body">
                     <div class="row">
-                      <!-- Tracking and Basic Info -->
+
                       <div class="col-md-4">
                         <div class="d-flex align-items-center mb-2">
                           <h6 class="mb-0 me-2">{{ getTrackingId(transaction) }}</h6>
@@ -167,7 +167,7 @@
                         </p>
                       </div>
 
-                      <!-- Route Information -->
+
                       <div class="col-md-4">
                         <div class="route-info">
                           <div class="d-flex align-items-center mb-1">
@@ -191,7 +191,7 @@
                         </div>
                       </div>
 
-                      <!-- Shipment Details -->
+
                       <div class="col-md-4">
                         <div class="shipment-details">
                           <div class="row text-center">
@@ -219,7 +219,7 @@
                       </div>
                     </div>
 
-                    <!-- Items Preview -->
+
                     <div class="mt-3 pt-3 border-top">
                       <div class="d-flex align-items-center">
                         <div>
@@ -234,7 +234,6 @@
                 </div>
               </div>
 
-              <!-- No Results -->
               <div v-if="filteredTransactions.length === 0 && transactions.length > 0" class="text-center py-5">
                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No transactions match your search</h4>
@@ -244,7 +243,7 @@
                 </button>
               </div>
 
-              <!-- No Transactions at All -->
+
               <div v-if="transactions.length === 0 && !loading" class="text-center py-5">
                 <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No transactions found</h4>
@@ -254,7 +253,7 @@
                 </button>
               </div>
 
-              <!-- Pagination -->
+
               <div v-if="filteredTransactions.length > itemsPerPage" class="d-flex justify-content-center mt-4">
                 <nav>
                   <ul class="pagination">
@@ -292,7 +291,7 @@ export default {
   setup() {
     const router = useRouter()
 
-    // Reactive data
+
     const isAuthenticated = ref(false)
     const user = ref({ email: '' })
     const searchQuery = ref("")
@@ -304,7 +303,7 @@ export default {
     const currentPage = ref(1)
     const itemsPerPage = ref(10)
 
-    // Check authentication
+
     const checkAuthentication = () => {
       const userData = sessionStorage.getItem('currentUser')
       if (userData) {
@@ -312,7 +311,7 @@ export default {
           const userObj = JSON.parse(userData)
           user.value.email = userObj.email || userObj.display_name || 'User'
           isAuthenticated.value = true
-          console.log('User authenticated:', user.value.email)
+          // console.log('User authenticated:', user.value.email)
         } catch (error) {
           console.error('Error parsing user data:', error)
           isAuthenticated.value = false
@@ -322,23 +321,23 @@ export default {
       }
     }
 
-    // Search handler
+
     const handleSearch = () => {
-      currentPage.value = 1 // Reset to first page when searching
+      currentPage.value = 1
     }
 
-    // View transaction details
-    const viewTransactionDetails = (transaction) => {
-      console.log('Viewing transaction details:', transaction.mailId)
 
-      // Store the transaction data for the detail page
+    const viewTransactionDetails = (transaction) => {
+      // console.log('Viewing transaction details:', transaction.mailId)
+
+
       sessionStorage.setItem('selectedTransaction', JSON.stringify(transaction))
 
-      // Navigate to history detail page
+
       router.push(`/history/${transaction.mailId}`)
     }
 
-    // Computed properties
+
     const hasActiveFilters = computed(() => {
       return selectedStatus.value || selectedService.value || searchQuery.value
     })
@@ -349,7 +348,7 @@ export default {
       return transactions.value.filter(transaction => {
         const query = searchQuery.value.toLowerCase().trim()
 
-        // If no search query, only apply status and service filters
+
         if (!query) {
           const matchesStatus = !selectedStatus.value || transaction.status === selectedStatus.value
           const matchesService = !selectedService.value ||
@@ -357,17 +356,16 @@ export default {
           return matchesStatus && matchesService
         }
 
-        // Search across multiple fields
         const matchesSearch =
-          // Search by tracking number
+
           (getTrackingId(transaction).toLowerCase().includes(query)) ||
-          // Search by service name
+
           (transaction.service?.name?.toLowerCase().includes(query)) ||
-          // Search by destination country code
+
           (transaction.recipientAddress?.countryCode?.toLowerCase().includes(query)) ||
-          // Search by destination country name (if available)
+
           (transaction.recipientAddress?.name?.toLowerCase().includes(query)) ||
-          // Search by item descriptions
+
           (transaction.mailItems?.some(item =>
             item.itemDescription?.toLowerCase().includes(query)
           )) ||
@@ -402,7 +400,7 @@ export default {
       error.value = null
 
       try {
-        console.log('Fetching transactions for:', user.value.email)
+        // console.log('Fetching transactions for:', user.value.email)
 
         const response = await fetch('/api/dashboard.php', {
           method: 'POST',
@@ -420,16 +418,16 @@ export default {
         }
 
         const data = await response.json()
-        console.log('API Response:', data)
+        // console.log('API Response:', data)
 
         if (data.success) {
           transactions.value = data.shipments || []
-          console.log('Successfully loaded transactions:', transactions.value.length)
+          // console.log('Successfully loaded transactions:', transactions.value.length)
 
           if (transactions.value.length > 0) {
-            console.log('First transaction sample:', transactions.value[0])
+            // console.log('First transaction sample:', transactions.value[0])
           } else {
-            console.log('No transactions found for user')
+            // console.log('No transactions found for user')
           }
         } else {
           throw new Error(data.error || 'Failed to load transactions from server')
@@ -450,7 +448,7 @@ export default {
       currentPage.value = 1
     }
 
-    // Get tracking ID exactly like in customerDB
+
     const getTrackingId = (transaction) => {
       let trackingId = `TRK-${transaction.mailId.toString().padStart(6, '0')}`;
       if (transaction.trackingNumber && transaction.trackingNumber !== 0) {
@@ -525,7 +523,7 @@ export default {
       router.push('/create-shipment')
     }
 
-    // Lifecycle
+
     onMounted(() => {
       checkAuthentication()
       if (isAuthenticated.value) {
@@ -573,7 +571,7 @@ export default {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Authentication Styles */
+
 .login-required {
   display: flex;
   justify-content: center;
@@ -640,7 +638,7 @@ export default {
   transform: translateY(-2px);
 }
 
-/* Header Styles */
+
 .text-hot-pink {
   color: var(--hot-pink) !important;
 }
@@ -649,7 +647,7 @@ export default {
   font-family: 'Jua', sans-serif;
 }
 
-/* Loading Styles */
+
 .loading-spinner-large {
   width: 60px;
   height: 60px;
@@ -665,7 +663,7 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-/* Transaction Cards */
+
 .transaction-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
@@ -719,7 +717,7 @@ export default {
   color: white;
 }
 
-/* Pagination */
+
 .pagination .page-link {
   color: var(--hot-pink);
   border-color: var(--pink-grey);
@@ -736,7 +734,7 @@ export default {
   border-color: var(--pink-grey);
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .route-info,
   .shipment-details {

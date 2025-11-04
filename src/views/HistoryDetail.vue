@@ -166,7 +166,7 @@
               </div>
             </div>
 
-            <!-- Items Card -->
+
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
@@ -207,9 +207,9 @@
             </div>
           </div>
 
-          <!-- Sidebar -->
+
           <div class="col-lg-4">
-            <!-- Timeline Card -->
+
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
@@ -250,7 +250,7 @@
               </div>
             </div>
 
-            <!-- Sender Information Card -->
+
 <div class="detail-card card mb-4">
   <div class="card-header bg-light-pink">
     <h4 class="mb-0">
@@ -313,14 +313,13 @@ export default {
     const router = useRouter()
     const route = useRoute()
 
-    // Reactive data
+
     const isAuthenticated = ref(false)
     const user = ref({ email: '' })
     const transaction = ref(null)
     const loading = ref(false)
     const error = ref(null)
 
-    // Check authentication
     const checkAuthentication = () => {
       const userData = sessionStorage.getItem('currentUser')
       if (userData) {
@@ -337,7 +336,7 @@ export default {
       }
     }
 
-    // Methods
+
     const fetchTransactionDetails = async () => {
       if (!isAuthenticated.value) return
 
@@ -347,14 +346,14 @@ export default {
       try {
         const transactionId = parseInt(route.params.id)
 
-        // First try to get from session storage (from click)
+
         const storedTransaction = sessionStorage.getItem('selectedTransaction')
         if (storedTransaction) {
           transaction.value = JSON.parse(storedTransaction)
-          console.log('Loaded transaction from session storage:', transaction.value)
+          // console.log('Loaded transaction', transaction.value)
         } else {
-          // If not in session storage, fetch all transactions and find the specific one
-          console.log('Fetching transactions from dashboard API for user:', user.value.email)
+
+          // console.log('Fetching transactions', user.value.email)
 
           const response = await fetch('/api/dashboard.php', {
             method: 'POST',
@@ -372,17 +371,17 @@ export default {
           }
 
           const data = await response.json()
-          console.log('Dashboard API Response:', data)
+          // console.log('Dashboard API Response:', data)
 
           if (data.success && data.shipments) {
-            // Find the specific transaction by ID
+
             const foundTransaction = data.shipments.find(
               shipment => shipment.mailId === transactionId
             )
 
             if (foundTransaction) {
               transaction.value = foundTransaction
-              console.log('Found transaction:', foundTransaction)
+              // console.log('Found transaction:', foundTransaction)
             } else {
               throw new Error(`Transaction with ID ${transactionId} not found in your shipments`)
             }
@@ -395,7 +394,7 @@ export default {
         console.error('Error loading transaction details:', err)
         error.value = `Failed to load transaction details: ${err.message}`
 
-        // Fallback: try to get from transaction history data
+        // Fallback
         try {
           const transactionsData = sessionStorage.getItem('userTransactions')
           if (transactionsData) {
@@ -406,7 +405,7 @@ export default {
             if (foundTransaction) {
               transaction.value = foundTransaction
               error.value = null
-              console.log('Found transaction in fallback data:', foundTransaction)
+              // console.log('Found transaction :', foundTransaction)
             }
           }
         } catch (fallbackError) {
@@ -417,7 +416,7 @@ export default {
       }
     }
 
-    // Get tracking ID exactly like in customerDB
+
     const getTrackingId = (transaction) => {
       let trackingId = `TRK-${transaction.mailId.toString().padStart(6, '0')}`;
       if (transaction.trackingNumber && transaction.trackingNumber !== 0) {
@@ -489,7 +488,7 @@ export default {
       return countryMap[countryCode] || countryCode || 'Unknown Country'
     }
 
-    // Action methods
+
     const downloadLabel = () => {
       alert('Downloading shipping label for ' + getTrackingId(transaction.value))
     }
@@ -510,7 +509,7 @@ export default {
       router.push('/login')
     }
 
-    // Lifecycle
+
     onMounted(() => {
       checkAuthentication()
       if (isAuthenticated.value) {
@@ -542,16 +541,16 @@ export default {
 </script>
 
 <style scoped>
-/* Your existing CSS remains the same */
+
 .shipment-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
   padding: 0.5rem;
-  background: rgba(219, 112, 147, 0.7); /* Darker pink with transparency */
+  background: rgba(219, 112, 147, 0.7);
   border-radius: 8px;
-  border: 1px solid rgba(199, 92, 127, 0.8); /* Even darker pink border */
+  border: 1px solid rgba(199, 92, 127, 0.8);
 }
 
 .back-btn {

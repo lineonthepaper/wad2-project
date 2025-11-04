@@ -368,17 +368,17 @@ onMounted(() => {
   min-width: 120px;
 }
 
-/* UPDATED IMAGE STYLES - White background, no gray */
+
 .card-img-container {
   height: 200px;
   overflow: hidden;
   position: relative;
-  background-color: white; /* Changed from #f8f9fa to white */
+  background-color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px; /* Increased padding for more white space */
-  border-bottom: 1px solid #e9ecef; /* Optional: subtle border separation */
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .service-image {
@@ -404,7 +404,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: white; /* Changed to match container */
+  background-color: white;
 }
 
 .image-failed {
@@ -423,7 +423,7 @@ onMounted(() => {
 
   .card-img-container {
     height: 180px;
-    padding: 15px; /* Adjusted for mobile */
+    padding: 15px; 
   }
 }
 </style>
