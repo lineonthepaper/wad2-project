@@ -117,7 +117,6 @@
               <div class="card-header">
                 <div class="card-actions">
                   <div class="search-box">
-                    <i class="fas fa-search"></i>
                     <h3> Recent Shipments</h3>
                   </div>
                   <button class="btn-icon" title="Filter">
