@@ -6,6 +6,9 @@ https://wad2-project.vercel.app/
 
 # Login details
 
+Sign up to fluffyshipping and fill up your details.
+Click on the login.
+
 # Usage of AI/LLMs
 
 Riley: None
