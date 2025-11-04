@@ -394,6 +394,31 @@ export default {
       return filteredTransactions.value.slice(start, end)
     })
 
+    const initializeSpeechPlugin = () => {
+  // Wait for next tick to ensure DOM is updated
+  setTimeout(() => {
+    if (window.Vue && window.Vue.prototype.$speechToText) {
+      // Re-run the enhancement process
+      const inputs = document.querySelectorAll(`
+        input[type="text"],
+        input[type="search"],
+        input[type="email"],
+        input[type="url"],
+        input[type="tel"],
+        textarea:not([data-no-speech])
+      `);
+
+      inputs.forEach(input => {
+        if (!input.dataset.speechEnhanced && !input.disabled && !input.readOnly) {
+          // Manually trigger the enhancement
+          const event = new Event('input', { bubbles: true });
+          input.dispatchEvent(event);
+        }
+      });
+    }
+  }, 100);
+}
+
     // Methods
     const fetchTransactions = async () => {
       if (!isAuthenticated.value) return
@@ -424,6 +449,7 @@ export default {
 
         if (data.success) {
           transactions.value = data.shipments || []
+          initializeSpeechPlugin() 
           console.log('Successfully loaded transactions:', transactions.value.length)
 
           if (transactions.value.length > 0) {
