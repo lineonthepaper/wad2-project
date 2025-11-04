@@ -1,7 +1,5 @@
-
 const SpeechToTextPlugin = {
   install(app, options = {}) {
-
     const defaultOptions = {
       buttonColor: '#3c4247ff',
       buttonPosition: 'right',
@@ -23,7 +21,6 @@ const SpeechToTextPlugin = {
       );
     };
 
-
     const isSupported = () => {
       return ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) &&
              isPageEnabled();
@@ -43,6 +40,7 @@ const SpeechToTextPlugin = {
 
     let currentInput = null;
     let isListening = false;
+    let observer = null;
 
 
     const micIcon = `
@@ -59,10 +57,12 @@ const SpeechToTextPlugin = {
       </svg>
     `;
 
+
     const createMicButton = (input) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.innerHTML = micIcon;
+      button.setAttribute('data-speech-button', 'true');
       button.style.cssText = `
         position: absolute;
         ${defaultOptions.buttonPosition === 'right' ? 'right' : 'left'}: 8px;
@@ -115,7 +115,13 @@ const SpeechToTextPlugin = {
     const enhanceInput = (input) => {
       if (input.dataset.speechEnhanced) return;
 
+
+      if (input.parentElement?.classList?.contains('speech-input-wrapper')) {
+        return;
+      }
+
       const wrapper = document.createElement('div');
+      wrapper.className = 'speech-input-wrapper';
       wrapper.style.position = 'relative';
       wrapper.style.display = 'inline-block';
       wrapper.style.width = '100%';
@@ -141,22 +147,31 @@ const SpeechToTextPlugin = {
       }
     };
 
-    // Toggle listening state
     const toggleListening = (input, button) => {
       if (isListening) {
         stopListening();
-        button.style.opacity = '0.8';
-        button.style.background = defaultOptions.buttonColor;
-        button.style.transform = 'translateY(-50%) scale(1)';
-        button.innerHTML = micIcon;
+        updateButtonState(button, false);
       } else {
         startListening(input, button);
+        updateButtonState(button, true);
+      }
+    };
+
+
+    const updateButtonState = (button, listening) => {
+      if (listening) {
         button.style.opacity = '1';
         button.style.background = '#f44336';
         button.style.transform = 'translateY(-50%) scale(1.1)';
         button.innerHTML = recordingIcon;
+      } else {
+        button.style.opacity = '0.8';
+        button.style.background = defaultOptions.buttonColor;
+        button.style.transform = 'translateY(-50%) scale(1)';
+        button.innerHTML = micIcon;
       }
     };
+
 
     const startListening = (input, button) => {
       if (isListening) return;
@@ -174,6 +189,7 @@ const SpeechToTextPlugin = {
                           currentValue.substring(cursorPosition);
           currentInput.value = newValue;
 
+
           currentInput.dispatchEvent(new Event('input', { bubbles: true }));
           currentInput.dispatchEvent(new Event('change', { bubbles: true }));
           currentInput.focus();
@@ -184,35 +200,63 @@ const SpeechToTextPlugin = {
         console.error('Speech recognition error:', event.error);
         stopListening();
         if (button) {
-          button.style.opacity = '0.8';
-          button.style.background = defaultOptions.buttonColor;
-          button.style.transform = 'translateY(-50%) scale(1)';
-          button.innerHTML = micIcon;
+          updateButtonState(button, false);
         }
       };
 
       recognition.onend = () => {
         isListening = false;
         if (button) {
-          button.style.opacity = '0.8';
-          button.style.background = defaultOptions.buttonColor;
-          button.style.transform = 'translateY(-50%) scale(1)';
-          button.innerHTML = micIcon;
+          updateButtonState(button, false);
         }
       };
 
-      recognition.start();
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        isListening = false;
+        if (button) {
+          updateButtonState(button, false);
+        }
+      }
     };
+
 
     const stopListening = () => {
       isListening = false;
-      recognition.stop();
+      try {
+        recognition.stop();
+      } catch (error) {
+
+      }
     };
 
 
-    const enhanceAllInputs = () => {
+    const removeAllSpeechButtons = () => {
+      const buttons = document.querySelectorAll('[data-speech-button]');
+      buttons.forEach(button => {
+        button.remove();
+      });
 
-      if (!isPageEnabled()) return;
+
+      const wrappers = document.querySelectorAll('.speech-input-wrapper');
+      wrappers.forEach(wrapper => {
+        const input = wrapper.querySelector('input, textarea, [contenteditable="true"]');
+        if (input) {
+          delete input.dataset.speechEnhanced;
+          wrapper.parentNode.insertBefore(input, wrapper);
+        }
+        wrapper.remove();
+      });
+    };
+
+    e
+    const enhanceAllInputs = () => {
+      if (!isPageEnabled()) {
+        removeAllSpeechButtons();
+        return;
+      }
 
       const inputs = document.querySelectorAll(`
         input[type="text"],
@@ -221,87 +265,149 @@ const SpeechToTextPlugin = {
         input[type="url"],
         input[type="tel"],
         textarea:not([data-no-speech]),
-        [contenteditable="true"]
+        [contenteditable="true"]:not([data-no-speech])
       `);
 
       inputs.forEach(input => {
-        if (!input.disabled && !input.readOnly) {
+        if (!input.disabled && !input.readOnly && !input.dataset.speechEnhanced) {
           enhanceInput(input);
         }
       });
     };
 
 
-    const observer = new MutationObserver((mutations) => {
+    const initObserver = () => {
+      if (observer) {
+        observer.disconnect();
+      }
 
-      if (!isPageEnabled()) return;
+      observer = new MutationObserver((mutations) => {
+        if (!isPageEnabled()) {
+          removeAllSpeechButtons();
+          return;
+        }
 
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) {
-            const inputs = node.querySelectorAll ? node.querySelectorAll(`
-              input[type="text"],
-              input[type="search"],
-              input[type="email"],
-              input[type="url"],
-              input[type="tel"],
-              textarea:not([data-no-speech]),
-              [contenteditable="true"]
-            `) : [];
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) {
+              const inputs = node.querySelectorAll ? node.querySelectorAll(`
+                input[type="text"],
+                input[type="search"],
+                input[type="email"],
+                input[type="url"],
+                input[type="tel"],
+                textarea:not([data-no-speech]),
+                [contenteditable="true"]:not([data-no-speech])
+              `) : [];
 
-            inputs.forEach(input => {
-              if (!input.disabled && !input.readOnly && !input.dataset.speechEnhanced) {
-                enhanceInput(input);
+              inputs.forEach(input => {
+                if (!input.disabled && !input.readOnly && !input.dataset.speechEnhanced) {
+                  enhanceInput(input);
+                }
+              });
+
+
+              if (node.matches && node.matches(`
+                input[type="text"],
+                input[type="search"],
+                input[type="email"],
+                input[type="url"],
+                input[type="tel"],
+                textarea:not([data-no-speech]),
+                [contenteditable="true"]:not([data-no-speech])
+              `) && !node.disabled && !node.readOnly) {
+                enhanceInput(node);
               }
-            });
-
-            if (node.matches && node.matches(`
-              input[type="text"],
-              input[type="search"],
-              input[type="email"],
-              input[type="url"],
-              input[type="tel"],
-              textarea:not([data-no-speech]),
-              [contenteditable="true"]
-            `) && !node.disabled && !node.readOnly) {
-              enhanceInput(node);
             }
-          }
+          });
         });
       });
-    });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    };
+
+
+    const initializePlugin = () => {
+      removeAllSpeechButtons();
+
+      setTimeout(() => {
+        enhanceAllInputs();
+        initObserver();
+      }, 100);
+    };
 
 
     app.mixin({
       mounted() {
         this.$nextTick(() => {
-          enhanceAllInputs();
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true
-          });
+          if (isPageEnabled()) {
+            initializePlugin();
+          }
         });
       },
       beforeUnmount() {
-        observer.disconnect();
+        if (observer) {
+          observer.disconnect();
+        }
       }
     });
 
 
+    if (app.config.globalProperties.$router) {
+      const originalPush = app.config.globalProperties.$router.push;
+      const originalReplace = app.config.globalProperties.$router.replace;
+
+
+      app.config.globalProperties.$router.push = function (...args) {
+        return originalPush.apply(this, args).finally(() => {
+          setTimeout(() => {
+            initializePlugin();
+          }, 300);
+        });
+      };
+
+      app.config.globalProperties.$router.replace = function (...args) {
+        return originalReplace.apply(this, args).finally(() => {
+          setTimeout(() => {
+            initializePlugin();
+          }, 300);
+        });
+      };
+
+
+      window.addEventListener('popstate', () => {
+        setTimeout(() => {
+          initializePlugin();
+        }, 300);
+      });
+    }
+
+   
     app.config.globalProperties.$speechToText = {
       startListening: (input) => {
-        const button = input.parentNode?.querySelector('button');
+        const button = input.parentNode?.querySelector('[data-speech-button]');
         startListening(input, button);
       },
       stopListening,
       isListening: () => isListening,
       setLanguage: (lang) => {
         recognition.lang = lang;
-      }
+      },
+      reinitialize: () => {
+        initializePlugin();
+      },
+      isEnabled: () => isPageEnabled()
     };
+
+
+    setTimeout(() => {
+      initializePlugin();
+    }, 500);
   }
 };
-
 
 if (typeof window !== 'undefined' && window.Vue) {
   window.Vue.use(SpeechToTextPlugin);
