@@ -7,7 +7,7 @@
       </div>
 
       <div v-if="errorMessage" class="error-banner">
-        <i class="fas fa-exclamation-circle"></i>
+        <span>⚠️</span>
         {{ errorMessage }}
         <button @click="fetchUserShipments" class="btn-retry">Retry</button>
       </div>
@@ -137,13 +137,13 @@
  Live Tracking Map</h3>
                 <div class="card-actions">
                   <span v-if="globeUpdateTimeout" class="globe-updating-indicator">
-                    <i class="fa-spin">.</i> Updating...
+                    <span>🌀</span> Updating...
                   </span>
                   <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
-                    X
+                    🔄
                   </button>
                   <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
-                    X
+                    ❌
                   </button>
                 </div>
               </div>
@@ -151,7 +151,7 @@
                 <div ref="globeContainer" class="globe-container" style="width: 100%; height: 400px;">
                   <div v-if="globeError" class="globe-error">
                     <div class="error-icon">
-                      X
+                      ❌
                     </div>
                     <p>Failed to load globe visualization</p>
                     <button class="btn-retry" @click="forceReinit">Retry</button>
@@ -183,7 +183,7 @@
                     @click="selectParcel(parcel)"
                   >
                     <div class="parcel-icon">
-                      <i class="fas fa-star"></i>
+                      ⭐
                     </div>
                     <div class="parcel-details">
                       <div class="parcel-header">
@@ -194,15 +194,15 @@
                       </div>
                       <div class="parcel-info">
                         <div class="info-item">
-                          <span style="font-size:14px;">📍</span>
+                          <span>📍</span>
                           <span>{{ parcel.customer }}</span>
                         </div>
                         <div class="info-item">
-                          <i class="fa-map-marker"></i>
+                          <span>📍</span>
                           <span>{{ getLocationName(parcel.currentLocation || parcel.location) }}</span>
                         </div>
                         <div class="info-item">
-                          <i class="fas fa-calendar-alt"></i>
+                          <span>📅</span>
                           <span>{{ formatDate(parcel.expectedDelivery) }}</span>
                         </div>
                       </div>
@@ -216,7 +216,7 @@
                   </div>
 
                   <div v-if="parcels.length === 0" class="empty-state">
-                    <i class="fas fa-box-open"></i>
+                    <span>📦</span>
                     <p>No shipments found</p>
                   </div>
                 </div>
@@ -229,13 +229,13 @@
           <div class="section-column notifications-column">
             <div class="section-card">
               <div class="card-header">
-                <h3><i class="fas fa-bell"></i> Recent Activity</h3>
+                <h3><span>🔔</span> Recent Activity</h3>
               </div>
               <div class="card-body">
                 <div class="notifications-list">
                   <div class="notification-item" v-for="notification in notifications" :key="notification.id">
                     <div class="notification-icon" :class="notification.type">
-                      <i :class="notification.icon"></i>
+                      <span>{{ getNotificationIcon(notification.type) }}</span>
                     </div>
                     <div class="notification-content">
                       <p class="notification-text">{{ notification.message }}</p>
@@ -244,7 +244,7 @@
                   </div>
 
                   <div v-if="notifications.length === 0" class="empty-notifications">
-                    <i class="fas fa-bell-slash"></i>
+                    <span>🔕</span>
                     <p>No recent activity</p>
                   </div>
                 </div>
@@ -258,13 +258,13 @@
     <div v-else class="login-required">
       <div class="login-message">
         <div class="message-icon">
-          <i class="fas fa-lock"></i>
+          <span>🔒</span>
         </div>
         <h2>Authentication Required</h2>
         <p>Please log in to access your parcel tracking dashboard</p>
         <div class="action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
-            <i class="fas fa-sign-in-alt"></i>
+            <span>🔑</span>
             Go to Login
           </button>
         </div>
@@ -312,53 +312,6 @@ export default {
   computed: {
     totalShipments() {
       return this.stats.inProgress + this.stats.delivered + this.stats.pending;
-    },
-    enhancedStats() {
-      return [
-        {
-          key: 'in-progress',
-          title: 'In Transit',
-          value: this.stats.inProgress,
-          icon: 'fas fa-paper-plane',
-          trend: 'up',
-          trendIcon: 'fas fa-paper-plane',
-          trendValue: '+2 today',
-          chartData: [65, 70, 75, 80, 75, 70, 68]
-        },
-        {
-          key: 'delivered',
-          title: 'Delivered',
-          value: this.stats.delivered,
-          icon: 'fas fa-check-circle',
-          trend: 'up',
-          trendIcon: 'fas fa-check-circle',
-          trendValue: '+12%',
-          chartData: [40, 45, 50, 55, 60, 65, 70]
-        },
-        {
-          key: 'pending',
-          title: 'Pending',
-          value: this.stats.pending,
-          icon: 'fas fa-clock',
-          trend: 'down',
-          trendIcon: 'fas fa-clock',
-          trendValue: '-1 today',
-          chartData: [80, 75, 70, 65, 60, 55, 50]
-        },
-        {
-          key: 'total',
-          title: 'Total Shipments',
-          value: this.totalShipments,
-          icon: 'fas fa-chart-bar',
-          trend: 'up',
-          trendIcon: 'fas fa-chart-bar',
-          trendValue: '+8%',
-          chartData: [50, 55, 60, 65, 70, 75, 80]
-        }
-      ];
-    },
-    hasRouteData() {
-      return this.routeData && this.routeData.waypoints && this.routeData.waypoints.length > 0;
     }
   },
   mounted() {
@@ -387,12 +340,23 @@ export default {
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
+    getNotificationIcon(type) {
+      const icons = {
+        'success': '✅',
+        'info': '🚚',
+        'warning': '⏰'
+      };
+      return icons[type] || '🔔';
+    },
+
     viewHistory() {
       this.$router.push('/history');
     },
+
     viewCharts() {
-    this.$router.push('/charts');
-  },
+      this.$router.push('/charts');
+    },
+
     checkAuthentication() {
       const userData = sessionStorage.getItem('currentUser');
       if (userData) {
@@ -407,6 +371,7 @@ export default {
         this.isAuthenticated = false;
       }
     },
+
     handleLoginStatusChange() {
       this.checkAuthentication();
       if (this.isAuthenticated) {
@@ -663,17 +628,14 @@ export default {
           const statusConfig = {
             'In Progress': {
               type: 'info',
-              icon: 'fas fa-shipping-fast',
               message: `Shipment ${parcel.trackingId} is in transit to ${this.getLocationName(parcel.destination)}`
             },
             'Delivered': {
               type: 'success',
-              icon: 'fas fa-check-circle',
               message: `Shipment ${parcel.trackingId} has been delivered successfully`
             },
             'Pending': {
               type: 'warning',
-              icon: 'fas fa-clock',
               message: `Shipment ${parcel.trackingId} is awaiting processing`
             }
           };
@@ -683,7 +645,6 @@ export default {
           return {
             id: index + 1,
             type: config.type,
-            icon: config.icon,
             message: config.message,
             time: this.formatRelativeTime(parcel.createdDate)
           };
@@ -974,8 +935,7 @@ export default {
 </script>
 
 <style scoped>
-
-
+/* All your existing CSS styles remain exactly the same */
 :root {
   --hot-pink: #ff4275;
   --dark-pink: #ff759e;
