@@ -64,69 +64,6 @@
           </div>
         </section>
 
-        <!-- Graphs Section -->
-        <section class="graphs-section">
-          <div class="graphs-grid">
-            <div class="graph-column">
-              <div class="section-card">
-                <div class="card-header">
-                  <h3><i class="fas fa-chart-pie"></i> Shipment Status Distribution</h3>
-                </div>
-                <div class="card-body">
-                  <canvas ref="statusChart" class="chart-canvas"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="graph-column">
-              <div class="section-card">
-                <div class="card-header">
-                  <h3><i class="fas fa-chart-line"></i> Monthly Trends</h3>
-                </div>
-                <div class="card-body">
-                  <canvas ref="trendsChart" class="chart-canvas"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="graphs-grid">
-            <div class="graph-column">
-              <div class="section-card">
-                <div class="card-header">
-                  <h3><i class="fas fa-chart-bar"></i> Service Type Usage</h3>
-                </div>
-                <div class="card-body">
-                  <canvas ref="serviceChart" class="chart-canvas"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="graph-column">
-              <div class="section-card">
-                <div class="card-header">
-                  <h3><i class="fas fa-tachometer-alt"></i> Delivery Performance</h3>
-                </div>
-                <div class="card-body">
-                  <canvas ref="gaugeChart" class="chart-canvas"></canvas>
-                  <div class="gauge-center">
-                    <span class="gauge-value">{{ deliveryRate }}%</span>
-                    <span class="gauge-label">On Time</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- History Button -->
-        <div class="text-center my-3">
-          <button @click="viewHistory"
-                  style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
-                  onmouseover="this.style.background='#ff4d8d'"
-                  onmouseout="this.style.background='#ff6b9d'">
-            <h3 class="mb-0">Shipment History</h3>
-            <p class="mb-0">Click to view more</p>
-          </button>
-        </div>
-
         <!-- Tracking Section -->
         <section class="tracking-section">
           <div class="section-column globe-column">
@@ -232,6 +169,121 @@
           </div>
         </section>
 
+        <!-- Charts Section - Collapsible -->
+        <section class="charts-section">
+          <div class="charts-header" @click="toggleCharts">
+            <h3>
+              <i class="fas fa-chart-bar"></i>
+              Analytics & Insights
+              <i class="fas" :class="chartsExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </h3>
+            <span class="charts-toggle">
+              {{ chartsExpanded ? 'Hide Charts' : 'Show Charts' }}
+            </span>
+          </div>
+
+          <div class="charts-content" :class="{ 'expanded': chartsExpanded }">
+            <!-- Time Filter Controls -->
+            <div class="time-filter-controls">
+              <div class="filter-group">
+                <label>Time Range:</label>
+                <div class="time-buttons">
+                  <button 
+                    v-for="period in timePeriods" 
+                    :key="period.value"
+                    @click="setTimeRange(period.value)"
+                    :class="{ 'active': selectedTimeRange === period.value }"
+                    class="time-btn"
+                  >
+                    {{ period.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <label>Custom Range:</label>
+                <div class="date-range">
+                  <input 
+                    type="date" 
+                    v-model="customStartDate"
+                    class="date-input"
+                  >
+                  <span>to</span>
+                  <input 
+                    type="date" 
+                    v-model="customEndDate"
+                    class="date-input"
+                  >
+                  <button @click="applyCustomRange" class="apply-btn">
+                    Apply
+                  </button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <label>Data Granularity:</label>
+                <select v-model="dataGranularity" @change="updateCharts" class="granularity-select">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h4>Shipment Status Distribution</h4>
+                  <span class="chart-period">{{ timeRangeLabel }}</span>
+                </div>
+                <canvas ref="statusChart" class="chart-canvas"></canvas>
+              </div>
+
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h4>Monthly Trends</h4>
+                  <span class="chart-period">{{ timeRangeLabel }}</span>
+                </div>
+                <canvas ref="trendsChart" class="chart-canvas"></canvas>
+              </div>
+
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h4>Service Type Usage</h4>
+                  <span class="chart-period">{{ timeRangeLabel }}</span>
+                </div>
+                <canvas ref="serviceChart" class="chart-canvas"></canvas>
+              </div>
+
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h4>Delivery Performance</h4>
+                  <span class="chart-period">{{ timeRangeLabel }}</span>
+                </div>
+                <div class="gauge-wrapper">
+                  <canvas ref="gaugeChart" class="chart-canvas"></canvas>
+                  <div class="gauge-center">
+                    <span class="gauge-value">{{ deliveryRate }}%</span>
+                    <span class="gauge-label">On Time</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- History Button -->
+        <div class="text-center my-3">
+          <button @click="viewHistory"
+                  style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
+                  onmouseover="this.style.background='#ff4d8d'"
+                  onmouseout="this.style.background='#ff6b9d'">
+            <h3 class="mb-0">Shipment History</h3>
+            <p class="mb-0">Click to view more</p>
+          </button>
+        </div>
+
         <!-- Notifications Section -->
         <section class="notifications-section">
           <div class="section-column notifications-column">
@@ -291,6 +343,10 @@ Chart.register(...registerables);
 export default {
   name: "EnhancedParcelDashboard",
   data() {
+    const today = new Date();
+    const oneMonthAgo = new Date(today);
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+    
     return {
       isAuthenticated: false,
       user: {
@@ -318,7 +374,22 @@ export default {
       routeLoading: false,
       routeError: null,
       globeUpdateTimeout: null,
-      charts: {}
+      charts: {},
+      
+      // Charts & Filtering
+      chartsExpanded: false,
+      selectedTimeRange: '1m',
+      dataGranularity: 'monthly',
+      customStartDate: oneMonthAgo.toISOString().split('T')[0],
+      customEndDate: today.toISOString().split('T')[0],
+      timePeriods: [
+        { label: '1 Week', value: '1w' },
+        { label: '1 Month', value: '1m' },
+        { label: '3 Months', value: '3m' },
+        { label: '6 Months', value: '6m' },
+        { label: '1 Year', value: '1y' },
+        { label: 'All Time', value: 'all' }
+      ]
     };
   },
   computed: {
@@ -397,6 +468,47 @@ export default {
         services[serviceName] = (services[serviceName] || 0) + 1;
       });
       return services;
+    },
+    timeRangeLabel() {
+      const period = this.timePeriods.find(p => p.value === this.selectedTimeRange);
+      return period ? period.label : 'Custom Range';
+    },
+    filteredParcelsByTime() {
+      const now = new Date();
+      let startDate = new Date();
+
+      switch (this.selectedTimeRange) {
+        case '1w':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case '1m':
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        case '3m':
+          startDate.setMonth(now.getMonth() - 3);
+          break;
+        case '6m':
+          startDate.setMonth(now.getMonth() - 6);
+          break;
+        case '1y':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+        case 'custom':
+          startDate = new Date(this.customStartDate);
+          const endDate = new Date(this.customEndDate);
+          return this.parcels.filter(parcel => {
+            const parcelDate = new Date(parcel.createdDate);
+            return parcelDate >= startDate && parcelDate <= endDate;
+          });
+        case 'all':
+        default:
+          return this.parcels;
+      }
+
+      return this.parcels.filter(parcel => {
+        const parcelDate = new Date(parcel.createdDate);
+        return parcelDate >= startDate;
+      });
     }
   },
   mounted() {
@@ -433,6 +545,249 @@ export default {
       this.$router.push('/history');
     },
     
+    // Charts Methods
+    toggleCharts() {
+      this.chartsExpanded = !this.chartsExpanded;
+      if (this.chartsExpanded) {
+        this.$nextTick(() => {
+          this.initCharts();
+        });
+      }
+    },
+
+    setTimeRange(range) {
+      this.selectedTimeRange = range;
+      this.updateCharts();
+    },
+
+    applyCustomRange() {
+      this.selectedTimeRange = 'custom';
+      this.updateCharts();
+    },
+
+    updateCharts() {
+      // Destroy existing charts
+      Object.values(this.charts).forEach(chart => {
+        if (chart) chart.destroy();
+      });
+      
+      // Reinitialize charts with filtered data
+      this.initCharts();
+    },
+
+    initCharts() {
+      this.initStatusChart();
+      this.initTrendsChart();
+      this.initServiceChart();
+      this.initGaugeChart();
+    },
+
+    initStatusChart() {
+      const ctx = this.$refs.statusChart;
+      if (!ctx) return;
+
+      const filteredData = this.getFilteredStats();
+
+      this.charts.status = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['In Progress', 'Delivered', 'Pending'],
+          datasets: [{
+            data: [filteredData.inProgress, filteredData.delivered, filteredData.pending],
+            backgroundColor: ['#ffa500', '#00ff88', '#ff4275'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    },
+
+    initTrendsChart() {
+      const ctx = this.$refs.trendsChart;
+      if (!ctx) return;
+
+      const trendData = this.generateTrendData();
+
+      this.charts.trends = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: trendData.labels,
+          datasets: [
+            {
+              label: 'In Progress',
+              data: trendData.inProgress,
+              borderColor: '#ffa500',
+              backgroundColor: 'rgba(255, 165, 0, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Delivered',
+              data: trendData.delivered,
+              borderColor: '#00ff88',
+              backgroundColor: 'rgba(0, 255, 136, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Shipments'
+              }
+            }
+          }
+        }
+      });
+    },
+
+    initServiceChart() {
+      const ctx = this.$refs.serviceChart;
+      if (!ctx) return;
+
+      const serviceStats = {};
+      this.filteredParcelsByTime.forEach(parcel => {
+        const serviceName = parcel.service?.name || 'Unknown';
+        serviceStats[serviceName] = (serviceStats[serviceName] || 0) + 1;
+      });
+
+      const serviceNames = Object.keys(serviceStats);
+      const serviceCounts = Object.values(serviceStats);
+      
+      this.charts.service = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: serviceNames,
+          datasets: [{
+            label: 'Number of Shipments',
+            data: serviceCounts,
+            backgroundColor: ['#ff4275', '#ff759e', '#ff9096', '#ffa500', '#00ff88'],
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    },
+
+    initGaugeChart() {
+      const ctx = this.$refs.gaugeChart;
+      if (!ctx) return;
+
+      const filteredData = this.getFilteredStats();
+      const deliveryRate = filteredData.total > 0 ? 
+        Math.round((filteredData.delivered / filteredData.total) * 100) : 0;
+
+      this.charts.gauge = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [deliveryRate, 100 - deliveryRate],
+            backgroundColor: [
+              deliveryRate >= 80 ? '#00ff88' : 
+              deliveryRate >= 60 ? '#ffa500' : '#ff4275',
+              '#f0f0f0'
+            ],
+            borderWidth: 0,
+            circumference: 180,
+            rotation: 270
+          }]
+        },
+        options: {
+          responsive: true,
+          cutout: '70%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+    },
+
+    getFilteredStats() {
+      const filtered = this.filteredParcelsByTime;
+      return {
+        inProgress: filtered.filter(p => p.status === 'In Progress').length,
+        delivered: filtered.filter(p => p.status === 'Delivered').length,
+        pending: filtered.filter(p => p.status === 'Pending').length,
+        total: filtered.length
+      };
+    },
+
+    generateTrendData() {
+      const now = new Date();
+      let labels = [];
+      let inProgressData = [];
+      let deliveredData = [];
+
+      switch (this.dataGranularity) {
+        case 'daily':
+          labels = Array.from({length: 7}, (_, i) => {
+            const date = new Date(now);
+            date.setDate(date.getDate() - (6 - i));
+            return date.toLocaleDateString('en-US', { weekday: 'short' });
+          });
+          break;
+        case 'weekly':
+          labels = Array.from({length: 4}, (_, i) => `Week ${i + 1}`);
+          break;
+        case 'monthly':
+        default:
+          labels = Array.from({length: 6}, (_, i) => {
+            const date = new Date(now);
+            date.setMonth(date.getMonth() - (5 - i));
+            return date.toLocaleDateString('en-US', { month: 'short' });
+          });
+      }
+
+      // Generate sample data based on current filtered stats
+      const baseStats = this.getFilteredStats();
+      inProgressData = labels.map(() => Math.max(0, baseStats.inProgress + Math.floor(Math.random() * 3) - 1));
+      deliveredData = labels.map(() => Math.max(0, baseStats.delivered + Math.floor(Math.random() * 5) - 2));
+
+      return {
+        labels,
+        inProgress: inProgressData,
+        delivered: deliveredData
+      };
+    },
+
+    // Rest of your existing methods remain the same...
     checkAuthentication() {
       const userData = sessionStorage.getItem('currentUser');
       if (userData) {
@@ -466,7 +821,6 @@ export default {
       await this.$nextTick();
       await new Promise(resolve => setTimeout(resolve, 800));
       await this.initGlobe();
-      this.initCharts();
     },
 
     async fetchUserShipments() {
@@ -488,9 +842,6 @@ export default {
           this.parcels = this.transformShipmentData(response.data.shipments);
           this.updateStats();
           this.generateNotifications();
-          
-          // Update charts with new data
-          this.updateCharts();
 
           if (this.globeInitialized && this.globe) {
             this.updateGlobeData();
@@ -513,192 +864,12 @@ export default {
       this.parcels = this.transformShipmentData(exampleData);
       this.updateStats();
       this.generateNotifications();
-      this.updateCharts();
 
       if (this.globeInitialized && this.globe) {
         this.updateGlobeData();
       }
     },
 
-    // Chart initialization methods
-    initCharts() {
-      this.initStatusChart();
-      this.initTrendsChart();
-      this.initServiceChart();
-      this.initGaugeChart();
-    },
-
-    updateCharts() {
-      // Destroy existing charts
-      Object.values(this.charts).forEach(chart => {
-        if (chart) chart.destroy();
-      });
-      
-      // Reinitialize charts with updated data
-      this.initCharts();
-    },
-
-    initStatusChart() {
-      const ctx = this.$refs.statusChart;
-      if (!ctx) return;
-
-      this.charts.status = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['In Progress', 'Delivered', 'Pending'],
-          datasets: [{
-            data: [this.stats.inProgress, this.stats.delivered, this.stats.pending],
-            backgroundColor: ['#ffa500', '#00ff88', '#ff4275'],
-            borderWidth: 2,
-            borderColor: '#fff'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.raw || 0;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = Math.round((value / total) * 100);
-                  return `${label}: ${value} (${percentage}%)`;
-                }
-              }
-            }
-          }
-        }
-      });
-    },
-
-    initTrendsChart() {
-      const ctx = this.$refs.trendsChart;
-      if (!ctx) return;
-
-      // Generate sample monthly data based on current stats
-      const monthlyData = this.generateMonthlyTrends();
-
-      this.charts.trends = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          datasets: [
-            {
-              label: 'In Progress',
-              data: monthlyData.inProgress,
-              borderColor: '#ffa500',
-              backgroundColor: 'rgba(255, 165, 0, 0.1)',
-              tension: 0.4,
-              fill: true
-            },
-            {
-              label: 'Delivered',
-              data: monthlyData.delivered,
-              borderColor: '#00ff88',
-              backgroundColor: 'rgba(0, 255, 136, 0.1)',
-              tension: 0.4,
-              fill: true
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          interaction: {
-            intersect: false,
-            mode: 'index'
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Number of Shipments'
-              }
-            }
-          }
-        }
-      });
-    },
-
-    initServiceChart() {
-      const ctx = this.$refs.serviceChart;
-      if (!ctx) return;
-
-      const serviceNames = Object.keys(this.serviceStats);
-      const serviceCounts = Object.values(this.serviceStats);
-      
-      this.charts.service = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: serviceNames,
-          datasets: [{
-            label: 'Number of Shipments',
-            data: serviceCounts,
-            backgroundColor: ['#ff4275', '#ff759e', '#ff9096', '#ffa500', '#00ff88'],
-            borderColor: '#fff',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    },
-
-    initGaugeChart() {
-      const ctx = this.$refs.gaugeChart;
-      if (!ctx) return;
-
-      this.charts.gauge = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          datasets: [{
-            data: [this.deliveryRate, 100 - this.deliveryRate],
-            backgroundColor: [
-              this.deliveryRate >= 80 ? '#00ff88' : 
-              this.deliveryRate >= 60 ? '#ffa500' : '#ff4275',
-              '#f0f0f0'
-            ],
-            borderWidth: 0,
-            circumference: 180,
-            rotation: 270
-          }]
-        },
-        options: {
-          responsive: true,
-          cutout: '70%',
-          plugins: {
-            legend: { display: false },
-            tooltip: { enabled: false }
-          }
-        }
-      });
-    },
-
-    generateMonthlyTrends() {
-      const baseInProgress = this.stats.inProgress;
-      const baseDelivered = this.stats.delivered;
-      
-      return {
-        inProgress: Array.from({length: 6}, (_, i) => 
-          Math.max(0, baseInProgress + Math.floor(Math.random() * 5) - 2)
-        ),
-        delivered: Array.from({length: 6}, (_, i) => 
-          Math.max(0, baseDelivered + Math.floor(Math.random() * 8) - 3)
-        )
-      };
-    },
-
-    // Rest of your existing methods remain the same...
     getExampleShipments(customerEmail) {
       return [
         {
@@ -1184,6 +1355,163 @@ export default {
 </script>
 
 <style scoped>
+/* Your existing CSS remains the same, add these new styles: */
+
+/* Charts Section */
+.charts-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.charts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: var(--light-pink);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.charts-header:hover {
+  background: var(--pink-grey);
+}
+
+.charts-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.charts-toggle {
+  color: var(--hot-pink);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.charts-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+
+.charts-content.expanded {
+  max-height: 1200px;
+}
+
+/* Time Filter Controls */
+.time-filter-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--light-pink);
+  border-bottom: 1px solid var(--pink-grey);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+  font-size: 0.9rem;
+}
+
+.time-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.time-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--pink-grey);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.time-btn:hover {
+  border-color: var(--hot-pink);
+}
+
+.time-btn.active {
+  background: var(--hot-pink);
+  color: white;
+  border-color: var(--hot-pink);
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.date-input {
+  padding: 0.5rem;
+  border: 1px solid var(--pink-grey);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.apply-btn {
+  padding: 0.5rem 1rem;
+  background: var(--hot-pink);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease;
+}
+
+.apply-btn:hover {
+  background: var(--dark-pink);
+}
+
+.granularity-select {
+  padding: 0.5rem;
+  border: 1px solid var(--pink-grey);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.8rem;
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.chart-container {
+  background: var(--light-pink);
+  border-radius: 12px;
+  padding: 1rem;
+  position: relative;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
 :root {
@@ -1461,51 +1789,49 @@ export default {
   min-height: 2px;
 }
 
-/* Graphs Section */
-.graphs-section {
-  margin-bottom: 2rem;
-}
-
-.graphs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.graph-column {
+.history-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid var(--slate-blue);
+  cursor: pointer;
 }
 
-.chart-canvas {
-  width: 100% !important;
-  height: 250px !important;
+.history-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
 }
 
-.gauge-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+.history-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
 }
 
-.gauge-value {
-  display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--dark-slate-blue);
+.history-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
 }
 
-.gauge-label {
-  display: block;
-  font-size: 0.9rem;
+
+.history-arrow {
   color: var(--slate-blue);
-  margin-top: 0.5rem;
+  font-size: 1.2rem;
 }
 
-/* Rest of your existing CSS remains the same... */
 .tracking-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -1585,7 +1911,7 @@ export default {
   color: var(--slate-blue);
 }
 
-.search-input {
+.search-box input {
   padding: 0.5rem 0.5rem 0.5rem 2rem;
   border: 1px solid var(--pink-grey);
   border-radius: 8px;
@@ -1595,7 +1921,7 @@ export default {
   background: var(--light-pink);
 }
 
-.search-input:focus {
+.search-box input:focus {
   outline: none;
   border-color: var(--hot-pink);
 }
@@ -1605,7 +1931,6 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 .globe-container {
@@ -1648,6 +1973,157 @@ export default {
 .error-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
+}
+
+.parcel-information {
+  background: var(--light-pink);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.parcel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--pink-grey);
+}
+
+.parcel-header h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--dark-slate-blue);
+}
+
+.parcel-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-section {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.detail-section h5 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--hot-pink);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--pink-grey);
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: var(--slate-blue);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  color: var(--dark-slate-blue);
+  font-weight: 600;
+  text-align: right;
+}
+
+.detail-value.paid {
+  color: var(--hot-pink);
+}
+
+.detail-value.unpaid {
+  color: var(--dark-pink);
+}
+
+.route-progress {
+  margin-top: 1rem;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--slate-blue);
+}
+
+.progress-percent {
+  font-weight: 600;
+  color: var(--hot-pink);
+}
+
+.progress-track {
+  position: relative;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--pink-grey);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--hot-pink), var(--pink), var(--dark-pink));
+  transition: width 0.5s ease;
+}
+
+.progress-marker {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 2px solid var(--hot-pink);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--hot-pink);
+}
+
+.no-selection {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--slate-blue);
+}
+
+.no-selection i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  color: var(--pink);
+}
+
+.no-selection p {
+  margin: 0;
+  font-size: 1rem;
 }
 
 .parcels-list {
@@ -1937,6 +2413,93 @@ export default {
   background: var(--dark-pink);
   transform: translateY(-2px);
 }
+.chart-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--dark-slate-blue);
+}
+
+.chart-period {
+  font-size: 0.8rem;
+  color: var(--slate-blue);
+  background: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+}
+
+.chart-canvas {
+  width: 100% !important;
+  height: 250px !important;
+}
+
+.gauge-wrapper {
+  position: relative;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.gauge-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--dark-slate-blue);
+}
+
+.gauge-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--slate-blue);
+  margin-top: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .time-filter-controls {
+    grid-template-columns: 1fr;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .date-range {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .charts-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .time-buttons {
+    justify-content: center;
+  }
+  
+  .chart-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -1945,10 +2508,6 @@ export default {
 
 @media (max-width: 1024px) {
   .tracking-section {
-    grid-template-columns: 1fr;
-  }
-  
-  .graphs-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1968,17 +2527,13 @@ export default {
     grid-template-columns: 1fr;
   }
 
-  .graphs-grid {
-    grid-template-columns: 1fr;
-  }
-
   .card-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
 
-  .search-input {
+  .search-box input {
     width: 100%;
   }
 
@@ -2002,6 +2557,10 @@ export default {
 
   .parcel-icon {
     align-self: flex-start;
+  }
+
+  .parcel-details-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2032,4 +2591,6 @@ export default {
     align-items: flex-start;
   }
 }
+/* Rest of your existing CSS remains unchanged */
+/* ... (all your previous CSS styles) ... */
 </style>
