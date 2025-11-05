@@ -69,22 +69,22 @@ onUnmounted(() => {
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarCollapseContent">
               <ul class="navbar-nav align-items-end align-items-md-center">
-                <li class="nav-item text-end">
+                <li class="nav-item text-end text-md-center">
                   <RouterLink :to="{ name: 'home' }">Home</RouterLink>
                 </li>
-                <li class="nav-item text-end">
+                <li class="nav-item text-end text-md-center">
                   <RouterLink :to="{ name: 'shipment' }">Create Shipment</RouterLink>
                 </li>
-                <li class="nav-item text-end">
+                <li class="nav-item text-end text-md-center">
                   <RouterLink :to="{ name: 'cart' }">Cart</RouterLink>
                 </li>
-                <li class="nav-item text-end">
+                <li class="nav-item text-end text-md-center">
                   <RouterLink :to="{ name: 'help' }">Terms & Conditions</RouterLink>
                 </li>
-                   <li class="nav-item text-end">
+                <li class="nav-item text-end text-md-center">
                   <RouterLink :to="{ name: 'faq' }">FAQ</RouterLink>
                 </li>
-                <li class="nav-item" v-if="!isLoggedIn">
+                <li class="nav-item py-2" v-if="!isLoggedIn">
                   <button type="button" class="btn btn-pink quicksand-semibold">
                     <RouterLink :to="{ name: 'login' }">
                       <span class="fw-bold">Sign up/Login</span>
@@ -107,10 +107,10 @@ onUnmounted(() => {
                       <button class="dropdown-item" @click="$router.push('/settings')">
                         Quick Action
                       </button>
-                       <button class="dropdown-item" @click="$router.push('/changePassword')">
+                      <button class="dropdown-item" @click="$router.push('/changePassword')">
                         Update Account
                       </button>
-                       <button class="dropdown-item" @click="$router.push('/CDB')">
+                      <button class="dropdown-item" @click="$router.push('/CDB')">
                         Customer Dashboard
                       </button>
                     </li>
