@@ -82,7 +82,7 @@ onUnmounted(() => {
                   <RouterLink :to="{ name: 'help' }">Terms & Conditions</RouterLink>
                 </li>
                 <li class="nav-item text-end text-md-center">
-                  <RouterLink :to="{ name: 'chatbot' }">CHatbot</RouterLink>
+                  <RouterLink :to="{ name: 'chatbot' }">Chatbot</RouterLink>
                 </li>
                 <li class="nav-item text-end text-md-center">
                   <RouterLink :to="{ name: 'faq' }">FAQ</RouterLink>
