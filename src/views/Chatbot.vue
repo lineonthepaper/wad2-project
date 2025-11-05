@@ -1,6 +1,6 @@
 <template>
   <div class="chatbot-page">
-]    <div class="page-header">
+    <div class="page-header">
       <h1>Fluffy Shipping Assistant</h1>
       <p>Get instant smart answers to your shipping questions</p>
       <router-link to="/" class="back-link">← Back to Home</router-link>
