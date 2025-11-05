@@ -82,6 +82,9 @@ onUnmounted(() => {
                   <RouterLink :to="{ name: 'help' }">Terms & Conditions</RouterLink>
                 </li>
                 <li class="nav-item text-end text-md-center">
+                  <RouterLink :to="{ name: 'chatbot' }">CHatbot</RouterLink>
+                </li>
+                <li class="nav-item text-end text-md-center">
                   <RouterLink :to="{ name: 'faq' }">FAQ</RouterLink>
                 </li>
                 <li class="nav-item py-2" v-if="!isLoggedIn">

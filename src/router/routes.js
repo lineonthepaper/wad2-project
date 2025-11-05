@@ -15,6 +15,7 @@ import settings from  '@/views/settings.vue'
 import changePassword from '@/views/changePassword.vue'
 import history from '@/views/history.vue'
 import HistoryDetail from '@/views/HistoryDetail.vue'
+import Chatbot from '@/views/Chatbot.vue'
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -32,6 +33,7 @@ export const routes = [
   {path: '/changePassword',name: 'changepw', title: 'changePassword', component: changePassword},
   {path: '/history',name: 'history', title: 'History', component: history},
   { path: '/history/:id', name: 'HistoryDetail', component: HistoryDetail, props: true },
+  { path: '/chatbot', name: 'chatbot', title: 'Chat Assistant', component: Chatbot}
 ]
 
 const router = createRouter({
