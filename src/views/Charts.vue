@@ -125,9 +125,9 @@
             </div>
 
             <div class="filter-group">
-              <label>Status Filter:</label>
+              <label>Status:</label>
               <select v-model="statusFilter" @change="updateCharts" class="filter-select">
-                <option value="all">All Statuses</option>
+                <option value="all">All Status</option>
                 <option value="delivered">Delivered</option>
                 <option value="in_transit">In Transit</option>
                 <option value="pending">Pending</option>
