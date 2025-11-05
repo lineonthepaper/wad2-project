@@ -6,7 +6,7 @@ const SpeechToTextPlugin = {
       buttonPosition: 'right',
       lang: 'en-US',
       autoStart: false,
-      enabledPages: ['/services', '/help', '/history', '/faq'],
+      enabledPages: ['/services', '/chatbot', '/history', '/faq'],
       ...options
     };
 
