@@ -315,7 +315,7 @@ export default {
           key: 'total',
           title: 'Total Shipments',
           value: this.totalShipments,
-          icon: 'fa-solid fa-boxes-stacked',
+          icon: 'fas fa-boxes',
           trend: 'up',
           trendIcon: 'fas fa-arrow-up',
           trendValue: '+8%',
