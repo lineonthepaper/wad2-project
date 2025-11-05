@@ -118,14 +118,12 @@
           @mouseover="this.style.background='#ff4d8d'"
           @mouseout="this.style.background='#ff6b9d'">
     <h3 class="mb-0">Shipment History</h3>
-    <p class="mb-0">Click to view more</p>
   </button>
   <button @click="viewCharts"
           style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer; flex: 1; max-width: 200px; height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;"
           @mouseover="this.style.background='#ff4d8d'"
           @mouseout="this.style.background='#ff6b9d'">
     <h3 class="mb-0">Analytics Charts</h3>
-    <p class="mb-0">View detailed analytics</p>
   </button>
 </div>
 
