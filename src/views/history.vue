@@ -89,7 +89,7 @@
                   @click="clearFilters"
                   :disabled="!hasActiveFilters"
                 >
-                  <i class="fas fa-times"></i> Clear
+                  Clear
                 </button>
               </div>
             </div>
@@ -162,7 +162,7 @@
                           Created: {{ formatDate(transaction.createdDate) }}
                         </p>
                         <p class="text-muted small mb-0">
-                          <i class="fas fa-shipping-fast me-1"></i>
+                          <i class="fas fa-envelope me-1"></i>
                           {{ transaction.service.name }}
                         </p>
                       </div>
@@ -171,11 +171,9 @@
                       <div class="col-md-4">
                         <div class="route-info">
                           <div class="d-flex align-items-center mb-1">
-                            <i class="fas fa-map-marker-alt text-danger me-2"></i>
                             <small class="text-muted">From: {{ transaction.senderAddress?.countryCode || 'SG' }}</small>
                           </div>
                           <div class="d-flex align-items-center">
-                            <i class="fas fa-flag-checkered text-success me-2"></i>
                             <small class="text-muted">To: {{ transaction.recipientAddress?.countryCode || 'Unknown' }}</small>
                           </div>
                           <div class="progress mt-2" style="height: 4px;">
@@ -280,7 +278,7 @@
       </div>
     </div>
   </div>
- 
+
 </template>
 
 <script>

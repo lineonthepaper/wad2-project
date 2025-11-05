@@ -1,97 +1,99 @@
 <template>
   <div>
-    <!-- Charts Section - Collapsible -->
+    <!-- Charts Section -->
     <section class="charts-section">
-      <div class="charts-header" @click="toggleCharts">
+      <div class="charts-header">
         <h3>
           <i class="fas fa-chart-bar"></i>
-          Analytics & Insights
-          <i class="fas" :class="chartsExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          Analytics
         </h3>
-        <span class="charts-toggle">
-          {{ chartsExpanded ? 'Hide Charts' : 'Show Charts' }}
-        </span>
       </div>
 
-      <div class="charts-content" :class="{ 'expanded': chartsExpanded }">
-        <!-- Time Filter Controls -->
-        <div class="time-filter-controls">
-          <div class="filter-group">
-            <label>Time Range:</label>
-            <div class="time-buttons">
-              <button 
-                v-for="period in timePeriods" 
-                :key="period.value"
-                @click="setTimeRange(period.value)"
-                :class="{ 'active': selectedTimeRange === period.value }"
-                class="time-btn"
-              >
-                {{ period.label }}
-              </button>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <label>Custom Range:</label>
-            <div class="date-range">
-              <input 
-                type="date" 
-                v-model="customStartDate"
-                class="date-input"
-              >
-              <span>to</span>
-              <input 
-                type="date" 
-                v-model="customEndDate"
-                class="date-input"
-              >
-              <button @click="applyCustomRange" class="apply-btn">
-                Apply
-              </button>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <label>Data Granularity:</label>
-            <select v-model="dataGranularity" @change="updateCharts" class="granularity-select">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
+      <!-- Time Filter Controls -->
+      <div class="time-filter-controls">
+        <div class="filter-group">
+          <label>Time Range:</label>
+          <div class="time-buttons">
+            <button
+              v-for="period in timePeriods"
+              :key="period.value"
+              @click="setTimeRange(period.value)"
+              :class="{ 'active': selectedTimeRange === period.value }"
+              class="time-btn"
+            >
+              {{ period.label }}
+            </button>
           </div>
         </div>
 
-        <!-- Charts Grid -->
-        <div class="charts-grid">
-          <div class="chart-container">
-            <div class="chart-header">
-              <h4>Shipment Status Distribution</h4>
-              <span class="chart-period">{{ timeRangeLabel }}</span>
-            </div>
+        <div class="filter-group">
+          <label>Custom Range:</label>
+          <div class="date-range">
+            <input
+              type="date"
+              v-model="customStartDate"
+              class="date-input"
+            >
+            <span>to</span>
+            <input
+              type="date"
+              v-model="customEndDate"
+              class="date-input"
+            >
+            <button @click="applyCustomRange" class="apply-btn">
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Data Granularity:</label>
+          <select v-model="dataGranularity" @change="updateCharts" class="granularity-select">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid">
+        <div class="chart-container square-chart">
+          <div class="chart-header">
+            <h4>Shipment Status Distribution</h4>
+            <span class="chart-period">{{ timeRangeLabel }}</span>
+          </div>
+          <div class="chart-wrapper">
             <canvas ref="statusChart" class="chart-canvas"></canvas>
           </div>
+        </div>
 
-          <div class="chart-container">
-            <div class="chart-header">
-              <h4>Monthly Trends</h4>
-              <span class="chart-period">{{ timeRangeLabel }}</span>
-            </div>
+        <div class="chart-container square-chart">
+          <div class="chart-header">
+            <h4>Monthly Trends</h4>
+            <span class="chart-period">{{ timeRangeLabel }}</span>
+          </div>
+          <div class="chart-wrapper">
             <canvas ref="trendsChart" class="chart-canvas"></canvas>
           </div>
+        </div>
 
-          <div class="chart-container">
-            <div class="chart-header">
-              <h4>Service Type Usage</h4>
-              <span class="chart-period">{{ timeRangeLabel }}</span>
-            </div>
+        <div class="chart-container square-chart">
+          <div class="chart-header">
+            <h4>Service Type Usage</h4>
+            <span class="chart-period">{{ timeRangeLabel }}</span>
+          </div>
+          <div class="chart-wrapper">
             <canvas ref="serviceChart" class="chart-canvas"></canvas>
           </div>
+        </div>
 
-          <div class="chart-container">
-            <div class="chart-header">
-              <h4>Delivery Performance</h4>
-              <span class="chart-period">{{ timeRangeLabel }}</span>
-            </div>
+        <div class="chart-container square-chart">
+          <div class="chart-header">
+            <h4>Delivery Performance</h4>
+            <span class="chart-period">{{ timeRangeLabel }}</span>
+          </div>
+          <div class="chart-wrapper">
             <div class="gauge-wrapper">
               <canvas ref="gaugeChart" class="chart-canvas"></canvas>
               <div class="gauge-center">
@@ -116,10 +118,9 @@ export default {
     const today = new Date();
     const oneMonthAgo = new Date(today);
     oneMonthAgo.setMonth(today.getMonth() - 1);
-    
+
     return {
       // Charts & Filtering
-      chartsExpanded: false,
       selectedTimeRange: '1m',
       dataGranularity: 'monthly',
       customStartDate: oneMonthAgo.toISOString().split('T')[0],
@@ -153,7 +154,7 @@ export default {
     },
     deliveryRate() {
       const filteredData = this.getFilteredStats();
-      return filteredData.total > 0 ? 
+      return filteredData.total > 0 ?
         Math.round((filteredData.delivered / filteredData.total) * 100) : 0;
     },
     filteredParcelsByTime() {
@@ -195,31 +196,14 @@ export default {
     }
   },
   mounted() {
-    // Initialize charts if expanded by default
-    if (this.chartsExpanded) {
-      this.$nextTick(() => {
-        this.initCharts();
-      });
-    }
+    this.$nextTick(() => {
+      this.initCharts();
+    });
   },
   beforeUnmount() {
     this.destroyCharts();
   },
   methods: {
-    // Charts Methods
-    toggleCharts() {
-      this.chartsExpanded = !this.chartsExpanded;
-      if (this.chartsExpanded) {
-        this.$nextTick(() => {
-          setTimeout(() => {
-            this.initCharts();
-          }, 300);
-        });
-      } else {
-        this.destroyCharts();
-      }
-    },
-
     destroyCharts() {
       Object.values(this.charts).forEach(chart => {
         if (chart && typeof chart.destroy === 'function') {
@@ -240,17 +224,15 @@ export default {
     },
 
     updateCharts() {
-      if (this.chartsExpanded) {
-        this.destroyCharts();
-        this.$nextTick(() => {
-          this.initCharts();
-        });
-      }
+      this.destroyCharts();
+      this.$nextTick(() => {
+        this.initCharts();
+      });
     },
 
     initCharts() {
-      if (!this.$refs.statusChart || !this.chartsExpanded) return;
-      
+      if (!this.$refs.statusChart) return;
+
       try {
         this.initStatusChart();
         this.initTrendsChart();
@@ -270,24 +252,40 @@ export default {
       if (!ctx.getContext) return;
 
       this.charts.status = new Chart(ctx, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
           labels: ['In Progress', 'Delivered', 'Pending'],
           datasets: [{
             data: [filteredData.inProgress, filteredData.delivered, filteredData.pending],
             backgroundColor: ['#ffa500', '#00ff88', '#ff4275'],
-            borderWidth: 2,
-            borderColor: '#fff'
+            borderWidth: 3,
+            borderColor: '#ffe8ee',
+            hoverBorderWidth: 4,
+            hoverBorderColor: '#fff'
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
+          maintainAspectRatio: true,
+          cutout: '60%',
           plugins: {
             legend: {
-              position: 'bottom'
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: {
+                  size: 11,
+                  weight: '500'
+                },
+                color: '#455a64'
+              }
             },
             tooltip: {
+              bodyFont: {
+                size: 12
+              },
               callbacks: {
                 label: function(context) {
                   const label = context.label || '';
@@ -320,7 +318,13 @@ export default {
               borderColor: '#ffa500',
               backgroundColor: 'rgba(255, 165, 0, 0.1)',
               tension: 0.4,
-              fill: true
+              fill: true,
+              borderWidth: 3,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#ffa500',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
             },
             {
               label: 'Delivered',
@@ -328,13 +332,19 @@ export default {
               borderColor: '#00ff88',
               backgroundColor: 'rgba(0, 255, 136, 0.1)',
               tension: 0.4,
-              fill: true
+              fill: true,
+              borderWidth: 3,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#00ff88',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
             }
           ]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
+          maintainAspectRatio: true,
           interaction: {
             intersect: false,
             mode: 'index'
@@ -342,9 +352,34 @@ export default {
           scales: {
             y: {
               beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Number of Shipments'
+              grid: {
+                color: 'rgba(255, 255, 255, 0.2)'
+              },
+              ticks: {
+                color: '#455a64'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.2)'
+              },
+              ticks: {
+                color: '#455a64'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: {
+                  size: 11,
+                  weight: '500'
+                },
+                color: '#455a64'
               }
             }
           }
@@ -364,7 +399,7 @@ export default {
 
       const serviceNames = Object.keys(serviceStats);
       const serviceCounts = Object.values(serviceStats);
-      
+
       this.charts.service = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -372,17 +407,38 @@ export default {
           datasets: [{
             label: 'Number of Shipments',
             data: serviceCounts,
-            backgroundColor: ['#ff4275', '#ff759e', '#ff9096', '#ffa500', '#00ff88'],
-            borderColor: '#fff',
-            borderWidth: 2
+            backgroundColor: '#ff4275',
+            borderColor: '#ff4275',
+            borderWidth: 0,
+            borderRadius: 8,
+            borderSkipped: false,
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
+          maintainAspectRatio: true,
           scales: {
             y: {
-              beginAtZero: true
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.2)'
+              },
+              ticks: {
+                color: '#455a64'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#455a64'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
             }
           }
         }
@@ -394,7 +450,7 @@ export default {
       if (!ctx || !ctx.getContext) return;
 
       const filteredData = this.getFilteredStats();
-      const deliveryRate = filteredData.total > 0 ? 
+      const deliveryRate = filteredData.total > 0 ?
         Math.round((filteredData.delivered / filteredData.total) * 100) : 0;
 
       this.charts.gauge = new Chart(ctx, {
@@ -403,9 +459,9 @@ export default {
           datasets: [{
             data: [deliveryRate, 100 - deliveryRate],
             backgroundColor: [
-              deliveryRate >= 80 ? '#00ff88' : 
+              deliveryRate >= 80 ? '#00ff88' :
               deliveryRate >= 60 ? '#ffa500' : '#ff4275',
-              '#f0f0f0'
+              '#f1d9df'
             ],
             borderWidth: 0,
             circumference: 180,
@@ -414,8 +470,8 @@ export default {
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          cutout: '70%',
+          maintainAspectRatio: true,
+          cutout: '75%',
           plugins: {
             legend: { display: false },
             tooltip: { enabled: false }
@@ -499,17 +555,9 @@ export default {
 }
 
 .charts-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 1.5rem;
   background: var(--light-pink);
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.charts-header:hover {
-  background: var(--pink-grey);
+  border-bottom: 1px solid var(--pink-grey);
 }
 
 .charts-header h3 {
@@ -522,27 +570,11 @@ export default {
   gap: 0.5rem;
 }
 
-.charts-toggle {
-  color: var(--hot-pink);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.charts-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.5s ease;
-}
-
-.charts-content.expanded {
-  max-height: 2000px;
-}
-
 /* Time Filter Controls */
 .time-filter-controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
   padding: 1.5rem;
   background: var(--light-pink);
   border-bottom: 1px solid var(--pink-grey);
@@ -626,7 +658,7 @@ export default {
 /* Charts Grid */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   padding: 1.5rem;
 }
@@ -634,8 +666,15 @@ export default {
 .chart-container {
   background: var(--light-pink);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 1.25rem;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container.square-chart {
+  aspect-ratio: 1 / 1;
+  min-height: 320px;
 }
 
 .chart-header {
@@ -643,30 +682,43 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .chart-header h4 {
   margin: 0;
   font-size: 1rem;
+  font-weight: 600;
   color: var(--dark-slate-blue);
 }
 
 .chart-period {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--slate-blue);
   background: white;
   padding: 0.3rem 0.6rem;
   border-radius: 12px;
+  font-weight: 500;
+}
+
+.chart-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 
 .chart-canvas {
   width: 100% !important;
-  height: 250px !important;
+  height: 100% !important;
+  max-height: 240px;
 }
 
 .gauge-wrapper {
   position: relative;
-  height: 250px;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -699,20 +751,19 @@ export default {
   .time-filter-controls {
     grid-template-columns: 1fr;
   }
-  
+
   .charts-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .date-range {
     flex-direction: column;
     align-items: stretch;
   }
-  
-  .charts-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
+
+  .chart-container.square-chart {
+    aspect-ratio: 4 / 3;
+    min-height: 280px;
   }
 }
 
@@ -720,11 +771,19 @@ export default {
   .time-buttons {
     justify-content: center;
   }
-  
+
   .chart-header {
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
+  }
+
+  .chart-container.square-chart {
+    min-height: 250px;
+  }
+
+  .gauge-value {
+    font-size: 1.75rem;
   }
 }
 </style>

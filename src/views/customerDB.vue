@@ -80,16 +80,17 @@
           <div class="section-column globe-column">
             <div class="section-card">
               <div class="card-header">
-                <h3><i class="fas fa-globe-americas"></i> Live Tracking Map</h3>
+                <h3><span style="display:inline-block;width:10px;height:10px;background:red;border-radius:50%;margin-left:6px;"></span>
+ Live Tracking Map</h3>
                 <div class="card-actions">
                   <span v-if="globeUpdateTimeout" class="globe-updating-indicator">
-                    <i class="fas fa-circle-notch fa-spin"></i> Updating...
+                    <i class="fa-spin">.</i> Updating...
                   </span>
                   <button class="btn-icon" @click="forceReinit" title="Refresh Globe">
-                    <i class="fas fa-sync-alt"></i>
+                    X
                   </button>
                   <button class="btn-icon" v-if="selectedParcel" @click="clearRoute" title="Clear Route">
-                    <i class="fas fa-times"></i>
+                    X
                   </button>
                 </div>
               </div>
@@ -97,7 +98,7 @@
                 <div ref="globeContainer" class="globe-container" style="width: 100%; height: 400px;">
                   <div v-if="globeError" class="globe-error">
                     <div class="error-icon">
-                      <i class="fas fa-exclamation-triangle"></i>
+                      X
                     </div>
                     <p>Failed to load globe visualization</p>
                     <button class="btn-retry" @click="forceReinit">Retry</button>
@@ -119,9 +120,6 @@
                   <div class="search-box">
                     <h3> Recent Shipments</h3>
                   </div>
-                  <!-- <button class="btn-icon" title="Filter">
-                    <i class="fas fa-filter"></i>
-                  </button> -->
                 </div>
               </div>
               <div class="card-body">
@@ -134,7 +132,7 @@
                     @click="selectParcel(parcel)"
                   >
                     <div class="parcel-icon">
-                      <i class="fas fa-box"></i>
+                      <i class="fas fa-star"></i>
                     </div>
                     <div class="parcel-details">
                       <div class="parcel-header">
@@ -145,11 +143,11 @@
                       </div>
                       <div class="parcel-info">
                         <div class="info-item">
-                          <i class="fas fa-user"></i>
+                          <span style="font-size:14px;">📍</span>
                           <span>{{ parcel.customer }}</span>
                         </div>
                         <div class="info-item">
-                          <i class="fas fa-map-marker-alt"></i>
+                          <i class="fa-map-marker"></i>
                           <span>{{ getLocationName(parcel.currentLocation || parcel.location) }}</span>
                         </div>
                         <div class="info-item">
@@ -287,7 +285,7 @@ export default {
           value: this.stats.inProgress,
           icon: 'fas fa-shipping-fast',
           trend: 'up',
-          trendIcon: 'fas fa-arrow-up',
+          trendIcon: 'fas fa-paper-plane',
           trendValue: '+2 today',
           chartData: [65, 70, 75, 80, 75, 70, 68]
         },
@@ -317,7 +315,7 @@ export default {
           value: this.totalShipments,
           icon: 'fas fa-boxes',
           trend: 'up',
-          trendIcon: 'fas fa-arrow-up',
+          trendIcon: 'fas fa-chart-bar',
           trendValue: '+8%',
           chartData: [50, 55, 60, 65, 70, 75, 80]
         }

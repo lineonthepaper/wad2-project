@@ -32,7 +32,7 @@
         <i class="fas fa-redo"></i> Try Again
       </button>
       <button class="btn btn-outline-secondary ms-2" @click="goBack">
-        <i class="fas fa-arrow-left"></i> Go Back
+         Go Back
       </button>
     </div>
 
@@ -48,7 +48,7 @@
 <br>
    <div class="shipment-header">
   <button @click="goBack" class="back-btn">
-    <i class="fas fa-arrow-left"></i> Back
+  Back
   </button>
 
   <div class="tracking-number">
@@ -65,7 +65,6 @@
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
-                  <i class="fas fa-route me-2"></i>
                   Route Information
                 </h4>
               </div>
@@ -116,7 +115,7 @@
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
-                  <i class="fas fa-info-circle me-2"></i>
+
                   Shipment Details
                 </h4>
               </div>
@@ -170,7 +169,7 @@
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
-                  <i class="fas fa-boxes me-2"></i>
+
                   Items in Shipment
                 </h4>
               </div>
@@ -213,7 +212,7 @@
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
-                  <i class="fas fa-history me-2"></i>
+<i class="fas fa-arrow-down me-2"></i>
                   Timeline
                 </h4>
               </div>
@@ -279,7 +278,7 @@
 <div class="detail-card card mb-4">
   <div class="card-header bg-light-pink">
     <h4 class="mb-0">
-      <i class="fas fa-user-tag me-2"></i>
+<i class="fas fa-user me-2"></i>
       Recipient Information
     </h4>
   </div>

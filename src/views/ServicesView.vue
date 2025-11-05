@@ -198,7 +198,7 @@ onMounted(() => {
                 @click="clearFilters"
                 :disabled="!hasActiveFilters"
               >
-                <i class="fas fa-times"></i> Clear
+                Clear
               </button>
             </div>
           </div>
@@ -273,15 +273,15 @@ onMounted(() => {
 
                 <div class="service-details mb-2">
                   <small class="text-muted d-block">
-                    <i class="fas fa-weight-hanging me-1"></i>
+
                     Max Weight: {{ service.max_weight }}kg
                   </small>
                   <small class="text-muted d-block">
-                    <i class="fas fa-ruler-combined me-1"></i>
+
                     Dimensions: {{ service.max_length }} × {{ service.max_width }} × {{ service.max_height }} cm
                   </small>
                   <small class="text-muted d-block">
-                    <i class="fas fa-shipping-fast me-1"></i>
+
                     Tracking: {{ service.is_tracked ? 'Yes' : 'No' }}
                   </small>
                 </div>
@@ -420,7 +420,7 @@ onMounted(() => {
 
   .card-img-container {
     height: 180px;
-    padding: 15px; 
+    padding: 15px;
   }
 }
 </style>
