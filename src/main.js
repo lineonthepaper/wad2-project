@@ -24,7 +24,7 @@ app.use(SpeechToTextPlugin, {
   buttonColor: '#3c4247ff',
   buttonPosition: 'right',
   lang: 'en-US',
-  enabledPages: ['/services','/history','/faq','/chatbot']
+  enabledPages: ['/services', '/chatbot', '/history', '/faq']
 });
 
 app.mount('#app')

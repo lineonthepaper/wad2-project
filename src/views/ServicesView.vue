@@ -341,7 +341,7 @@ onMounted(() => {
 
 
 .text-hot-pink {
-  color: #ff69b4;
+  color: var(--hot-pink) !important;
 }
 
 .jua {
