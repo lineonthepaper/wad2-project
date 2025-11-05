@@ -1,3 +1,4 @@
+// plugins/speech.js
 const SpeechToTextPlugin = {
   install(app, options = {}) {
     const defaultOptions = {
@@ -5,51 +6,37 @@ const SpeechToTextPlugin = {
       buttonPosition: 'right',
       lang: 'en-US',
       autoStart: false,
-      enabledPages: ['/services', '/help', '/history'],
+      enabledPages: ['/services', '/help', '/history', '/faq'],
       ...options
     };
 
-    // Store plugin state
     let currentInput = null;
     let isListening = false;
-    let observer = null;
     let recognition = null;
+    let observer = null;
 
     const isPageEnabled = () => {
-      if (!defaultOptions.enabledPages || defaultOptions.enabledPages.length === 0) {
-        return true;
-      }
-
-      const currentPath = window.location.pathname;
-      return defaultOptions.enabledPages.some(page =>
-        currentPath.includes(page) || currentPath === page
-      );
+      if (!defaultOptions.enabledPages || defaultOptions.enabledPages.length === 0) return true;
+      const path = window.location.pathname;
+      return defaultOptions.enabledPages.some(page => path.includes(page) || path === page);
     };
 
     const isSupported = () => {
-      return ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) &&
-             isPageEnabled();
+      return ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) && isPageEnabled();
     };
 
-    // Initialize speech recognition
     const initializeRecognition = () => {
-      if (!isSupported()) {
-        console.warn('Speech recognition is not supported in this browser or page');
-        return null;
-      }
-
+      if (!isSupported()) return null;
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = defaultOptions.lang;
-
       return recognition;
     };
 
-    // Initialize recognition on plugin install
+    // Initialize recognition immediately
     recognition = initializeRecognition();
-    if (!recognition) return;
 
     const micIcon = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -65,11 +52,65 @@ const SpeechToTextPlugin = {
       </svg>
     `;
 
+    const stopListening = () => {
+      isListening = false;
+      if (recognition) recognition.stop();
+    };
+
+    const startListening = (input, button) => {
+      if (isListening || !recognition) return;
+      currentInput = input;
+      isListening = true;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (currentInput) {
+          const cursor = currentInput.selectionStart;
+          const val = currentInput.value;
+          currentInput.value = val.slice(0, cursor) + transcript + val.slice(cursor);
+          currentInput.dispatchEvent(new Event('input', { bubbles: true }));
+          currentInput.dispatchEvent(new Event('change', { bubbles: true }));
+          currentInput.focus();
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        stopListening();
+        if (button) button.innerHTML = micIcon;
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        if (button) button.innerHTML = micIcon;
+        if (button) button.style.background = defaultOptions.buttonColor;
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        isListening = false;
+        if (button) button.innerHTML = micIcon;
+      }
+    };
+
+    const toggleListening = (input, button) => {
+      if (isListening) {
+        stopListening();
+        button.innerHTML = micIcon;
+        button.style.background = defaultOptions.buttonColor;
+      } else {
+        startListening(input, button);
+        button.innerHTML = recordingIcon;
+        button.style.background = '#f44336';
+      }
+    };
+
     const createMicButton = (input) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.innerHTML = micIcon;
-      button.setAttribute('data-speech-button', 'true');
       button.style.cssText = `
         position: absolute;
         ${defaultOptions.buttonPosition === 'right' ? 'right' : 'left'}: 8px;
@@ -93,26 +134,18 @@ const SpeechToTextPlugin = {
 
       button.addEventListener('mouseenter', () => {
         button.style.opacity = '1';
-        button.style.transform = 'translateY(-50%) scale(1.05)';
+        button.style.transform = 'translateY(-50%) scale(1.1)';
       });
 
       button.addEventListener('mouseleave', () => {
-        if (!isListening) {
-          button.style.opacity = '0.8';
-          button.style.transform = 'translateY(-50%) scale(1)';
-        }
+        button.style.opacity = '0.8';
+        button.style.transform = 'translateY(-50%) scale(1)';
       });
 
       button.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
         toggleListening(input, button);
-      });
-
-      button.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
       });
 
       return button;
@@ -120,120 +153,52 @@ const SpeechToTextPlugin = {
 
     const enhanceInput = (input) => {
       if (input.dataset.speechEnhanced) return;
+      if (!isPageEnabled()) return;
+
+      // Check if already wrapped
+      if (input.parentNode.querySelector('button[data-speech-button]')) return;
 
       const wrapper = document.createElement('div');
       wrapper.style.position = 'relative';
       wrapper.style.display = 'inline-block';
       wrapper.style.width = '100%';
 
-      const isDropdownInput = input.parentElement?.classList?.contains('dropdown-menu') ||
-                             input.closest('.dropdown');
-
-      if (isDropdownInput) {
-        wrapper.style.zIndex = '1001';
-      }
-
       input.parentNode.insertBefore(wrapper, input);
       wrapper.appendChild(input);
 
       const micButton = createMicButton(input);
+      micButton.setAttribute('data-speech-button', 'true');
       wrapper.appendChild(micButton);
 
       input.dataset.speechEnhanced = 'true';
-
-      if (isDropdownInput) {
-        wrapper.classList.add('speech-dropdown-input');
-        micButton.style.zIndex = '1002';
-      }
-    };
-
-    // Toggle listening state
-    const toggleListening = (input, button) => {
-      if (isListening) {
-        stopListening();
-        button.style.opacity = '0.8';
-        button.style.background = defaultOptions.buttonColor;
-        button.style.transform = 'translateY(-50%) scale(1)';
-        button.innerHTML = micIcon;
+      
+      // Add padding to input to prevent text overlap
+      if (defaultOptions.buttonPosition === 'right') {
+        input.style.paddingRight = '45px';
       } else {
-        startListening(input, button);
-        button.style.opacity = '1';
-        button.style.background = '#f44336';
-        button.style.transform = 'translateY(-50%) scale(1.1)';
-        button.innerHTML = recordingIcon;
+        input.style.paddingLeft = '45px';
       }
-    };
-
-    const startListening = (input, button) => {
-      if (isListening) return;
-
-      currentInput = input;
-      isListening = true;
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        if (currentInput) {
-          const cursorPosition = currentInput.selectionStart;
-          const currentValue = currentInput.value;
-          const newValue = currentValue.substring(0, cursorPosition) +
-                          transcript +
-                          currentValue.substring(cursorPosition);
-          currentInput.value = newValue;
-
-          currentInput.dispatchEvent(new Event('input', { bubbles: true }));
-          currentInput.dispatchEvent(new Event('change', { bubbles: true }));
-          currentInput.focus();
-        }
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        stopListening();
-        if (button) {
-          button.style.opacity = '0.8';
-          button.style.background = defaultOptions.buttonColor;
-          button.style.transform = 'translateY(-50%) scale(1)';
-          button.innerHTML = micIcon;
-        }
-      };
-
-      recognition.onend = () => {
-        isListening = false;
-        if (button) {
-          button.style.opacity = '0.8';
-          button.style.background = defaultOptions.buttonColor;
-          button.style.transform = 'translateY(-50%) scale(1)';
-          button.innerHTML = micIcon;
-        }
-      };
-
-      recognition.start();
-    };
-
-    const stopListening = () => {
-      isListening = false;
-      recognition.stop();
-    };
-
-    // Remove all existing speech buttons
-    const removeAllSpeechButtons = () => {
-      const buttons = document.querySelectorAll('[data-speech-button]');
-      buttons.forEach(button => {
-        button.remove();
-      });
-
-      // Remove enhanced markers
-      const enhancedInputs = document.querySelectorAll('[data-speech-enhanced]');
-      enhancedInputs.forEach(input => {
-        delete input.dataset.speechEnhanced;
-      });
     };
 
     const enhanceAllInputs = () => {
-      // Clean up first
-      removeAllSpeechButtons();
+      // Reinitialize recognition on page change
+      recognition = initializeRecognition();
 
-      if (!isPageEnabled()) return;
+      if (!isPageEnabled()) {
+        // Remove all mic buttons if page is not enabled
+        document.querySelectorAll('[data-speech-button]').forEach(button => {
+          button.remove();
+        });
+        document.querySelectorAll('[data-speech-enhanced]').forEach(input => {
+          delete input.dataset.speechEnhanced;
+          if (defaultOptions.buttonPosition === 'right') {
+            input.style.paddingRight = '';
+          } else {
+            input.style.paddingLeft = '';
+          }
+        });
+        return;
+      }
 
       const inputs = document.querySelectorAll(`
         input[type="text"],
@@ -242,123 +207,89 @@ const SpeechToTextPlugin = {
         input[type="url"],
         input[type="tel"],
         textarea:not([data-no-speech]),
-        [contenteditable="true"]
+        [contenteditable="true"]:not([data-no-speech])
       `);
 
       inputs.forEach(input => {
-        if (!input.disabled && !input.readOnly) {
-          enhanceInput(input);
-        }
+        if (!input.disabled && !input.readOnly) enhanceInput(input);
       });
     };
 
     const initObserver = () => {
-      // Disconnect existing observer
-      if (observer) {
-        observer.disconnect();
-      }
-
+      if (observer) observer.disconnect();
+      
       observer = new MutationObserver((mutations) => {
-        if (!isPageEnabled()) return;
-
+        let shouldEnhance = false;
+        
         mutations.forEach((mutation) => {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) {
-              const inputs = node.querySelectorAll ? node.querySelectorAll(`
-                input[type="text"],
-                input[type="search"],
-                input[type="email"],
-                input[type="url"],
-                input[type="tel"],
-                textarea:not([data-no-speech]),
-                [contenteditable="true"]
-              `) : [];
-
-              inputs.forEach(input => {
-                if (!input.disabled && !input.readOnly && !input.dataset.speechEnhanced) {
-                  enhanceInput(input);
+          if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === 1) { // Element node
+                if (node.matches && (
+                  node.matches('input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="tel"], textarea, [contenteditable="true"]') ||
+                  node.querySelector('input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="tel"], textarea, [contenteditable="true"]')
+                )) {
+                  shouldEnhance = true;
                 }
-              });
-
-              if (node.matches && node.matches(`
-                input[type="text"],
-                input[type="search"],
-                input[type="email"],
-                input[type="url"],
-                input[type="tel"],
-                textarea:not([data-no-speech]),
-                [contenteditable="true"]
-              `) && !node.disabled && !node.readOnly) {
-                enhanceInput(node);
               }
-            }
-          });
+            });
+          }
         });
+
+        if (shouldEnhance) {
+          setTimeout(enhanceAllInputs, 10);
+        }
       });
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
+      observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
       });
     };
 
-    // Main initialization function
     const initializePlugin = () => {
       enhanceAllInputs();
-      initObserver();
     };
 
-    // ✅ FIXED: Vue 3 Router Integration
+    // Initialize immediately
+    initializePlugin();
+    initObserver();
+
+    // Handle Vue Router navigation
     if (app.config.globalProperties.$router) {
-      // Watch for route changes
-      app.config.globalProperties.$router.afterEach((to, from) => {
-        // Wait for Vue to update the DOM, then reinitialize
+      // Enhance inputs on route changes
+      app.config.globalProperties.$router.afterEach(() => {
         setTimeout(() => {
-          initializePlugin();
+          enhanceAllInputs();
         }, 100);
       });
-
-      // For Vue 3, use isReady() instead of onReady()
-      if (app.config.globalProperties.$router.isReady) {
-        app.config.globalProperties.$router.isReady().then(() => {
-          setTimeout(() => {
-            initializePlugin();
-          }, 100);
-        });
-      } else {
-        // Fallback for initial load
-        setTimeout(() => {
-          initializePlugin();
-        }, 500);
-      }
     }
 
-    // Initial initialization
-    setTimeout(() => {
-      initializePlugin();
-    }, 500);
+    // Also enhance on DOM content loaded and window load as fallbacks
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', enhanceAllInputs);
+    } else {
+      enhanceAllInputs();
+    }
+
+    window.addEventListener('load', enhanceAllInputs);
 
     app.config.globalProperties.$speechToText = {
       startListening: (input) => {
-        const button = input.parentNode?.querySelector('button');
+        const button = input.parentNode?.querySelector('[data-speech-button]');
         startListening(input, button);
       },
       stopListening,
       isListening: () => isListening,
-      setLanguage: (lang) => {
-        recognition.lang = lang;
+      setLanguage: (lang) => { 
+        if (recognition) recognition.lang = lang; 
       },
-      // Add reinitialization method
       reinitialize: () => {
-        initializePlugin();
-      }
+        enhanceAllInputs();
+      },
+      isSupported: () => isSupported()
     };
   }
 };
-
-// Remove Vue 2 auto-install since you're using Vue 3
-// if (typeof window !== 'undefined' && window.Vue) {
-//   window.Vue.use(SpeechToTextPlugin);
-// }
 
 export default SpeechToTextPlugin;

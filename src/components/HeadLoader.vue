@@ -1,3 +1,6 @@
+<template>
+  
+</template>
 <script setup>
 import { useHead } from '@unhead/vue'
 import { routes } from '../router/routes.js'
