@@ -264,12 +264,13 @@ export default {
       this.carouselInterval = this.carousel()
     },
   },
-  created() {
+  mounted() {
     window.addEventListener('resize', this.updateMobileView)
     this.carouselInterval = this.carousel()
   },
   unmounted() {
     window.removeEventListener('resize', this.updateMobileView)
+    clearInterval(this.carouselInterval)
   },
 }
 </script>
