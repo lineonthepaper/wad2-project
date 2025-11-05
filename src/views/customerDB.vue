@@ -112,21 +112,21 @@
             </div>
           </div>
         </section>
-         <div class="text-center my-3">
-   <button @click="viewHistory"
-          style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
-          onmouseover="this.style.background='#ff4d8d'"
-          onmouseout="this.style.background='#ff6b9d'">
+        <div class="text-center my-3" style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+  <button @click="viewHistory"
+          style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer; flex: 1; max-width: 200px; height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;"
+          @mouseover="this.style.background='#ff4d8d'"
+          @mouseout="this.style.background='#ff6b9d'">
     <h3 class="mb-0">Shipment History</h3>
     <p class="mb-0">Click to view more</p>
   </button>
-   <button @click="viewCharts"
-            style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer; flex: 1; max-width: 200px;"
-            @mouseover="this.style.background='#ff4d8d'"
-            @mouseout="this.style.background='#ff6b9d'">
-      <h3 class="mb-0">Analytics Charts</h3>
-      <p class="mb-0">View detailed analytics</p>
-    </button>
+  <button @click="viewCharts"
+          style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer; flex: 1; max-width: 200px; height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;"
+          @mouseover="this.style.background='#ff4d8d'"
+          @mouseout="this.style.background='#ff6b9d'">
+    <h3 class="mb-0">Analytics Charts</h3>
+    <p class="mb-0">View detailed analytics</p>
+  </button>
 </div>
 
         <section class="tracking-section">
@@ -194,7 +194,7 @@
                       </div>
                       <div class="parcel-info">
                         <div class="info-item">
-                          <span>📍</span>
+                          <span>👤</span>
                           <span>{{ parcel.customer }}</span>
                         </div>
                         <div class="info-item">
@@ -258,13 +258,12 @@
     <div v-else class="login-required">
       <div class="login-message">
         <div class="message-icon">
-          <span>🔒</span>
+
         </div>
         <h2>Authentication Required</h2>
         <p>Please log in to access your parcel tracking dashboard</p>
         <div class="action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
-            <span>🔑</span>
             Go to Login
           </button>
         </div>

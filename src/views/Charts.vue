@@ -236,13 +236,11 @@
     <div v-else class="login-required">
       <div class="login-message">
         <div class="message-icon">
-          <i class="fas fa-lock"></i>
         </div>
         <h2>Authentication Required</h2>
-        <p>Please log in to access your analytics dashboard</p>
+        <p>Please log in to access your parcel tracking dashboard</p>
         <div class="action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
-            <i class="fas fa-sign-in-alt"></i>
             Go to Login
           </button>
         </div>
@@ -1297,17 +1295,11 @@ export default {
 }
 
 .message-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  font-size: 2rem;
-  color: white;
+  font-size: 4rem;
+  color: var(--hot-pink);
+  margin-bottom: 1.5rem;
 }
+
 
 .login-message h2 {
   color: var(--dark-slate-blue);

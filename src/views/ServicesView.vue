@@ -274,7 +274,7 @@ onMounted(() => {
                 <div class="service-details mb-2">
                   <small class="text-muted d-block">
 
-                    Max Weight: {{ service.max_weight }}kg
+                    Max Weight: {{ service.max_weight }}kg 
                   </small>
                   <small class="text-muted d-block">
 
