@@ -1,11 +1,11 @@
 <template>
   <div class="settings-page">
-    <!-- Show settings only when authenticated -->
+
     <div v-if="isAuthenticated" class="settings-wrapper">
-      <!-- Translucent Background -->
+
       <div class="translucent-background"></div>
 
-      <!-- Centered Content -->
+
       <div class="settings-center">
         <div class="settings-card">
           <div class="card-header">
@@ -40,7 +40,7 @@
       </div>
     </div>
 
-    <!-- Show login prompt when not authenticated -->
+
     <div v-else class="login-required">
       <div class="login-message">
         <div class="message-icon">
@@ -90,7 +90,7 @@ export default {
       }
     },
 
-    // Centralized navigation method
+
     navigateTo(route) {
       if (!this.isAuthenticated) {
         alert('Please log in to access this feature');
@@ -98,7 +98,6 @@ export default {
         return;
       }
 
-      // Use Vue Router if available, otherwise fall back to window.location
       if (this.$router) {
         this.$router.push(route);
       } else {
@@ -106,7 +105,7 @@ export default {
       }
     },
 
-    // Go back to homepage
+
     goToHomepage() {
       if (this.$router) {
         this.$router.push('/');
@@ -127,7 +126,6 @@ export default {
 </script>
 
 <style scoped>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
 :root {
   --hot-pink: #ff4275;

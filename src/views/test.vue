@@ -12,21 +12,6 @@
       <!-- Time Filter Controls -->
       <div class="time-filter-controls">
         <div class="filter-group">
-          <label>Time Range:</label>
-          <div class="time-buttons">
-            <button
-              v-for="period in timePeriods"
-              :key="period.value"
-              @click="setTimeRange(period.value)"
-              :class="{ 'active': selectedTimeRange === period.value }"
-              class="time-btn"
-            >
-              {{ period.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="filter-group">
           <label>Custom Range:</label>
           <div class="date-range">
             <input
@@ -52,6 +37,7 @@
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
           </select>
         </div>
       </div>
@@ -121,18 +107,10 @@ export default {
 
     return {
       // Charts & Filtering
-      selectedTimeRange: '1m',
+      selectedTimeRange: 'custom',
       dataGranularity: 'monthly',
       customStartDate: oneMonthAgo.toISOString().split('T')[0],
       customEndDate: today.toISOString().split('T')[0],
-      timePeriods: [
-        { label: '1 Week', value: '1w' },
-        { label: '1 Month', value: '1m' },
-        { label: '3 Months', value: '3m' },
-        { label: '6 Months', value: '6m' },
-        { label: '1 Year', value: '1y' },
-        { label: 'All Time', value: 'all' }
-      ],
       charts: {},
       // Sample data for charts
       sampleParcels: [
@@ -149,8 +127,7 @@ export default {
   },
   computed: {
     timeRangeLabel() {
-      const period = this.timePeriods.find(p => p.value === this.selectedTimeRange);
-      return period ? period.label : 'Custom Range';
+      return 'Custom Range';
     },
     deliveryRate() {
       const filteredData = this.getFilteredStats();
@@ -158,40 +135,11 @@ export default {
         Math.round((filteredData.delivered / filteredData.total) * 100) : 0;
     },
     filteredParcelsByTime() {
-      const now = new Date();
-      let startDate = new Date();
-
-      switch (this.selectedTimeRange) {
-        case '1w':
-          startDate.setDate(now.getDate() - 7);
-          break;
-        case '1m':
-          startDate.setMonth(now.getMonth() - 1);
-          break;
-        case '3m':
-          startDate.setMonth(now.getMonth() - 3);
-          break;
-        case '6m':
-          startDate.setMonth(now.getMonth() - 6);
-          break;
-        case '1y':
-          startDate.setFullYear(now.getFullYear() - 1);
-          break;
-        case 'custom':
-          startDate = new Date(this.customStartDate);
-          const endDate = new Date(this.customEndDate);
-          return this.sampleParcels.filter(parcel => {
-            const parcelDate = new Date(parcel.createdDate);
-            return parcelDate >= startDate && parcelDate <= endDate;
-          });
-        case 'all':
-        default:
-          return this.sampleParcels;
-      }
-
+      const startDate = new Date(this.customStartDate);
+      const endDate = new Date(this.customEndDate);
       return this.sampleParcels.filter(parcel => {
         const parcelDate = new Date(parcel.createdDate);
-        return parcelDate >= startDate;
+        return parcelDate >= startDate && parcelDate <= endDate;
       });
     }
   },
@@ -211,11 +159,6 @@ export default {
         }
       });
       this.charts = {};
-    },
-
-    setTimeRange(range) {
-      this.selectedTimeRange = range;
-      this.updateCharts();
     },
 
     applyCustomRange() {
@@ -258,16 +201,16 @@ export default {
           datasets: [{
             data: [filteredData.inProgress, filteredData.delivered, filteredData.pending],
             backgroundColor: ['#ffa500', '#00ff88', '#ff4275'],
-            borderWidth: 3,
+            borderWidth: 2,
             borderColor: '#ffe8ee',
-            hoverBorderWidth: 4,
+            hoverBorderWidth: 3,
             hoverBorderColor: '#fff'
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: true,
-          cutout: '60%',
+          cutout: '65%',
           plugins: {
             legend: {
               position: 'bottom',
@@ -319,12 +262,12 @@ export default {
               backgroundColor: 'rgba(255, 165, 0, 0.1)',
               tension: 0.4,
               fill: true,
-              borderWidth: 3,
+              borderWidth: 2,
               pointRadius: 4,
               pointHoverRadius: 6,
               pointBackgroundColor: '#ffa500',
               pointBorderColor: '#fff',
-              pointBorderWidth: 2
+              pointBorderWidth: 1
             },
             {
               label: 'Delivered',
@@ -333,12 +276,12 @@ export default {
               backgroundColor: 'rgba(0, 255, 136, 0.1)',
               tension: 0.4,
               fill: true,
-              borderWidth: 3,
+              borderWidth: 2,
               pointRadius: 4,
               pointHoverRadius: 6,
               pointBackgroundColor: '#00ff88',
               pointBorderColor: '#fff',
-              pointBorderWidth: 2
+              pointBorderWidth: 1
             }
           ]
         },
@@ -356,7 +299,10 @@ export default {
                 color: 'rgba(255, 255, 255, 0.2)'
               },
               ticks: {
-                color: '#455a64'
+                color: '#455a64',
+                font: {
+                  size: 11
+                }
               }
             },
             x: {
@@ -364,7 +310,10 @@ export default {
                 color: 'rgba(255, 255, 255, 0.2)'
               },
               ticks: {
-                color: '#455a64'
+                color: '#455a64',
+                font: {
+                  size: 11
+                }
               }
             }
           },
@@ -410,7 +359,7 @@ export default {
             backgroundColor: '#ff4275',
             borderColor: '#ff4275',
             borderWidth: 0,
-            borderRadius: 8,
+            borderRadius: 6,
             borderSkipped: false,
           }]
         },
@@ -424,7 +373,10 @@ export default {
                 color: 'rgba(255, 255, 255, 0.2)'
               },
               ticks: {
-                color: '#455a64'
+                color: '#455a64',
+                font: {
+                  size: 11
+                }
               }
             },
             x: {
@@ -432,7 +384,10 @@ export default {
                 display: false
               },
               ticks: {
-                color: '#455a64'
+                color: '#455a64',
+                font: {
+                  size: 11
+                }
               }
             }
           },
@@ -471,7 +426,7 @@ export default {
         options: {
           responsive: true,
           maintainAspectRatio: true,
-          cutout: '75%',
+          cutout: '70%',
           plugins: {
             legend: { display: false },
             tooltip: { enabled: false }
@@ -512,7 +467,6 @@ export default {
           deliveredData = labels.map(() => Math.floor(Math.random() * 25) + 10);
           break;
         case 'monthly':
-        default:
           labels = Array.from({length: 6}, (_, i) => {
             const date = new Date(now);
             date.setMonth(date.getMonth() - (5 - i));
@@ -520,6 +474,16 @@ export default {
           });
           inProgressData = labels.map(() => Math.floor(Math.random() * 50) + 25);
           deliveredData = labels.map(() => Math.floor(Math.random() * 40) + 20);
+          break;
+        case 'yearly':
+        default:
+          labels = Array.from({length: 5}, (_, i) => {
+            const date = new Date(now);
+            date.setFullYear(date.getFullYear() - (4 - i));
+            return date.getFullYear().toString();
+          });
+          inProgressData = labels.map(() => Math.floor(Math.random() * 100) + 50);
+          deliveredData = labels.map(() => Math.floor(Math.random() * 80) + 40);
       }
 
       return {
@@ -552,12 +516,16 @@ export default {
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   margin-bottom: 2rem;
   overflow: hidden;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .charts-header {
   padding: 1.5rem;
   background: var(--light-pink);
   border-bottom: 1px solid var(--pink-grey);
+  text-align: center;
 }
 
 .charts-header h3 {
@@ -567,23 +535,27 @@ export default {
   color: var(--dark-slate-blue);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
 }
 
 /* Time Filter Controls */
 .time-filter-controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
   padding: 1.5rem;
   background: var(--light-pink);
   border-bottom: 1px solid var(--pink-grey);
+  justify-items: center;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  align-items: center;
+  text-align: center;
 }
 
 .filter-group label {
@@ -592,37 +564,12 @@ export default {
   font-size: 0.9rem;
 }
 
-.time-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.time-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--pink-grey);
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.3s ease;
-}
-
-.time-btn:hover {
-  border-color: var(--hot-pink);
-}
-
-.time-btn.active {
-  background: var(--hot-pink);
-  color: white;
-  border-color: var(--hot-pink);
-}
-
 .date-range {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .date-input {
@@ -630,6 +577,7 @@ export default {
   border: 1px solid var(--pink-grey);
   border-radius: 6px;
   font-size: 0.8rem;
+  width: 140px;
 }
 
 .apply-btn {
@@ -653,6 +601,7 @@ export default {
   border-radius: 6px;
   background: white;
   font-size: 0.8rem;
+  width: 160px;
 }
 
 /* Charts Grid */
@@ -661,6 +610,7 @@ export default {
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   padding: 1.5rem;
+  justify-items: center;
 }
 
 .chart-container {
@@ -670,11 +620,13 @@ export default {
   position: relative;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 380px;
 }
 
 .chart-container.square-chart {
   aspect-ratio: 1 / 1;
-  min-height: 320px;
+  min-height: 260px;
 }
 
 .chart-header {
@@ -687,13 +639,13 @@ export default {
 
 .chart-header h4 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--dark-slate-blue);
 }
 
 .chart-period {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--slate-blue);
   background: white;
   padding: 0.3rem 0.6rem;
@@ -707,12 +659,13 @@ export default {
   align-items: center;
   justify-content: center;
   min-height: 0;
+  width: 100%;
 }
 
 .chart-canvas {
   width: 100% !important;
   height: 100% !important;
-  max-height: 240px;
+  max-height: 220px;
 }
 
 .gauge-wrapper {
@@ -741,7 +694,7 @@ export default {
 
 .gauge-label {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--slate-blue);
   margin-top: 0.5rem;
 }
@@ -758,20 +711,21 @@ export default {
 
   .date-range {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
   }
 
   .chart-container.square-chart {
     aspect-ratio: 4 / 3;
-    min-height: 280px;
+    min-height: 240px;
+    max-width: 100%;
+  }
+
+  .charts-section {
+    margin: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .time-buttons {
-    justify-content: center;
-  }
-
   .chart-header {
     flex-direction: column;
     gap: 0.5rem;
@@ -779,11 +733,15 @@ export default {
   }
 
   .chart-container.square-chart {
-    min-height: 250px;
+    min-height: 220px;
   }
 
   .gauge-value {
     font-size: 1.75rem;
+  }
+
+  .chart-header h4 {
+    font-size: 1rem;
   }
 }
 </style>

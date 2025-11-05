@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <div class="dashboard-wrapper" v-if="isAuthenticated">
@@ -61,8 +60,7 @@
                 </div>
               </div>
             </div>
-  </div>
-
+          </div>
         </section>
 
          <div class="text-center my-3">
@@ -74,7 +72,6 @@
     <p class="mb-0">Click to view more</p>
   </button>
 </div>
-
 
         <section class="tracking-section">
           <div class="section-column globe-column">
@@ -117,15 +114,13 @@
             <div class="section-card">
               <div class="card-header">
                 <div class="card-actions">
-                  <div class="search-box">
-                    <h3> Recent Shipments</h3>
-                  </div>
+                  <h3> Recent Shipments</h3>
                 </div>
               </div>
               <div class="card-body">
                 <div class="parcels-list">
                   <div
-                    v-for="parcel in filteredParcels"
+                    v-for="parcel in parcels"
                     :key="parcel.id"
                     class="parcel-item"
                     :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
@@ -164,10 +159,9 @@
                     </div>
                   </div>
 
-                  <div v-if="filteredParcels.length === 0" class="empty-state">
+                  <div v-if="parcels.length === 0" class="empty-state">
                     <i class="fas fa-box-open"></i>
                     <p>No shipments found</p>
-                    <p class="empty-subtext" v-if="searchQuery">Try adjusting your search terms</p>
                   </div>
                 </div>
               </div>
@@ -236,7 +230,6 @@ export default {
       user: {
         email: ''
       },
-      searchQuery: '',
       selectedParcel: null,
       globeInitialized: false,
       globeError: false,
@@ -264,26 +257,13 @@ export default {
     totalShipments() {
       return this.stats.inProgress + this.stats.delivered + this.stats.pending;
     },
-    filteredParcels() {
-    if (!this.searchQuery.trim()) return this.parcels;
-
-    const query = this.searchQuery.trim().toLowerCase();
-    return this.parcels.filter(parcel => {
-      const trackingMatch = parcel.trackingId.toLowerCase().includes(query);
-      const customerMatch = parcel.customer && parcel.customer.toLowerCase().includes(query);
-      const locationMatch = this.getLocationName(parcel.currentLocation || parcel.location).toLowerCase().includes(query);
-      const rawTrackingMatch = parcel.trackingId.replace('TRK-', '').toLowerCase().includes(query.replace('trk-', ''));
-      const mailIdMatch = parcel.mailId && parcel.mailId.toString().includes(query);
-      return trackingMatch || customerMatch || locationMatch || rawTrackingMatch || mailIdMatch;
-    });
-  },
     enhancedStats() {
       return [
         {
           key: 'in-progress',
           title: 'In Transit',
           value: this.stats.inProgress,
-          icon: 'fas fa-shipping-fast',
+          icon: 'fas fa-paper-plane',
           trend: 'up',
           trendIcon: 'fas fa-paper-plane',
           trendValue: '+2 today',
@@ -295,7 +275,7 @@ export default {
           value: this.stats.delivered,
           icon: 'fas fa-check-circle',
           trend: 'up',
-          trendIcon: 'fas fa-arrow-up',
+          trendIcon: 'fas fa-check-circle',
           trendValue: '+12%',
           chartData: [40, 45, 50, 55, 60, 65, 70]
         },
@@ -305,7 +285,7 @@ export default {
           value: this.stats.pending,
           icon: 'fas fa-clock',
           trend: 'down',
-          trendIcon: 'fas fa-arrow-down',
+          trendIcon: 'fas fa-clock',
           trendValue: '-1 today',
           chartData: [80, 75, 70, 65, 60, 55, 50]
         },
@@ -313,7 +293,7 @@ export default {
           key: 'total',
           title: 'Total Shipments',
           value: this.totalShipments,
-          icon: 'fas fa-boxes',
+          icon: 'fas fa-chart-bar',
           trend: 'up',
           trendIcon: 'fas fa-chart-bar',
           trendValue: '+8%',
@@ -351,10 +331,9 @@ export default {
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
-      viewHistory() {
-
-    this.$router.push('/history');
-  },
+    viewHistory() {
+      this.$router.push('/history');
+    },
     checkAuthentication() {
       const userData = sessionStorage.getItem('currentUser');
       if (userData) {
@@ -362,19 +341,14 @@ export default {
           const user = JSON.parse(userData);
           this.user.email = user.email || user.display_name || 'User';
           this.isAuthenticated = true;
-          // console.log('User authenticated:', this.user.email);
         } catch (error) {
-          // console.error('Error parsing user data:', error);
           this.isAuthenticated = false;
         }
       } else {
         this.isAuthenticated = false;
-        console.log('No user data found in sessionStorage');
       }
     },
-
     handleLoginStatusChange() {
-      // console.log('Login status changed, rechecking authentication...');
       this.checkAuthentication();
       if (this.isAuthenticated) {
         this.initializeDashboard();
@@ -388,10 +362,6 @@ export default {
     },
 
     async initializeDashboard() {
-      // console.log('Initializing');
-
-      // this.debugCountryCoordinates();
-
       await this.fetchUserShipments();
 
       await this.$nextTick();
@@ -399,56 +369,33 @@ export default {
       await this.initGlobe();
     },
 
-    // debugCountryCoordinates() {
-    //   const australia = countryData.find(c => c.code2 === 'AU');
-    //   console.log('Australia coordinates:', australia);
-
-    //   const singapore = countryData.find(c => c.code2 === 'SG');
-    //   console.log('Singapore coordinates :', singapore);
-
-    //   console.log('getCountryCoordinates("AU"):', this.getCountryCoordinates('AU'));
-    //   console.log('getCountryCoordinates("SG"):', this.getCountryCoordinates('SG'));
-    // },
-
     async fetchUserShipments() {
       this.loading = true;
       this.errorMessage = "";
       this.usingFallbackData = false;
 
       try {
-        // console.log('Fetching shipments for:', this.user.email);
-
         const response = await axios.post('/api/dashboard.php', {
           method: 'getAllMailByCustomerEmail',
           email: this.user.email
         });
 
-        console.log('API Response:', response.data);
-
         if (response.data.success) {
           if (response.data.note) {
             this.usingFallbackData = true;
-            console.log('Using fallback data:', response.data.note);
           }
 
           this.parcels = this.transformShipmentData(response.data.shipments);
           this.updateStats();
           this.generateNotifications();
-          console.log('Successfully loaded', this.parcels.length, 'shipments');
 
           if (this.globeInitialized && this.globe) {
-            console.log('Updating globe with new shipment data');
             this.updateGlobeData();
-          } else {
-            console.log('Globe not ready yet, data will be loaded when globe initializes');
           }
-
         } else {
-          console.error('Failed to fetch shipments:', response.data.error);
           this.useFallbackData();
         }
       } catch (error) {
-        console.error('Error fetching shipments:', error);
         this.useFallbackData();
       } finally {
         this.loading = false;
@@ -456,7 +403,6 @@ export default {
     },
 
     useFallbackData() {
-      console.log('Using fallback data due to error');
       this.usingFallbackData = true;
       this.errorMessage = 'Connected to demo data. Real shipments will appear here once you create them.';
 
@@ -466,10 +412,7 @@ export default {
       this.generateNotifications();
 
       if (this.globeInitialized && this.globe) {
-        console.log('Updating globe after using fallback data');
         this.updateGlobeData();
-      } else {
-        console.log('Globe not ready, data will be loaded when globe initializes');
       }
     },
 
@@ -556,27 +499,19 @@ export default {
 
     transformShipmentData(shipments) {
       if (!shipments || !Array.isArray(shipments)) {
-        console.log('No shipments data found, using empty array');
         return [];
       }
-
-      console.log('Transforming', shipments.length, 'shipments');
 
       return shipments.map(shipment => {
         try {
           let senderCoords = this.getCountryCoordinates(shipment.senderAddress?.countryCode || 'SG');
           let recipientCoords = this.getCountryCoordinates(shipment.recipientAddress?.countryCode || 'US');
 
-          console.log('Sender coords for', shipment.senderAddress?.countryCode, ':', senderCoords);
-          console.log('Recipient coords for', shipment.recipientAddress?.countryCode, ':', recipientCoords);
-
           if (!Array.isArray(senderCoords) || senderCoords.some(isNaN)) {
-            console.warn('Invalid sender coordinates, using Singapore default');
             senderCoords = [1.3521, 103.8198];
           }
 
           if (!Array.isArray(recipientCoords) || recipientCoords.some(isNaN)) {
-            console.warn('Invalid recipient coordinates, using US default');
             recipientCoords = [39.8283, -98.5795];
           }
 
@@ -618,18 +553,9 @@ export default {
             recipientAddress: shipment.recipientAddress
           };
 
-          console.log('Transformed parcel:', {
-            id: transformedParcel.id,
-            trackingId: transformedParcel.trackingId,
-            status: transformedParcel.status,
-            from: this.getLocationName(transformedParcel.location),
-            to: this.getLocationName(transformedParcel.destination),
-            progress: transformedParcel.progress
-          });
           return transformedParcel;
 
         } catch (error) {
-          console.error('Error transforming shipment:', shipment, error);
           return null;
         }
       }).filter(parcel => parcel !== null);
@@ -637,15 +563,11 @@ export default {
 
     getCountryCoordinates(countryCode) {
       const code = countryCode === 'UK' ? 'GB' : countryCode;
-
       const country = countryData.find(c => c.code2 === code);
       if (country) {
-        console.log(`Found coordinates for ${countryCode}:`, [country.lat, country.long]);
         return [country.lat, country.long];
       }
-
-      console.warn(`Country code ${countryCode} not found, using Singapore as default`);
-      return [1.28478, 103.776222];
+      return [1.28478, 103.776222]; //Singapore
     },
 
     calculateProgressFromStatus(status) {
@@ -731,29 +653,19 @@ export default {
 
     async initGlobe() {
       try {
-        // console.log('Starting initialization');
-
         const container = this.$refs.globeContainer;
         if (!container) {
-
           throw new Error('Globe not found');
         }
-
-        console.log('Globe found');
 
         const width = container.clientWidth || 800;
         const height = container.clientHeight || 400;
 
-        // console.log(' Container dimensions:', width, 'x', height);
-
         if (width === 0 || height === 0) {
-          // console.error('Container has zero dimensions');
           throw new Error('Container has invalid dimensions');
         }
 
         container.innerHTML = '';
-
-        // console.log('Creating Globe');
 
         this.globe = Globe()
           .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
@@ -761,8 +673,6 @@ export default {
           .width(width)
           .height(height)
           (container);
-
-        // console.log(' Globe instance created');
 
         this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 });
 
@@ -772,24 +682,17 @@ export default {
 
         this.globeInitialized = true;
         this.globeError = false;
-        console.log(' Globe initialized successfully');
 
         if (this.parcels && this.parcels.length > 0) {
-
           await this.$nextTick();
           this.updateGlobeData();
 
           if (this.selectedParcel) {
-            console.log('Restoring route for selected parcel:', this.selectedParcel.trackingId);
             await this.$nextTick();
             this.updateGlobeRoute(this.selectedParcel);
           }
-        } else {
-          console.log('No parcel data yet');
         }
-
       } catch (error) {
-        console.error(' Globe initialization error:', error);
         this.globeError = true;
         this.globeInitialized = false;
       }
@@ -797,20 +700,16 @@ export default {
 
     updateGlobeData() {
       if (!this.globe || !this.globeInitialized) {
-        console.log(' Cannot update globe data - globe not initialized');
         return;
       }
 
       if (!this.parcels || this.parcels.length === 0) {
-        console.log(' No parcels to display on globe');
         this.globe.pointsData([]);
         this.globe.arcsData([]);
         return;
       }
 
       try {
-        console.log(' Updating globe with', this.parcels.length, 'parcels');
-
         this.pointsData = this.parcels.map(parcel => {
           const point = {
             id: parcel.id,
@@ -834,45 +733,32 @@ export default {
           .pointLabel('label')
           .pointsMerge(false);
 
-        console.log(' Globe data updated with', this.pointsData.length, 'points');
-
       } catch (error) {
-        console.error(' Error updating globe data:', error);
       }
     },
 
     selectParcel(parcel) {
-      console.log(' Parcel clicked:', parcel.trackingId);
-
       this.selectedParcel = parcel;
-      console.log('Shipment details updated for:', this.selectedParcel.trackingId);
 
       if (this.globeUpdateTimeout) {
         clearTimeout(this.globeUpdateTimeout);
       }
 
       if (this.globe && this.globeInitialized) {
-        console.log('Scheduling globe route update for:', parcel.trackingId);
-
         this.globeUpdateTimeout = setTimeout(() => {
           requestAnimationFrame(() => {
             this.updateGlobeRoute(parcel);
           });
         }, 100);
-      } else {
-        console.warn(' Globe not ready yet, but shipment details are showing');
       }
     },
 
     updateGlobeRoute(parcel) {
       if (!this.globe || !this.globeInitialized) {
-        console.warn(' Globe not ready, skipping route update');
         return;
       }
 
       try {
-        console.log(' Updating globe route for parcel:', parcel.trackingId);
-
         this.arcsData = [];
 
         const mainRoute = {
@@ -913,10 +799,7 @@ export default {
 
         this.globeUpdateTimeout = null;
 
-        console.log(' Globe route updated successfully with', this.arcsData.length, 'arcs');
-
       } catch (error) {
-        console.error(' Error updating globe route:', error);
         this.globeUpdateTimeout = null;
       }
     },
@@ -936,16 +819,11 @@ export default {
           lng: midLng,
           altitude: altitude
         }, 1000);
-
-        console.log(' Camera focused on route');
       } catch (error) {
-        console.error(' Error focusing on route:', error);
       }
     },
 
     clearRoute() {
-      console.log('Clearing route and selection');
-
       this.selectedParcel = null;
       this.routeData = null;
       this.routeError = null;
@@ -957,10 +835,7 @@ export default {
           this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2 }, 1000);
 
           this.updateGlobeData();
-
-          // console.log('Route cleared');
         } catch (error) {
-          // console.error('Error :', error);
         }
       }
 
@@ -989,7 +864,6 @@ export default {
       if (!Array.isArray(coords) || coords.length < 2) {
         return 'Unknown Location';
       }
-
 
       const closestCountry = countryData.reduce((closest, country) => {
         const distance = Math.sqrt(
@@ -1035,16 +909,13 @@ export default {
 
     redirectToLogin() {
       window.dispatchEvent(new CustomEvent('showLoginModal'));
-    },
-    goToHistory() {
-  window.location.href = '/history';
-}
+    }
   }
 };
 </script>
 
 <style scoped>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+
 
 :root {
   --hot-pink: #ff4275;
@@ -1358,7 +1229,6 @@ export default {
   background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
 }
 
-
 .history-arrow {
   color: var(--slate-blue);
   font-size: 1.2rem;
@@ -1429,33 +1299,6 @@ export default {
   background: var(--hot-pink);
   color: white;
   transform: scale(1.05);
-}
-
-.search-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-box i {
-  position: absolute;
-  left: 10px;
-  color: var(--slate-blue);
-}
-
-.search-box input {
-  padding: 0.5rem 0.5rem 0.5rem 2rem;
-  border: 1px solid var(--pink-grey);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  width: 180px;
-  transition: border-color 0.3s ease;
-  background: var(--light-pink);
-}
-
-.search-box input:focus {
-  outline: none;
-  border-color: var(--hot-pink);
 }
 
 .card-body {
@@ -1781,11 +1624,6 @@ export default {
   font-size: 1rem;
 }
 
-.empty-subtext {
-  font-size: 0.9rem !important;
-  opacity: 0.7;
-}
-
 .status-badge {
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
@@ -1982,10 +1820,6 @@ export default {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
-  }
-
-  .search-box input {
-    width: 100%;
   }
 
   .login-message {

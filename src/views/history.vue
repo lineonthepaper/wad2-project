@@ -28,7 +28,7 @@
       <hr />
 
       <div class="container mt-4">
-        <!-- Loading State -->
+
         <div v-if="loading" class="text-center py-5">
           <div class="loading-spinner-large"></div>
           <p class="mt-3 text-muted">Loading your transactions...</p>
@@ -310,7 +310,7 @@ export default {
           const userObj = JSON.parse(userData)
           user.value.email = userObj.email || userObj.display_name || 'User'
           isAuthenticated.value = true
-          // console.log('User authenticated:', user.value.email)
+          // console.log('user', user.value.email)
         } catch (error) {
           console.error('Error parsing user data:', error)
           isAuthenticated.value = false
@@ -327,7 +327,7 @@ export default {
 
 
     const viewTransactionDetails = (transaction) => {
-      // console.log('Viewing transaction details:', transaction.mailId)
+      // console.log('transaction', transaction.mailId)
 
 
       sessionStorage.setItem('selectedTransaction', JSON.stringify(transaction))
@@ -368,9 +368,9 @@ export default {
           (transaction.mailItems?.some(item =>
             item.itemDescription?.toLowerCase().includes(query)
           )) ||
-          // Search by status
+
           (formatStatus(transaction.status).toLowerCase().includes(query)) ||
-          // Search by sender country
+
           (transaction.senderAddress?.countryCode?.toLowerCase().includes(query))
 
         const matchesStatus = !selectedStatus.value || transaction.status === selectedStatus.value
@@ -391,7 +391,6 @@ export default {
       return filteredTransactions.value.slice(start, end)
     })
 
-    // Methods
     const fetchTransactions = async () => {
       if (!isAuthenticated.value) return
 
@@ -399,7 +398,7 @@ export default {
       error.value = null
 
       try {
-        // console.log('Fetching transactions for:', user.value.email)
+
 
         const response = await fetch('/api/dashboard.php', {
           method: 'POST',
@@ -417,16 +416,16 @@ export default {
         }
 
         const data = await response.json()
-        // console.log('API Response:', data)
+
 
         if (data.success) {
           transactions.value = data.shipments || []
-          // console.log('Successfully loaded transactions:', transactions.value.length)
+          // console.log(transactions.value.length)
 
           if (transactions.value.length > 0) {
             // console.log('First transaction sample:', transactions.value[0])
           } else {
-            // console.log('No transactions found for user')
+            // console.log('No transactions')
           }
         } else {
           throw new Error(data.error || 'Failed to load transactions from server')
@@ -434,7 +433,7 @@ export default {
       } catch (err) {
         console.error('Error loading transactions:', err)
         error.value = `Failed to load transactions: ${err.message}`
-        transactions.value = [] // Clear transactions on error
+        transactions.value = [] 
       } finally {
         loading.value = false
       }

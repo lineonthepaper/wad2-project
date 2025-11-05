@@ -92,7 +92,6 @@
                   </div>
                 </div>
 
-                <!-- Progress Bar -->
                 <div class="route-progress mt-4">
                   <div class="progress-labels d-flex justify-content-between">
                     <span class="progress-label">{{ getCountryName(transaction.senderAddress?.countryCode) }}</span>
@@ -111,7 +110,6 @@
               </div>
             </div>
 
-            <!-- Shipment Details Card -->
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
@@ -212,7 +210,7 @@
             <div class="detail-card card mb-4">
               <div class="card-header bg-light-pink">
                 <h4 class="mb-0">
-<i class="fas fa-arrow-down me-2"></i>
+<i class="fas fa-clock me-2"></i>
                   Timeline
                 </h4>
               </div>
@@ -349,10 +347,10 @@ export default {
         const storedTransaction = sessionStorage.getItem('selectedTransaction')
         if (storedTransaction) {
           transaction.value = JSON.parse(storedTransaction)
-          // console.log('Loaded transaction', transaction.value)
+          // console.log(transaction.value)
         } else {
 
-          // console.log('Fetching transactions', user.value.email)
+          // console.log(user.value.email)
 
           const response = await fetch('/api/dashboard.php', {
             method: 'POST',
@@ -404,7 +402,7 @@ export default {
             if (foundTransaction) {
               transaction.value = foundTransaction
               error.value = null
-              // console.log('Found transaction :', foundTransaction)
+
             }
           }
         } catch (fallbackError) {
