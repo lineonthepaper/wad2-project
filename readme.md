@@ -19,5 +19,5 @@ Zachary: tbc
 <br>
 Jessica: Chatgpt for explanation of code and Generation of template/starter code. Understanding of logic
 <br>
-Sheryn: tbc
+Sheryn: LLM for understanding code logic and further styling.
 <br>
