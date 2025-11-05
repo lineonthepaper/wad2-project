@@ -13,7 +13,7 @@ Click on the login.
 
 Riley: None
 <br>
-Raksha: tbc
+Raksha: LLM for understanding code logic not learnt before and further styling
 <br>
 Zachary: tbc
 <br>
