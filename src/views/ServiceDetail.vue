@@ -468,9 +468,7 @@ ul {
   border-radius: 4px;
 }
 
-.bg-light-pink {
-  background-color: #fff0f5;
-}
+
 
 .text-hot-pink {
   color: #ff69b4;

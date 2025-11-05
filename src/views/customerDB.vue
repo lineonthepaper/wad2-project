@@ -119,9 +119,9 @@
                   <div class="search-box">
                     <h3> Recent Shipments</h3>
                   </div>
-                  <button class="btn-icon" title="Filter">
+                  <!-- <button class="btn-icon" title="Filter">
                     <i class="fas fa-filter"></i>
-                  </button>
+                  </button> -->
                 </div>
               </div>
               <div class="card-body">

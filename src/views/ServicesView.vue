@@ -339,9 +339,6 @@ onMounted(() => {
   transform: translateY(-5px);
 }
 
-.bg-light-pink {
-  background-color: #fff0f5;
-}
 
 .text-hot-pink {
   color: #ff69b4;
