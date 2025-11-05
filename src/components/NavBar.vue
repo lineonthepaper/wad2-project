@@ -116,6 +116,12 @@ onUnmounted(() => {
                       <button class="dropdown-item" @click="$router.push('/CDB')">
                         Customer Dashboard
                       </button>
+                       <button class="dropdown-item" @click="$router.push('/history')">
+                        History shipment
+                      </button>
+                       <button class="dropdown-item" @click="$router.push('/Charts')">
+                        Shipment Charts
+                      </button>
                     </li>
                     <li>
                       <button class="dropdown-item" @click="handleLogout">Logout</button>

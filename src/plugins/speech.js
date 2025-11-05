@@ -1,4 +1,4 @@
-// plugins/speech.js
+
 const SpeechToTextPlugin = {
   install(app, options = {}) {
     const defaultOptions = {
@@ -155,7 +155,7 @@ const SpeechToTextPlugin = {
       if (input.dataset.speechEnhanced) return;
       if (!isPageEnabled()) return;
 
-      // Check if already wrapped
+
       if (input.parentNode.querySelector('button[data-speech-button]')) return;
 
       const wrapper = document.createElement('div');
@@ -171,8 +171,8 @@ const SpeechToTextPlugin = {
       wrapper.appendChild(micButton);
 
       input.dataset.speechEnhanced = 'true';
-      
-      // Add padding to input to prevent text overlap
+
+
       if (defaultOptions.buttonPosition === 'right') {
         input.style.paddingRight = '45px';
       } else {
@@ -181,11 +181,11 @@ const SpeechToTextPlugin = {
     };
 
     const enhanceAllInputs = () => {
-      // Reinitialize recognition on page change
+
       recognition = initializeRecognition();
 
       if (!isPageEnabled()) {
-        // Remove all mic buttons if page is not enabled
+
         document.querySelectorAll('[data-speech-button]').forEach(button => {
           button.remove();
         });
@@ -217,14 +217,14 @@ const SpeechToTextPlugin = {
 
     const initObserver = () => {
       if (observer) observer.disconnect();
-      
+
       observer = new MutationObserver((mutations) => {
         let shouldEnhance = false;
-        
+
         mutations.forEach((mutation) => {
           if (mutation.type === 'childList') {
             mutation.addedNodes.forEach((node) => {
-              if (node.nodeType === 1) { // Element node
+              if (node.nodeType === 1) {
                 if (node.matches && (
                   node.matches('input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="tel"], textarea, [contenteditable="true"]') ||
                   node.querySelector('input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="tel"], textarea, [contenteditable="true"]')
@@ -241,9 +241,9 @@ const SpeechToTextPlugin = {
         }
       });
 
-      observer.observe(document.body, { 
-        childList: true, 
-        subtree: true 
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
       });
     };
 
@@ -251,13 +251,11 @@ const SpeechToTextPlugin = {
       enhanceAllInputs();
     };
 
-    // Initialize immediately
     initializePlugin();
     initObserver();
 
-    // Handle Vue Router navigation
     if (app.config.globalProperties.$router) {
-      // Enhance inputs on route changes
+
       app.config.globalProperties.$router.afterEach(() => {
         setTimeout(() => {
           enhanceAllInputs();
@@ -265,7 +263,7 @@ const SpeechToTextPlugin = {
       });
     }
 
-    // Also enhance on DOM content loaded and window load as fallbacks
+
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', enhanceAllInputs);
     } else {
@@ -281,8 +279,8 @@ const SpeechToTextPlugin = {
       },
       stopListening,
       isListening: () => isListening,
-      setLanguage: (lang) => { 
-        if (recognition) recognition.lang = lang; 
+      setLanguage: (lang) => {
+        if (recognition) recognition.lang = lang;
       },
       reinitialize: () => {
         enhanceAllInputs();

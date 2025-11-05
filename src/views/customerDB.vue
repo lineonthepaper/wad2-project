@@ -39,46 +39,105 @@
       <div class="main-content" v-if="!loading">
         <section class="stats-overview">
           <div class="stats-grid">
-            <div class="stat-card" :class="`stat-${stat.key}`" v-for="stat in enhancedStats" :key="stat.key">
+            <div class="stat-card stat-total">
               <div class="stat-content">
-                <div class="stat-icon">
-                  <i :class="stat.icon"></i>
-                </div>
+                <div class="stat-icon">📦</div>
                 <div class="stat-data">
-                  <h3 class="stat-title">{{ stat.title }}</h3>
-                  <p class="stat-number">{{ stat.value }}</p>
-                  <div class="stat-trend" :class="stat.trend">
-                    <i :class="stat.trendIcon"></i>
-                    <span>{{ stat.trendValue }}</span>
-                  </div>
+                  <h3 class="stat-title">Total Shipments</h3>
+                  <div class="stat-number">{{ totalShipments }}</div>
                 </div>
               </div>
               <div class="stat-chart">
                 <div class="mini-chart">
-                  <div class="chart-bar" v-for="(point, index) in stat.chartData" :key="index"
-                       :style="{ height: point + '%' }"></div>
+                  <div class="chart-bar" :style="{ height: '70%' }"></div>
+                  <div class="chart-bar" :style="{ height: '50%' }"></div>
+                  <div class="chart-bar" :style="{ height: '80%' }"></div>
+                  <div class="chart-bar" :style="{ height: '60%' }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card stat-delivered">
+              <div class="stat-content">
+                <div class="stat-icon">✅</div>
+                <div class="stat-data">
+                  <h3 class="stat-title">Delivered</h3>
+                  <div class="stat-number">{{ stats.delivered }}</div>
+                </div>
+              </div>
+              <div class="stat-chart">
+                <div class="mini-chart">
+                  <div class="chart-bar" :style="{ height: '90%' }"></div>
+                  <div class="chart-bar" :style="{ height: '85%' }"></div>
+                  <div class="chart-bar" :style="{ height: '95%' }"></div>
+                  <div class="chart-bar" :style="{ height: '88%' }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card stat-in-progress">
+              <div class="stat-content">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-data">
+                  <h3 class="stat-title">In Transit</h3>
+                  <div class="stat-number">{{ stats.inProgress }}</div>
+                </div>
+              </div>
+              <div class="stat-chart">
+                <div class="mini-chart">
+                  <div class="chart-bar" :style="{ height: '60%' }"></div>
+                  <div class="chart-bar" :style="{ height: '75%' }"></div>
+                  <div class="chart-bar" :style="{ height: '55%' }"></div>
+                  <div class="chart-bar" :style="{ height: '70%' }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card stat-pending">
+              <div class="stat-content">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-data">
+                  <h3 class="stat-title">Pending</h3>
+                  <div class="stat-number">{{ stats.pending }}</div>
+                </div>
+              </div>
+              <div class="stat-chart">
+                <div class="mini-chart">
+                  <div class="chart-bar" :style="{ height: '40%' }"></div>
+                  <div class="chart-bar" :style="{ height: '35%' }"></div>
+                  <div class="chart-bar" :style="{ height: '45%' }"></div>
+                  <div class="chart-bar" :style="{ height: '30%' }"></div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-         <div class="text-center my-3">
-   <button @click="viewHistory"
-          style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
-          onmouseover="this.style.background='#ff4d8d'"
-          onmouseout="this.style.background='#ff6b9d'">
-    <h3 class="mb-0">Shipment History</h3>
-    <p class="mb-0">Click to view more</p>
-  </button>
-</div>
+
+        <div class="text-center my-3">
+          <button @click="viewHistory"
+                  style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
+                  onmouseover="this.style.background='#ff4d8d'"
+                  onmouseout="this.style.background='#ff6b9d'">
+            <h3 class="mb-0">Shipment History</h3>
+            <p class="mb-0">Click to view more</p>
+          </button>
+           <button @click="viewCharts"
+                  style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
+                  onmouseover="this.style.background='#ff4d8d'"
+                  onmouseout="this.style.background='#ff6b9d'">
+            <h3 class="mb-0">Shipment Charts</h3>
+            <p class="mb-0">Click to view more</p>
+          </button>
+        </div>
 
         <section class="tracking-section">
+
           <div class="section-column globe-column">
             <div class="section-card">
               <div class="card-header">
                 <h3><span style="display:inline-block;width:10px;height:10px;background:red;border-radius:50%;margin-left:6px;"></span>
- Live Tracking Map</h3>
+                 Live Tracking Map</h3>
                 <div class="card-actions">
                   <span v-if="globeUpdateTimeout" class="globe-updating-indicator">
                     <i class="fa-spin">.</i> Updating...
@@ -256,53 +315,6 @@ export default {
   computed: {
     totalShipments() {
       return this.stats.inProgress + this.stats.delivered + this.stats.pending;
-    },
-    enhancedStats() {
-      return [
-        {
-          key: 'in-progress',
-          title: 'In Transit',
-          value: this.stats.inProgress,
-          icon: 'fas fa-paper-plane',
-          trend: 'up',
-          trendIcon: 'fas fa-paper-plane',
-          trendValue: '+2 today',
-          chartData: [65, 70, 75, 80, 75, 70, 68]
-        },
-        {
-          key: 'delivered',
-          title: 'Delivered',
-          value: this.stats.delivered,
-          icon: 'fas fa-check-circle',
-          trend: 'up',
-          trendIcon: 'fas fa-check-circle',
-          trendValue: '+12%',
-          chartData: [40, 45, 50, 55, 60, 65, 70]
-        },
-        {
-          key: 'pending',
-          title: 'Pending',
-          value: this.stats.pending,
-          icon: 'fas fa-clock',
-          trend: 'down',
-          trendIcon: 'fas fa-clock',
-          trendValue: '-1 today',
-          chartData: [80, 75, 70, 65, 60, 55, 50]
-        },
-        {
-          key: 'total',
-          title: 'Total Shipments',
-          value: this.totalShipments,
-          icon: 'fas fa-chart-bar',
-          trend: 'up',
-          trendIcon: 'fas fa-chart-bar',
-          trendValue: '+8%',
-          chartData: [50, 55, 60, 65, 70, 75, 80]
-        }
-      ];
-    },
-    hasRouteData() {
-      return this.routeData && this.routeData.waypoints && this.routeData.waypoints.length > 0;
     }
   },
   mounted() {
@@ -333,6 +345,9 @@ export default {
   methods: {
     viewHistory() {
       this.$router.push('/history');
+    },
+    viewCharts() {
+      this.$router.push('/Charts');
     },
     checkAuthentication() {
       const userData = sessionStorage.getItem('currentUser');
@@ -916,7 +931,6 @@ export default {
 
 <style scoped>
 
-
 :root {
   --hot-pink: #ff4275;
   --dark-pink: #ff759e;
@@ -1158,22 +1172,6 @@ export default {
   color: var(--dark-slate-blue);
 }
 
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.stat-trend.up {
-  color: var(--hot-pink);
-}
-
-.stat-trend.down {
-  color: var(--dark-pink);
-}
-
 .stat-chart {
   width: 80px;
 }
@@ -1192,53 +1190,12 @@ export default {
   min-height: 2px;
 }
 
-.history-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-left: 4px solid var(--slate-blue);
-  cursor: pointer;
-}
-
-.history-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-.history-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-}
-
-.history-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-  background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
-}
-
-.history-arrow {
-  color: var(--slate-blue);
-  font-size: 1.2rem;
-}
-
+/* Rest of your existing styles remain unchanged */
 .tracking-section {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
 .section-column {
@@ -1250,29 +1207,25 @@ export default {
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--pink-grey);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1.5rem 0;
-  margin-bottom: 1rem;
-  background: var(--light-pink);
-  border-bottom: 1px solid var(--pink-grey);
 }
 
 .card-header h3 {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
   color: var(--dark-slate-blue);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
 .card-actions {
@@ -1282,67 +1235,52 @@ export default {
 }
 
 .btn-icon {
-  width: 36px;
-  height: 36px;
+  background: var(--light-pink);
   border: none;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: white;
-  color: var(--hot-pink);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  color: var(--dark-slate-blue);
 }
 
 .btn-icon:hover {
   background: var(--hot-pink);
   color: white;
-  transform: scale(1.05);
 }
 
 .card-body {
-  padding: 0 1.5rem 1.5rem;
+  padding: 1.5rem;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
 .globe-container {
-  width: 100%;
-  height: 400px;
-  border-radius: 12px;
-  background: var(--dark-slate-blue);
   position: relative;
+  border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 1rem;
+  background: #000011;
+  flex: 1;
 }
 
-.globe-loading, .globe-error {
+.globe-error,
+.globe-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  background: rgba(0, 0, 17, 0.8);
   color: white;
-  font-size: 1.1rem;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--light-pink);
-  border-top: 4px solid var(--hot-pink);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-.globe-error {
-  color: white;
-  background: var(--dark-pink);
-  padding: 2rem;
-  text-align: center;
 }
 
 .error-icon {
@@ -1350,195 +1288,58 @@ export default {
   margin-bottom: 1rem;
 }
 
-.parcel-information {
-  background: var(--light-pink);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.parcel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid var(--pink-grey);
-}
-
-.parcel-header h4 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--dark-slate-blue);
-}
-
-.parcel-details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-section {
-  background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.detail-section h5 {
-  margin: 0 0 1rem 0;
-  font-size: 0.9rem;
-  color: var(--hot-pink);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--pink-grey);
-}
-
-.detail-item:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.detail-label {
-  font-size: 0.8rem;
-  color: var(--slate-blue);
-  font-weight: 500;
-}
-
-.detail-value {
-  font-size: 0.9rem;
-  color: var(--dark-slate-blue);
-  font-weight: 600;
-  text-align: right;
-}
-
-.detail-value.paid {
-  color: var(--hot-pink);
-}
-
-.detail-value.unpaid {
-  color: var(--dark-pink);
-}
-
-.route-progress {
-  margin-top: 1rem;
-}
-
-.progress-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--slate-blue);
-}
-
-.progress-percent {
-  font-weight: 600;
-  color: var(--hot-pink);
-}
-
-.progress-track {
-  position: relative;
-}
-
-.progress-bar {
-  height: 8px;
-  background: var(--pink-grey);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--pink), var(--dark-pink));
-  transition: width 0.5s ease;
-}
-
-.progress-marker {
-  position: absolute;
-  top: -6px;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 20px;
-  background: white;
-  border: 2px solid var(--hot-pink);
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  color: var(--hot-pink);
-}
-
-.no-selection {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--slate-blue);
-}
-
-.no-selection i {
-  font-size: 3rem;
+  animation: spin 1s linear infinite;
   margin-bottom: 1rem;
-  opacity: 0.5;
-  color: var(--pink);
-}
-
-.no-selection p {
-  margin: 0;
-  font-size: 1rem;
 }
 
 .parcels-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  max-height: 600px;
+  gap: 1rem;
+  max-height: 400px;
   overflow-y: auto;
 }
 
 .parcel-item {
   display: flex;
+  align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--pink-grey);
   border-radius: 12px;
+  border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.3s ease;
+  background: var(--light-pink);
 }
 
 .parcel-item:hover {
   border-color: var(--hot-pink);
-  transform: translateX(5px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 66, 117, 0.2);
 }
 
 .parcel-item.active {
   border-color: var(--hot-pink);
-  background: var(--light-pink);
+  background: rgba(255, 66, 117, 0.1);
 }
 
 .parcel-icon {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, var(--hot-pink), var(--dark-pink));
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
+  background: var(--hot-pink);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.2rem;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .parcel-details {
@@ -1553,17 +1354,40 @@ export default {
 }
 
 .tracking-id {
-  font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--dark-slate-blue);
   margin: 0;
+  font-size: 1rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-in-progress {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+}
+
+.status-delivered {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+}
+
+.status-pending {
+  background: rgba(255, 66, 117, 0.2);
+  color: var(--hot-pink);
 }
 
 .parcel-info {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 0.5rem;
+  gap: 0.25rem;
 }
 
 .info-item {
@@ -1574,78 +1398,45 @@ export default {
   color: var(--slate-blue);
 }
 
-.info-item i {
-  width: 12px;
-  color: var(--hot-pink);
-}
-
 .parcel-progress {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .progress-mini {
   flex: 1;
-  height: 4px;
+  height: 6px;
   background: var(--pink-grey);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill-mini {
   height: 100%;
-  background: linear-gradient(90deg, var(--hot-pink), var(--pink));
+  background: linear-gradient(90deg, var(--hot-pink), var(--dark-pink));
+  border-radius: 3px;
   transition: width 0.5s ease;
 }
 
 .progress-text {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--hot-pink);
-  min-width: 35px;
+  color: var(--dark-slate-blue);
+  min-width: 40px;
 }
 
-.empty-state, .empty-notifications {
+.empty-state {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: 3rem 2rem;
   color: var(--slate-blue);
 }
 
-.empty-state i, .empty-notifications i {
+.empty-state i {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
-  color: var(--pink);
-}
-
-.empty-state p, .empty-notifications p {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.status-badge {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-in-progress {
-  background: var(--light-pink);
-  color: var(--hot-pink);
-}
-
-.status-delivered {
-  background: var(--pink-grey);
-  color: var(--pink);
-}
-
-.status-pending {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
 }
 
 .notifications-section {
@@ -1664,16 +1455,17 @@ export default {
 
 .notification-item {
   display: flex;
+  align-items: flex-start;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--pink-grey);
   border-radius: 12px;
+  background: var(--light-pink);
   transition: all 0.3s ease;
 }
 
 .notification-item:hover {
-  border-color: var(--hot-pink);
   transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .notification-icon {
@@ -1683,22 +1475,21 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-}
-
-.notification-icon.success {
-  background: var(--light-pink);
-  color: var(--hot-pink);
+  color: white;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .notification-icon.info {
-  background: var(--pink-grey);
-  color: var(--pink);
+  background: var(--hot-pink);
+}
+
+.notification-icon.success {
+  background: #00ff88;
 }
 
 .notification-icon.warning {
-  background: var(--pink-grey);
-  color: var(--dark-pink);
+  background: #ffa500;
 }
 
 .notification-content {
@@ -1706,9 +1497,9 @@ export default {
 }
 
 .notification-text {
-  margin: 0 0 0.3rem;
-  font-size: 0.9rem;
+  margin: 0 0 0.25rem;
   color: var(--dark-slate-blue);
+  font-weight: 500;
 }
 
 .notification-time {
@@ -1716,56 +1507,64 @@ export default {
   color: var(--slate-blue);
 }
 
+.empty-notifications {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--slate-blue);
+}
+
+.empty-notifications i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
 .login-required {
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
 }
 
 .login-message {
   text-align: center;
-  background: white;
-  padding: 3rem;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(255, 66, 117, 0.2);
   max-width: 400px;
-  width: 90%;
 }
 
 .message-icon {
-  font-size: 4rem;
+  width: 80px;
+  height: 80px;
+  background: var(--light-pink);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
   color: var(--hot-pink);
-  margin-bottom: 1.5rem;
+  font-size: 2rem;
 }
 
 .login-message h2 {
   color: var(--dark-slate-blue);
   margin-bottom: 1rem;
-  font-size: 1.8rem;
 }
 
 .login-message p {
   color: var(--slate-blue);
   margin-bottom: 2rem;
-  font-size: 1.1rem;
-  line-height: 1.5;
 }
 
 .action-buttons {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  flex-wrap: wrap;
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1782,12 +1581,7 @@ export default {
 .btn-primary:hover {
   background: var(--dark-pink);
   transform: translateY(-2px);
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  box-shadow: 0 4px 12px rgba(255, 66, 117, 0.3);
 }
 
 @keyframes spin {
@@ -1795,63 +1589,31 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .tracking-section {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 768px) {
   .header-content {
     flex-direction: column;
     text-align: center;
     gap: 1.5rem;
   }
 
-  .header-stats {
-    justify-content: center;
-  }
-
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .card-header {
+  .stat-card {
     flex-direction: column;
+    text-align: center;
     gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .login-message {
-    padding: 2rem 1.5rem;
-    margin: 1rem;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .btn {
-    justify-content: center;
-  }
-
-  .parcel-item {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .parcel-icon {
-    align-self: flex-start;
-  }
-
-  .parcel-details-grid {
-    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
   .header-background {
-    padding: 1.5rem 1rem;
+    padding: 1.5rem;
   }
 
   .title-main {
@@ -1863,17 +1625,8 @@ export default {
   }
 
   .header-stats {
-    gap: 1rem;
-  }
-
-  .stat-value {
-    font-size: 2rem;
-  }
-
-  .parcel-header {
     flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-start;
+    gap: 1rem;
   }
 }
 </style>

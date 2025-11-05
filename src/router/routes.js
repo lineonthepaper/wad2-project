@@ -9,14 +9,14 @@ import HelpView from '../views/HelpView.vue'
 import SignUpView from '@/views/SignUpView.vue'
 import ServicesView from '../views/ServicesView.vue'
 import ServiceDetail from '../views/ServiceDetail.vue'
-import customerDB from '../views/customerDB.vue'
+import customerDB from '@/views/customerDB.vue'
 import ConfirmationView from '@/views/ConfirmationView.vue'
-import settings from  '@/views/settings.vue'
+import Settings from  '@/views/settings.vue'
 import changePassword from '@/views/changePassword.vue'
 import history from '@/views/history.vue'
 import HistoryDetail from '@/views/HistoryDetail.vue'
 import Chatbot from '@/views/Chatbot.vue'
-import test from '@/views/test.vue'
+import Charts from '@/views/Charts.vue'
 
 export const routes = [
   { path: '/', name: 'home', title: 'Home', component: HomeView },
@@ -28,14 +28,14 @@ export const routes = [
   { path: '/help', name: 'help', title: 'Help', component: HelpView },
   { path: '/signup', name: 'signup', title: 'Sign Up', component: SignUpView }, // named signup
   { path: '/service/:id', name: 'ServiceDetail', component: ServiceDetail, props: true },
-  { path: '/CDB',name: 'dashboard', title: 'Dashboard', component: customerDB },
+  { path: '/CDB',name: 'customerDB', title: 'CustomerDB', component: customerDB },
   { path: '/confirmation', name: 'confirmation', title: 'Confirmed!', component: ConfirmationView },
-  {path: '/settings',name: 'settings', title: 'settings', component: settings},
+  {path: '/settings',name: 'settings', title: 'settings', component: Settings},
   {path: '/changePassword',name: 'changepw', title: 'changePassword', component: changePassword},
   {path: '/history',name: 'history', title: 'History', component: history},
   { path: '/history/:id', name: 'HistoryDetail', component: HistoryDetail, props: true },
   { path: '/chatbot', name: 'chatbot', title: 'Chat Assistant', component: Chatbot},
-  { path: '/test', name: 'test', title: 'test', component: test}
+  { path: '/Charts', name: 'Charts', title: 'Charts', component: Charts}
 
 ]
 
