@@ -932,7 +932,7 @@ export default {
 </script>
 
 <style scoped>
-/* All your existing CSS styles remain exactly the same */
+
 :root {
   --hot-pink: #ff4275;
   --dark-pink: #ff759e;

@@ -372,6 +372,7 @@ export default {
             this.usingFallbackData = true;
           }
           this.shipments = data.shipments || [];
+          this.formatShipmentDates(); // Format dates for proper processing
         } else {
           this.useFallbackData();
         }
@@ -416,6 +417,14 @@ export default {
           createdDate: new Date().toISOString()
         }
       ];
+    },
+    formatShipmentDates() {
+      this.shipments.forEach(shipment => {
+        if (shipment.createdDate && typeof shipment.createdDate === 'string') {
+          // Ensure the date is properly formatted as ISO string
+          shipment.createdDate = new Date(shipment.createdDate).toISOString();
+        }
+      });
     },
     destroyCharts() {
       Object.values(this.charts).forEach(chart => {
@@ -531,6 +540,10 @@ export default {
           {
             name: 'In Transit',
             data: trendData.inTransit
+          },
+          {
+            name: 'Pending',
+            data: trendData.pending
           }
         ],
         chart: {
@@ -541,7 +554,7 @@ export default {
             show: false
           }
         },
-        colors: ['var(--hot-pink)', 'var(--dark-pink)'],
+        colors: ['var(--hot-pink)', 'var(--dark-pink)', 'var(--pink)'],
         dataLabels: {
           enabled: false
         },
@@ -590,8 +603,8 @@ export default {
         },
         tooltip: {
           custom: function({ series, seriesIndex, dataPointIndex, w }) {
-            const colors = ['#ff4275', '#ff759e'];
-            const seriesNames = ['Delivered', 'In Transit'];
+            const colors = ['#ff4275', '#ff759e', '#ff9096'];
+            const seriesNames = ['Delivered', 'In Transit', 'Pending'];
 
             return `
               <div class="custom-tooltip">
@@ -694,45 +707,89 @@ export default {
       let labels = [];
       let inTransitData = [];
       let deliveredData = [];
+      let pendingData = [];
+
+      // Determine date ranges based on selected time range
+      let daysBack;
+      let intervalDays;
 
       switch (this.selectedTimeRange) {
         case '7d':
-          labels = Array.from({length: 7}, (_, i) => {
-            const date = new Date(now);
-            date.setDate(date.getDate() - (6 - i));
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          });
+          daysBack = 7;
+          intervalDays = 1;
           break;
         case '30d':
-          labels = Array.from({length: 4}, (_, i) => {
-            const startDate = new Date(now);
-            startDate.setDate(startDate.getDate() - (28 - (i * 7)));
-            const endDate = new Date(startDate);
-            endDate.setDate(endDate.getDate() + 6);
-
-            if (i === 3) {
-              return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-            } else {
-              return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-            }
-          });
+          daysBack = 30;
+          intervalDays = 7; // Weekly intervals
           break;
         case '90d':
         default:
-          labels = Array.from({length: 3}, (_, i) => {
-            const date = new Date(now);
-            date.setMonth(date.getMonth() - (2 - i));
-            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-          });
+          daysBack = 90;
+          intervalDays = 30; // Monthly intervals
       }
 
-      const baseInTransit = this.selectedTimeRange === '7d' ? 8 : this.selectedTimeRange === '30d' ? 15 : 25;
-      const baseDelivered = this.selectedTimeRange === '7d' ? 12 : this.selectedTimeRange === '30d' ? 20 : 35;
+      // Generate labels based on time range
+      const intervals = Math.ceil(daysBack / intervalDays);
+      labels = Array.from({length: intervals}, (_, i) => {
+        const startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - (daysBack - (i * intervalDays)));
 
-      inTransitData = labels.map(() => Math.floor(Math.random() * baseInTransit) + Math.floor(baseInTransit * 0.3));
-      deliveredData = labels.map(() => Math.floor(Math.random() * baseDelivered) + Math.floor(baseDelivered * 0.4));
+        if (this.selectedTimeRange === '7d') {
+          // Daily labels for 7 days
+          return startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } else if (this.selectedTimeRange === '30d') {
+          // Weekly intervals for 30 days
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + (intervalDays - 1));
+          if (i === intervals - 1) {
+            return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+          } else {
+            return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+          }
+        } else {
+          // Monthly intervals for 90 days
+          const date = new Date(now);
+          date.setMonth(date.getMonth() - ((intervals - 1) - i));
+          return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+      });
 
-      return { labels, inTransit: inTransitData, delivered: deliveredData };
+      // Count shipments by status for each time interval
+      for (let i = 0; i < intervals; i++) {
+        const intervalStart = new Date(now);
+        intervalStart.setDate(intervalStart.getDate() - (daysBack - (i * intervalDays)));
+
+        const intervalEnd = new Date(intervalStart);
+        intervalEnd.setDate(intervalEnd.getDate() + intervalDays - 1);
+
+        if (i === intervals - 1) {
+          intervalEnd.setTime(now.getTime()); // Last interval ends at current time
+        }
+
+        // Filter shipments created within this interval
+        const intervalShipments = this.filteredShipments.filter(shipment => {
+          if (!shipment.createdDate) return false;
+
+          const createdDate = new Date(shipment.createdDate);
+          return createdDate >= intervalStart && createdDate <= intervalEnd;
+        });
+
+        // Count by status
+        const inTransitCount = intervalShipments.filter(s => s.status === 'in_transit').length;
+        const deliveredCount = intervalShipments.filter(s => s.status === 'delivered').length;
+        const pendingCount = intervalShipments.filter(s => s.status === 'pending').length;
+
+        inTransitData.push(inTransitCount);
+        deliveredData.push(deliveredCount);
+        pendingData.push(pendingCount);
+      }
+
+      return {
+        labels,
+        inTransit: inTransitData,
+        delivered: deliveredData,
+        pending: pendingData
+      };
     },
     redirectToLogin() {
       window.dispatchEvent(new CustomEvent('showLoginModal'));
