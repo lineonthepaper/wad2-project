@@ -372,7 +372,7 @@ export default {
             this.usingFallbackData = true;
           }
           this.shipments = data.shipments || [];
-          this.formatShipmentDates(); // Format dates for proper processing
+          this.formatShipmentDates();
         } else {
           this.useFallbackData();
         }
@@ -421,8 +421,18 @@ export default {
     formatShipmentDates() {
       this.shipments.forEach(shipment => {
         if (shipment.createdDate && typeof shipment.createdDate === 'string') {
-          // Ensure the date is properly formatted as ISO string
-          shipment.createdDate = new Date(shipment.createdDate).toISOString();
+          try {
+            const date = new Date(shipment.createdDate);
+            if (!isNaN(date.getTime())) {
+              shipment.createdDate = date.toISOString();
+            } else {
+              shipment.createdDate = new Date().toISOString();
+            }
+          } catch (error) {
+            shipment.createdDate = new Date().toISOString();
+          }
+        } else if (!shipment.createdDate) {
+          shipment.createdDate = new Date().toISOString();
         }
       });
     },
@@ -709,7 +719,6 @@ export default {
       let deliveredData = [];
       let pendingData = [];
 
-      // Determine date ranges based on selected time range
       let daysBack;
       let intervalDays;
 
@@ -720,68 +729,68 @@ export default {
           break;
         case '30d':
           daysBack = 30;
-          intervalDays = 7; // Weekly intervals
+          intervalDays = 7;
           break;
         case '90d':
         default:
           daysBack = 90;
-          intervalDays = 30; // Monthly intervals
+          intervalDays = 30;
       }
 
-      // Generate labels based on time range
       const intervals = Math.ceil(daysBack / intervalDays);
-      labels = Array.from({length: intervals}, (_, i) => {
-        const startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - (daysBack - (i * intervalDays)));
 
-        if (this.selectedTimeRange === '7d') {
-          // Daily labels for 7 days
-          return startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        } else if (this.selectedTimeRange === '30d') {
-          // Weekly intervals for 30 days
-          const endDate = new Date(startDate);
-          endDate.setDate(endDate.getDate() + (intervalDays - 1));
-          if (i === intervals - 1) {
-            return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-          } else {
-            return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-          }
-        } else {
-          // Monthly intervals for 90 days
-          const date = new Date(now);
-          date.setMonth(date.getMonth() - ((intervals - 1) - i));
-          return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        }
-      });
+      inTransitData = Array(intervals).fill(0);
+      deliveredData = Array(intervals).fill(0);
+      pendingData = Array(intervals).fill(0);
 
-      // Count shipments by status for each time interval
       for (let i = 0; i < intervals; i++) {
         const intervalStart = new Date(now);
-        intervalStart.setDate(intervalStart.getDate() - (daysBack - (i * intervalDays)));
+        intervalStart.setDate(intervalStart.getDate() - daysBack + (i * intervalDays));
+        intervalStart.setHours(0, 0, 0, 0);
 
         const intervalEnd = new Date(intervalStart);
         intervalEnd.setDate(intervalEnd.getDate() + intervalDays - 1);
+        intervalEnd.setHours(23, 59, 59, 999);
 
         if (i === intervals - 1) {
-          intervalEnd.setTime(now.getTime()); // Last interval ends at current time
+          intervalEnd.setTime(now.getTime());
         }
 
-        // Filter shipments created within this interval
-        const intervalShipments = this.filteredShipments.filter(shipment => {
-          if (!shipment.createdDate) return false;
+        if (this.selectedTimeRange === '7d') {
+          labels.push(intervalStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        } else if (this.selectedTimeRange === '30d') {
+          if (i === intervals - 1) {
+            labels.push(`${intervalStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+          } else {
+            labels.push(`${intervalStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${intervalEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+          }
+        } else {
+          labels.push(intervalStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
+        }
 
-          const createdDate = new Date(shipment.createdDate);
-          return createdDate >= intervalStart && createdDate <= intervalEnd;
+        this.filteredShipments.forEach(shipment => {
+          if (!shipment.createdDate) return;
+
+          try {
+            const createdDate = new Date(shipment.createdDate);
+
+            if (createdDate >= intervalStart && createdDate <= intervalEnd) {
+              switch (shipment.status) {
+                case 'in_transit':
+                  inTransitData[i]++;
+                  break;
+                case 'delivered':
+                  deliveredData[i]++;
+                  break;
+                case 'pending':
+                  pendingData[i]++;
+                  break;
+              }
+            }
+          } catch (error) {
+            console.warn('Invalid date format for shipment:', shipment.createdDate);
+          }
         });
-
-        // Count by status
-        const inTransitCount = intervalShipments.filter(s => s.status === 'in_transit').length;
-        const deliveredCount = intervalShipments.filter(s => s.status === 'delivered').length;
-        const pendingCount = intervalShipments.filter(s => s.status === 'pending').length;
-
-        inTransitData.push(inTransitCount);
-        deliveredData.push(deliveredCount);
-        pendingData.push(pendingCount);
       }
 
       return {
