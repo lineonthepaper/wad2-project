@@ -169,6 +169,17 @@
           </div>
         </section>
 
+        <!-- History Button - Keep in original position -->
+        <div class="text-center my-3">
+          <button @click="viewHistory"
+                  style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
+                  @mouseover="this.style.background='#ff4d8d'"
+                  @mouseout="this.style.background='#ff6b9d'">
+            <h3 class="mb-0">Shipment History</h3>
+            <p class="mb-0">Click to view more</p>
+          </button>
+        </div>
+
         <!-- Charts Section - Collapsible -->
         <section class="charts-section">
           <div class="charts-header" @click="toggleCharts">
@@ -272,17 +283,6 @@
             </div>
           </div>
         </section>
-
-        <!-- History Button -->
-        <div class="text-center my-3">
-          <button @click="viewHistory"
-                  style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
-                  onmouseover="this.style.background='#ff4d8d'"
-                  onmouseout="this.style.background='#ff6b9d'">
-            <h3 class="mb-0">Shipment History</h3>
-            <p class="mb-0">Click to view more</p>
-          </button>
-        </div>
 
         <!-- Notifications Section -->
         <section class="notifications-section">
@@ -535,9 +535,7 @@ export default {
       this.globe = null;
     }
     // Destroy all charts
-    Object.values(this.charts).forEach(chart => {
-      if (chart) chart.destroy();
-    });
+    this.destroyCharts();
     window.removeEventListener('loginStatusChanged', this.handleLoginStatusChange);
   },
   methods: {
@@ -545,14 +543,29 @@ export default {
       this.$router.push('/history');
     },
     
-    // Charts Methods
+    // Fixed Charts Methods
     toggleCharts() {
       this.chartsExpanded = !this.chartsExpanded;
       if (this.chartsExpanded) {
         this.$nextTick(() => {
-          this.initCharts();
+          // Small delay to ensure CSS transition completes
+          setTimeout(() => {
+            this.initCharts();
+          }, 300);
         });
+      } else {
+        // Destroy charts when collapsing to free up memory
+        this.destroyCharts();
       }
+    },
+
+    destroyCharts() {
+      Object.values(this.charts).forEach(chart => {
+        if (chart && typeof chart.destroy === 'function') {
+          chart.destroy();
+        }
+      });
+      this.charts = {};
     },
 
     setTimeRange(range) {
@@ -566,20 +579,26 @@ export default {
     },
 
     updateCharts() {
-      // Destroy existing charts
-      Object.values(this.charts).forEach(chart => {
-        if (chart) chart.destroy();
-      });
-      
-      // Reinitialize charts with filtered data
-      this.initCharts();
+      if (this.chartsExpanded) {
+        this.destroyCharts();
+        this.$nextTick(() => {
+          this.initCharts();
+        });
+      }
     },
 
     initCharts() {
-      this.initStatusChart();
-      this.initTrendsChart();
-      this.initServiceChart();
-      this.initGaugeChart();
+      // Check if canvas elements exist
+      if (!this.$refs.statusChart || !this.chartsExpanded) return;
+      
+      try {
+        this.initStatusChart();
+        this.initTrendsChart();
+        this.initServiceChart();
+        this.initGaugeChart();
+      } catch (error) {
+        console.error('Error initializing charts:', error);
+      }
     },
 
     initStatusChart() {
@@ -587,6 +606,9 @@ export default {
       if (!ctx) return;
 
       const filteredData = this.getFilteredStats();
+
+      // Ensure we have a valid context
+      if (!ctx.getContext) return;
 
       this.charts.status = new Chart(ctx, {
         type: 'pie',
@@ -601,6 +623,7 @@ export default {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           plugins: {
             legend: {
               position: 'bottom'
@@ -611,7 +634,7 @@ export default {
                   const label = context.label || '';
                   const value = context.raw || 0;
                   const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = Math.round((value / total) * 100);
+                  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                   return `${label}: ${value} (${percentage}%)`;
                 }
               }
@@ -623,7 +646,7 @@ export default {
 
     initTrendsChart() {
       const ctx = this.$refs.trendsChart;
-      if (!ctx) return;
+      if (!ctx || !ctx.getContext) return;
 
       const trendData = this.generateTrendData();
 
@@ -652,6 +675,7 @@ export default {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           interaction: {
             intersect: false,
             mode: 'index'
@@ -671,7 +695,7 @@ export default {
 
     initServiceChart() {
       const ctx = this.$refs.serviceChart;
-      if (!ctx) return;
+      if (!ctx || !ctx.getContext) return;
 
       const serviceStats = {};
       this.filteredParcelsByTime.forEach(parcel => {
@@ -696,6 +720,7 @@ export default {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           scales: {
             y: {
               beginAtZero: true
@@ -707,7 +732,7 @@ export default {
 
     initGaugeChart() {
       const ctx = this.$refs.gaugeChart;
-      if (!ctx) return;
+      if (!ctx || !ctx.getContext) return;
 
       const filteredData = this.getFilteredStats();
       const deliveryRate = filteredData.total > 0 ? 
@@ -730,6 +755,7 @@ export default {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           cutout: '70%',
           plugins: {
             legend: { display: false },
@@ -762,9 +788,15 @@ export default {
             date.setDate(date.getDate() - (6 - i));
             return date.toLocaleDateString('en-US', { weekday: 'short' });
           });
+          // Generate realistic daily data
+          inProgressData = labels.map(() => Math.floor(Math.random() * 10) + 5);
+          deliveredData = labels.map(() => Math.floor(Math.random() * 8) + 3);
           break;
         case 'weekly':
           labels = Array.from({length: 4}, (_, i) => `Week ${i + 1}`);
+          // Generate realistic weekly data
+          inProgressData = labels.map(() => Math.floor(Math.random() * 30) + 15);
+          deliveredData = labels.map(() => Math.floor(Math.random() * 25) + 10);
           break;
         case 'monthly':
         default:
@@ -773,12 +805,10 @@ export default {
             date.setMonth(date.getMonth() - (5 - i));
             return date.toLocaleDateString('en-US', { month: 'short' });
           });
+          // Generate realistic monthly data
+          inProgressData = labels.map(() => Math.floor(Math.random() * 50) + 25);
+          deliveredData = labels.map(() => Math.floor(Math.random() * 40) + 20);
       }
-
-      // Generate sample data based on current filtered stats
-      const baseStats = this.getFilteredStats();
-      inProgressData = labels.map(() => Math.max(0, baseStats.inProgress + Math.floor(Math.random() * 3) - 1));
-      deliveredData = labels.map(() => Math.max(0, baseStats.delivered + Math.floor(Math.random() * 5) - 2));
 
       return {
         labels,
@@ -1355,163 +1385,7 @@ export default {
 </script>
 
 <style scoped>
-/* Your existing CSS remains the same, add these new styles: */
-
-/* Charts Section */
-.charts-section {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  margin-bottom: 2rem;
-  overflow: hidden;
-}
-
-.charts-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: var(--light-pink);
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.charts-header:hover {
-  background: var(--pink-grey);
-}
-
-.charts-header h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--dark-slate-blue);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.charts-toggle {
-  color: var(--hot-pink);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.charts-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.5s ease;
-}
-
-.charts-content.expanded {
-  max-height: 1200px;
-}
-
-/* Time Filter Controls */
-.time-filter-controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
-  background: var(--light-pink);
-  border-bottom: 1px solid var(--pink-grey);
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-group label {
-  font-weight: 600;
-  color: var(--dark-slate-blue);
-  font-size: 0.9rem;
-}
-
-.time-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.time-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--pink-grey);
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.3s ease;
-}
-
-.time-btn:hover {
-  border-color: var(--hot-pink);
-}
-
-.time-btn.active {
-  background: var(--hot-pink);
-  color: white;
-  border-color: var(--hot-pink);
-}
-
-.date-range {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.date-input {
-  padding: 0.5rem;
-  border: 1px solid var(--pink-grey);
-  border-radius: 6px;
-  font-size: 0.8rem;
-}
-
-.apply-btn {
-  padding: 0.5rem 1rem;
-  background: var(--hot-pink);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background-color 0.3s ease;
-}
-
-.apply-btn:hover {
-  background: var(--dark-pink);
-}
-
-.granularity-select {
-  padding: 0.5rem;
-  border: 1px solid var(--pink-grey);
-  border-radius: 6px;
-  background: white;
-  font-size: 0.8rem;
-}
-
-/* Charts Grid */
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
-}
-
-.chart-container {
-  background: var(--light-pink);
-  border-radius: 12px;
-  padding: 1rem;
-  position: relative;
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
+/* Your existing CSS with fixed accordion styles */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
 :root {
@@ -1825,7 +1699,6 @@ export default {
   color: white;
   background: linear-gradient(135deg, var(--slate-blue), var(--dark-slate-blue));
 }
-
 
 .history-arrow {
   color: var(--slate-blue);
@@ -2413,6 +2286,163 @@ export default {
   background: var(--dark-pink);
   transform: translateY(-2px);
 }
+
+/* Charts Section */
+.charts-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.charts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: var(--light-pink);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.charts-header:hover {
+  background: var(--pink-grey);
+}
+
+.charts-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.charts-toggle {
+  color: var(--hot-pink);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.charts-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+
+.charts-content.expanded {
+  max-height: 2000px;
+}
+
+/* Time Filter Controls */
+.time-filter-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--light-pink);
+  border-bottom: 1px solid var(--pink-grey);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--dark-slate-blue);
+  font-size: 0.9rem;
+}
+
+.time-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.time-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--pink-grey);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.time-btn:hover {
+  border-color: var(--hot-pink);
+}
+
+.time-btn.active {
+  background: var(--hot-pink);
+  color: white;
+  border-color: var(--hot-pink);
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.date-input {
+  padding: 0.5rem;
+  border: 1px solid var(--pink-grey);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.apply-btn {
+  padding: 0.5rem 1rem;
+  background: var(--hot-pink);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease;
+}
+
+.apply-btn:hover {
+  background: var(--dark-pink);
+}
+
+.granularity-select {
+  padding: 0.5rem;
+  border: 1px solid var(--pink-grey);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.8rem;
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.chart-container {
+  background: var(--light-pink);
+  border-radius: 12px;
+  padding: 1rem;
+  position: relative;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .chart-header h4 {
   margin: 0;
   font-size: 1rem;
@@ -2495,6 +2525,7 @@ export default {
     text-align: center;
   }
 }
+
 @keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -2591,6 +2622,4 @@ export default {
     align-items: flex-start;
   }
 }
-/* Rest of your existing CSS remains unchanged */
-/* ... (all your previous CSS styles) ... */
 </style>
