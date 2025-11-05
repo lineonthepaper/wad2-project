@@ -513,31 +513,131 @@ export default {
             colors: 'var(--dark-slate-blue)'
           }
         },
-        tooltip: {
-          custom: function({ series, seriesIndex, w }) {
-            const labels = ['Delivered', 'In Transit', 'Pending'];
-            const colors = ['#ff4275', '#ff759e', '#ff9096'];
-            const total = series.reduce((a, b) => a + b, 0);
-            const percentage = total > 0 ? Math.round((series[seriesIndex] / total) * 100) : 0;
+        initTrendsChart() {
+  const trendData = this.generateTrendData();
 
-            return `
-              <div class="custom-tooltip">
-                <div class="tooltip-header" style="background: ${colors[seriesIndex]}; color: white; padding: 8px 12px; border-radius: 6px 6px 0 0; font-weight: 600;">
-                  ${labels[seriesIndex]}
-                </div>
-                <div class="tooltip-body" style="background: white; padding: 12px; border-radius: 0 0 6px 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                  <div style="font-size: 18px; font-weight: 700; color: var(--dark-slate-blue);">${series[seriesIndex]}</div>
-                  <div style="font-size: 14px; color: var(--slate-blue);">${percentage}% of total</div>
-                </div>
-              </div>
-            `;
-          }
-        }
-      };
-
-      this.charts.status = new ApexCharts(this.$refs.statusChart, options);
-      this.charts.status.render();
+  const options = {
+    series: [
+      {
+        name: 'Delivered',
+        data: trendData.delivered
+      },
+      {
+        name: 'In Transit',
+        data: trendData.inTransit
+      },
+      {
+        name: 'Pending',
+        data: trendData.pending
+      }
+    ],
+    chart: {
+      height: 280,
+      type: 'area',
+      fontFamily: 'inherit',
+      toolbar: {
+        show: false
+      }
     },
+    colors: ['var(--hot-pink)', 'var(--dark-pink)', 'var(--pink)'],
+    dataLabels: {
+      enabled: false
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 3
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.4,
+        opacityTo: 0.1,
+        stops: [0, 90, 100]
+      }
+    },
+    xaxis: {
+      categories: trendData.labels,
+      labels: {
+        style: {
+          colors: 'var(--slate-blue)',
+          fontSize: '11px'
+        }
+      }
+    },
+    yaxis: {
+      labels: {
+        style: {
+          colors: 'var(--slate-blue)',
+          fontSize: '11px'
+        }
+      }
+    },
+    grid: {
+      borderColor: 'var(--pink-grey)',
+      strokeDashArray: 3
+    },
+    legend: {
+      position: 'top',
+      horizontalAlign: 'left',
+      fontSize: '12px',
+      fontWeight: '600',
+      labels: {
+        colors: 'var(--dark-slate-blue)'
+      }
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      custom: function({ series, seriesIndex, dataPointIndex, w }) {
+        const colors = ['#ff4275', '#ff759e', '#ff9096'];
+        const seriesNames = ['Delivered', 'In Transit', 'Pending'];
+        const currentDate = w.globals.categoryLabels[dataPointIndex];
+
+
+        let tooltipContent = `
+          <div class="custom-tooltip">
+            <div class="tooltip-header" style="background: var(--hot-pink); color: white; padding: 8px 12px; border-radius: 6px 6px 0 0; font-weight: 600;">
+              ${currentDate}
+            </div>
+            <div class="tooltip-body" style="background: white; padding: 12px; border-radius: 0 0 6px 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        `;
+
+       
+        series.forEach((s, index) => {
+          const value = s[dataPointIndex];
+          tooltipContent += `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 4px 0;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${colors[index]};"></div>
+                <span style="font-size: 14px; color: var(--dark-slate-blue); font-weight: 600;">${seriesNames[index]}</span>
+              </div>
+              <span style="font-size: 14px; font-weight: 700; color: var(--dark-slate-blue);">${value}</span>
+            </div>
+          `;
+        });
+
+        // Calculate and add total
+        const total = series.reduce((sum, s) => sum + s[dataPointIndex], 0);
+        tooltipContent += `
+            <div style="border-top: 1px solid var(--pink-grey); margin-top: 8px; padding-top: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: var(--dark-slate-blue); font-weight: 700;">Total</span>
+                <span style="font-size: 16px; font-weight: 800; color: var(--hot-pink);">${total}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        `;
+
+        return tooltipContent;
+      }
+    }
+  };
+
+  this.charts.trends = new ApexCharts(this.$refs.trendsChart, options);
+  this.charts.trends.render();
+},
     initTrendsChart() {
       const trendData = this.generateTrendData();
 
