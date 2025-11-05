@@ -17,7 +17,7 @@ Raksha: tbc
 <br>
 Zachary: tbc
 <br>
-Jessica: Chatgpt for explanation of code and Generation of template/starter code. Understanding of logic
+Jessica: Chatgpt for explanation of code and Generation of simple template/starter code with 0 functionaility. Understanding of logic.
 <br>
 Sheryn: LLM for understanding code logic and further styling.
 <br>
