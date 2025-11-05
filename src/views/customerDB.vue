@@ -36,33 +36,82 @@
         </div>
       </div>
 
-      <div class="main-content" v-if="!loading">
+         <div class="main-content" v-if="!loading">
         <section class="stats-overview">
           <div class="stats-grid">
-            <div class="stat-card" :class="`stat-${stat.key}`" v-for="stat in enhancedStats" :key="stat.key">
+            <div class="stat-card stat-total">
               <div class="stat-content">
-                <div class="stat-icon">
-                  <i :class="stat.icon"></i>
-                </div>
+                <div class="stat-icon">📦</div>
                 <div class="stat-data">
-                  <h3 class="stat-title">{{ stat.title }}</h3>
-                  <p class="stat-number">{{ stat.value }}</p>
-                  <div class="stat-trend" :class="stat.trend">
-                    <i :class="stat.trendIcon"></i>
-                    <span>{{ stat.trendValue }}</span>
-                  </div>
+                  <h3 class="stat-title">Total Shipments</h3>
+                  <div class="stat-number">{{ totalShipments }}</div>
                 </div>
               </div>
               <div class="stat-chart">
                 <div class="mini-chart">
-                  <div class="chart-bar" v-for="(point, index) in stat.chartData" :key="index"
-                       :style="{ height: point + '%' }"></div>
+                  <div class="chart-bar" :style="{ height: '70%' }"></div>
+                  <div class="chart-bar" :style="{ height: '50%' }"></div>
+                  <div class="chart-bar" :style="{ height: '80%' }"></div>
+                  <div class="chart-bar" :style="{ height: '60%' }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card stat-delivered">
+              <div class="stat-content">
+                <div class="stat-icon">✅</div>
+                <div class="stat-data">
+                  <h3 class="stat-title">Delivered</h3>
+                  <div class="stat-number">{{ stats.delivered }}</div>
+                </div>
+              </div>
+              <div class="stat-chart">
+                <div class="mini-chart">
+                  <div class="chart-bar" :style="{ height: '90%' }"></div>
+                  <div class="chart-bar" :style="{ height: '85%' }"></div>
+                  <div class="chart-bar" :style="{ height: '95%' }"></div>
+                  <div class="chart-bar" :style="{ height: '88%' }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card stat-in-progress">
+              <div class="stat-content">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-data">
+                  <h3 class="stat-title">In Transit</h3>
+                  <div class="stat-number">{{ stats.inProgress }}</div>
+                </div>
+              </div>
+              <div class="stat-chart">
+                <div class="mini-chart">
+                  <div class="chart-bar" :style="{ height: '60%' }"></div>
+                  <div class="chart-bar" :style="{ height: '75%' }"></div>
+                  <div class="chart-bar" :style="{ height: '55%' }"></div>
+                  <div class="chart-bar" :style="{ height: '70%' }"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card stat-pending">
+              <div class="stat-content">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-data">
+                  <h3 class="stat-title">Pending</h3>
+                  <div class="stat-number">{{ stats.pending }}</div>
+                </div>
+              </div>
+              <div class="stat-chart">
+                <div class="mini-chart">
+                  <div class="chart-bar" :style="{ height: '40%' }"></div>
+                  <div class="chart-bar" :style="{ height: '35%' }"></div>
+                  <div class="chart-bar" :style="{ height: '45%' }"></div>
+                  <div class="chart-bar" :style="{ height: '30%' }"></div>
                 </div>
               </div>
             </div>
           </div>
         </section>
-
          <div class="text-center my-3">
    <button @click="viewHistory"
           style="background: #ff6b9d; border: none; border-radius: 8px; padding: 15px 25px; color: white; transition: all 0.3s ease; cursor: pointer;"
