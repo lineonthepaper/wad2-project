@@ -123,12 +123,12 @@ onMounted(() => {
 <template>
   <div class="catalogue-page">
     <hr />
-    <div class="row justify-content-center airplane-header">
-      <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-        <h1 class="jua text-hot-pink">Our Services</h1>
-      </div>
-    </div>
-    <hr />
+<div class="row justify-content-center airplane-header">
+  <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+    <h1 class="jua text-hot-pink">Our Services</h1>
+  </div>
+</div>
+<hr />
 
     <div class="container mt-4">
       <div v-if="loading" class="text-center py-5">

@@ -122,13 +122,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <hr />
-  <div class="row justify-content-center airplane-header">
-    <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-      <h1 class="jua text-hot-pink">Details - {{ service?.service_name }}</h1>
-    </div>
+ <hr />
+<div class="row justify-content-center airplane-header">
+  <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
+    <h1 class="jua text-hot-pink">Details - {{ service?.service_name }}</h1>
   </div>
-  <hr />
+</div>
+<hr />
   <div class="service-detail container py-5">
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
