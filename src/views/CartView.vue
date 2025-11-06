@@ -152,6 +152,8 @@ import countryData from '/json/countryData.json'
 import zoneData from '/json/zoneData.json'
 
 import axios from 'axios'
+
+import emailjs from '@emailjs/browser'
 </script>
 
 <script>
@@ -335,27 +337,26 @@ export default {
       )
     },
     sendEmail(shipment, mailId) {
-      axios
-        .post('/api/sendEmail.php', {
-          from: {
-            name: 'Fluffy Shipping @ SingPost',
+      emailjs
+        .send(
+          'service_6cxlz37',
+          'template_2f1qjme',
+          {
+            mail_id: mailId,
+            shipment_type: shipment.type,
+            email: shipment.sender.email,
+            support_email: 'singpostproj@gmail.com',
           },
-          to: [
-            {
-              email: shipment.sender.email,
-              name: shipment.sender.name,
-            },
-          ],
-          subject: 'Your mail has been registered!',
-          mailId: mailId,
-          shipmentType: shipment.type,
-        })
-        .then((response) => {
-          console.log(response.data)
-        })
-        .catch((error) => {
-          console.error(error)
-        })
+          { publicKey: 'hAfNSvO8HqwIKeJWr' },
+        )
+        .then(
+          () => {
+            console.log('successfully sent email')
+          },
+          (error) => {
+            console.log('failed email: ', error.text)
+          },
+        )
     },
   },
   computed: {
