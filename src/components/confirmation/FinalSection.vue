@@ -4,7 +4,7 @@
       <div class="col">
         <p>Fluffy Shipping by SingPost has it handled!</p>
         <p>
-          In the meantime, check out your <a>dashboard</a> for insights on your shipments and more!
+          If you have an account, check out your dashboard for insights on your shipments and more!
         </p>
       </div>
     </div>

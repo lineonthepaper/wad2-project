@@ -136,6 +136,10 @@ onMounted(() => {
   filter: opacity(100%) !important;
 }
 
+.icon-nav {
+  z-index: 5;
+}
+
 .bg-translucent {
   background-color: rgba(255, 255, 255, 0.75);
 }
