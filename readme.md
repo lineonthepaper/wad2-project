@@ -17,7 +17,7 @@ Raksha: LLM for understanding code logic not learnt before and further styling
 <br>
 Zachary: tbc
 <br>
-Jessica: Chatgpt for explanation of code and Generation of simple template/starter code with 0 functionaility. Understanding of logic.
+Jessica: LLM for explanation of code and Generation of simple boilerplate/starter code with 0 functionaility. Understanding of logic.
 <br>
 Sheryn: LLM for understanding code logic and further styling.
 <br>
