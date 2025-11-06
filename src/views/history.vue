@@ -239,7 +239,7 @@
                 <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No shipments found</h4>
                 <p class="text-muted">You haven't created any shipments yet.</p>
-                <button class="btn btn-primary" @click="redirectToCreateShipment">
+                <button class="btn btn-primary" @click="redirectToCreateShipment"  style="display: block; margin: 0 auto; text-align: center;>
                   Create Your First Shipment
                 </button>
               </div>
@@ -388,7 +388,7 @@ export default {
 
         const text = await response.text()
 
-       
+
         if (text.trim().startsWith('<')) {
           console.warn('Server returned HTML instead of JSON. This might be an error page.')
           shipments.value = []
@@ -498,7 +498,7 @@ export default {
     }
 
     const redirectToCreateShipment = () => {
-      router.push('/create-shipment')
+      router.push('/shipment')
     }
 
     onMounted(() => {
