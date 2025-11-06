@@ -235,7 +235,7 @@
 
     <div v-else class="login-required">
       <div class="login-message">
-        <div class="message-icon">
+       
         </div>
         <h2>Authentication Required</h2>
         <p>Please log in to access your parcel tracking dashboard</p>

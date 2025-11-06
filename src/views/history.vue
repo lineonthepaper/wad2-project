@@ -4,7 +4,7 @@
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
         <div class="message-icon">
-          <i class="fas fa-lock"></i>
+
         </div>
         <h2>Authentication Required</h2>
         <p>Please log in to view your history of shipments</p>
