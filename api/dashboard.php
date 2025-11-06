@@ -241,89 +241,89 @@ function getCoordinatesForAddress($address) {
     
     return $countryCoordinates[$countryCode] ?? ['lat' => 1.28478, 'lng' => 103.776222];
 }
-
+//sample data
 function getExampleShipments($customerEmail) {
-    return [
-        [
-            'mailId' => 1001,
-            'customerEmail' => $customerEmail,
-            'senderAddressId' => 1,
-            'recipientAddressId' => 2,
-            'mailItems' => [
-                [
-                    'itemId' => 1,
-                    'itemDescription' => 'Electronics Package',
-                    'declaredValue' => 250.00,
-                    'itemWeight' => 1.5,
-                    'itemQuantity' => 1
-                ]
-            ],
-            'parcelLength' => 30.0,
-            'parcelWidth' => 20.0,
-            'parcelHeight' => 15.0,
-            'service' => [
-                'name' => 'Registered Package',
-                'type' => 'Packets',
-                'zone' => 3
-            ],
-            'totalWeight' => 1.5,
-            'totalValue' => 250.00,
-            'hasBeenPaid' => true,
-            'trackingNumber' => 'TRK784231',
-            'createdDate' => date('Y-m-d H:i:s', strtotime('-2 days')),
-            'senderAddress' => [
-                'name' => 'John Doe',
-                'countryCode' => 'SG',
-                'coordinates' => ['lat' => 1.28478, 'lng' => 103.776222]
-            ],
-            'recipientAddress' => [
-                'name' => 'Sarah Wilson',
-                'countryCode' => 'US',
-                'coordinates' => ['lat' => 38.883757, 'lng' => -77.025347]
-            ],
-            'status' => 'in_transit',
-            'expectedDelivery' => date('Y-m-d', strtotime('+3 days'))
-        ],
-        [
-            'mailId' => 1002,
-            'customerEmail' => $customerEmail,
-            'senderAddressId' => 1,
-            'recipientAddressId' => 3,
-            'mailItems' => [
-                [
-                    'itemId' => 2,
-                    'itemDescription' => 'Documents',
-                    'declaredValue' => 50.00,
-                    'itemWeight' => 0.5,
-                    'itemQuantity' => 1
-                ]
-            ],
-            'parcelLength' => 35.0,
-            'parcelWidth' => 25.0,
-            'parcelHeight' => 2.0,
-            'service' => [
-                'name' => 'Registered Mail',
-                'type' => 'Documents',
-                'zone' => 2
-            ],
-            'totalWeight' => 0.5,
-            'totalValue' => 50.00,
-            'hasBeenPaid' => true,
-            'trackingNumber' => 'TRK784232',
-            'createdDate' => date('Y-m-d H:i:s', strtotime('-5 days')),
-            'senderAddress' => [
-                'name' => 'John Doe',
-                'countryCode' => 'SG',
-                'coordinates' => ['lat' => 1.28478, 'lng' => 103.776222]
-            ],
-            'recipientAddress' => [
-                'name' => 'Mike Chen',
-                'countryCode' => 'MY',
-                'coordinates' => ['lat' => 3.153398, 'lng' => 101.697097]
-            ],
-            'status' => 'delivered',
-            'expectedDelivery' => date('Y-m-d', strtotime('-1 day'))
-        ]
-    ];
+    // return [
+    //     [
+    //         'mailId' => 1001,
+    //         'customerEmail' => $customerEmail,
+    //         'senderAddressId' => 1,
+    //         'recipientAddressId' => 2,
+    //         'mailItems' => [
+    //             [
+    //                 'itemId' => 1,
+    //                 'itemDescription' => 'Electronics Package',
+    //                 'declaredValue' => 250.00,
+    //                 'itemWeight' => 1.5,
+    //                 'itemQuantity' => 1
+    //             ]
+    //         ],
+    //         'parcelLength' => 30.0,
+    //         'parcelWidth' => 20.0,
+    //         'parcelHeight' => 15.0,
+    //         'service' => [
+    //             'name' => 'Registered Package',
+    //             'type' => 'Packets',
+    //             'zone' => 3
+    //         ],
+    //         'totalWeight' => 1.5,
+    //         'totalValue' => 250.00,
+    //         'hasBeenPaid' => true,
+    //         'trackingNumber' => 'TRK784231',
+    //         'createdDate' => date('Y-m-d H:i:s', strtotime('-2 days')),
+    //         'senderAddress' => [
+    //             'name' => 'John Doe',
+    //             'countryCode' => 'SG',
+    //             'coordinates' => ['lat' => 1.28478, 'lng' => 103.776222]
+    //         ],
+    //         'recipientAddress' => [
+    //             'name' => 'Sarah Wilson',
+    //             'countryCode' => 'US',
+    //             'coordinates' => ['lat' => 38.883757, 'lng' => -77.025347]
+    //         ],
+    //         'status' => 'in_transit',
+    //         'expectedDelivery' => date('Y-m-d', strtotime('+3 days'))
+    //     ],
+    //     [
+    //         'mailId' => 1002,
+    //         'customerEmail' => $customerEmail,
+    //         'senderAddressId' => 1,
+    //         'recipientAddressId' => 3,
+    //         'mailItems' => [
+    //             [
+    //                 'itemId' => 2,
+    //                 'itemDescription' => 'Documents',
+    //                 'declaredValue' => 50.00,
+    //                 'itemWeight' => 0.5,
+    //                 'itemQuantity' => 1
+    //             ]
+    //         ],
+    //         'parcelLength' => 35.0,
+    //         'parcelWidth' => 25.0,
+    //         'parcelHeight' => 2.0,
+    //         'service' => [
+    //             'name' => 'Registered Mail',
+    //             'type' => 'Documents',
+    //             'zone' => 2
+    //         ],
+    //         'totalWeight' => 0.5,
+    //         'totalValue' => 50.00,
+    //         'hasBeenPaid' => true,
+    //         'trackingNumber' => 'TRK784232',
+    //         'createdDate' => date('Y-m-d H:i:s', strtotime('-5 days')),
+    //         'senderAddress' => [
+    //             'name' => 'John Doe',
+    //             'countryCode' => 'SG',
+    //             'coordinates' => ['lat' => 1.28478, 'lng' => 103.776222]
+    //         ],
+    //         'recipientAddress' => [
+    //             'name' => 'Mike Chen',
+    //             'countryCode' => 'MY',
+    //             'coordinates' => ['lat' => 3.153398, 'lng' => 101.697097]
+    //         ],
+    //         'status' => 'delivered',
+    //         'expectedDelivery' => date('Y-m-d', strtotime('-1 day'))
+    //     ]
+    // ];
 }
 ?>
