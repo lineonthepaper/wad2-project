@@ -34,12 +34,12 @@
           <p class="mt-3 text-muted">Loading your shipments...</p>
         </div>
 
-       
+
         <div v-else-if="error" class="text-center py-5">
           <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
           <h4 class="text-danger">Failed to load shipments</h4>
           <p class="text-muted">{{ error }}</p>
-          <button class="btn btn-primary" @click="fetchTransactions">
+          <button class="btn btn-primary" @click="fetchshipms">
             <i class="fas fa-redo"></i> Try Again
           </button>
         </div>
@@ -132,19 +132,19 @@
           <div class="row">
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Found {{ filteredTransactions.length }} transactions</h5>
+                <h5 class="mb-0">Found {{ filteredshipms.length }} shipms</h5>
                 <div class="text-muted small">
-                  Showing {{ Math.min(filteredTransactions.length, itemsPerPage) }} of {{ filteredTransactions.length }}
+                  Showing {{ Math.min(filteredshipms.length, itemsPerPage) }} of {{ filteredshipms.length }}
                 </div>
               </div>
 
 
-              <div class="transaction-grid">
+              <div class="shipm-grid">
                 <div
-                  class="transaction-card card mb-3 shadow-sm"
-                  v-for="transaction in paginatedTransactions"
-                  :key="transaction.mailId"
-                  @click="viewTransactionDetails(transaction)"
+                  class="shipm-card card mb-3 shadow-sm"
+                  v-for="shipm in paginatedshipms"
+                  :key="shipm.mailId"
+                  @click="viewshipmDetails(shipm)"
                   style="cursor: pointer; transition: transform 0.2s;"
                 >
                   <div class="card-body">
@@ -152,18 +152,18 @@
 
                       <div class="col-md-4">
                         <div class="d-flex align-items-center mb-2">
-                          <h6 class="mb-0 me-2">{{ getTrackingId(transaction) }}</h6>
-                          <span class="badge" :class="getStatusBadgeClass(transaction.status)">
-                            {{ formatStatus(transaction.status) }}
+                          <h6 class="mb-0 me-2">{{ getTrackingId(shipm) }}</h6>
+                          <span class="badge" :class="getStatusBadgeClass(shipm.status)">
+                            {{ formatStatus(shipm.status) }}
                           </span>
                         </div>
                         <p class="text-muted small mb-2">
                           <i class="fas fa-calendar me-1"></i>
-                          Created: {{ formatDate(transaction.createdDate) }}
+                          Created: {{ formatDate(shipm.createdDate) }}
                         </p>
                         <p class="text-muted small mb-0">
                           <i class="fas fa-envelope me-1"></i>
-                          {{ transaction.service.name }}
+                          {{ shipm.service.name }}
                         </p>
                       </div>
 
@@ -171,20 +171,20 @@
                       <div class="col-md-4">
                         <div class="route-info">
                           <div class="d-flex align-items-center mb-1">
-                            <small class="text-muted">From: {{ transaction.senderAddress?.countryCode || 'SG' }}</small>
+                            <small class="text-muted">From: {{ shipm.senderAddress?.countryCode || 'SG' }}</small>
                           </div>
                           <div class="d-flex align-items-center">
-                            <small class="text-muted">To: {{ transaction.recipientAddress?.countryCode || 'Unknown' }}</small>
+                            <small class="text-muted">To: {{ shipm.recipientAddress?.countryCode || 'Unknown' }}</small>
                           </div>
                           <div class="progress mt-2" style="height: 4px;">
                             <div
                               class="progress-bar"
-                              :class="getProgressBarClass(transaction.status)"
-                              :style="{ width: getProgressWidth(transaction.status) }"
+                              :class="getProgressBarClass(shipm.status)"
+                              :style="{ width: getProgressWidth(shipm.status) }"
                             ></div>
                           </div>
                           <small class="text-muted d-block mt-1 text-center">
-                            {{ getProgressText(transaction.status) }}
+                            {{ getProgressText(shipm.status) }}
                           </small>
                         </div>
                       </div>
@@ -195,16 +195,16 @@
                           <div class="row text-center">
                             <div class="col-6">
                               <small class="text-muted d-block">Weight</small>
-                              <strong>{{ transaction.totalWeight }}kg</strong>
+                              <strong>{{ shipm.totalWeight }}kg</strong>
                             </div>
                             <div class="col-6">
                               <small class="text-muted d-block">Value</small>
-                              <strong>${{ transaction.totalValue }}</strong>
+                              <strong>${{ shipm.totalValue }}</strong>
                             </div>
                           </div>
                           <div class="mt-2 text-center">
                             <small class="text-muted">
-                              Expected: {{ formatDate(transaction.expectedDelivery) }}
+                              Expected: {{ formatDate(shipm.expectedDelivery) }}
                             </small>
                           </div>
                         </div>
@@ -217,7 +217,7 @@
                         <div>
                           <small class="text-muted">Items:</small>
                           <span class="ms-2">
-                            {{ transaction.mailItems.map(item => item.itemDescription).join(', ') }}
+                            {{ shipm.mailItems.map(item => item.itemDescription).join(', ') }}
                           </span>
                         </div>
                       </div>
@@ -226,7 +226,7 @@
                 </div>
               </div>
 
-              <div v-if="filteredTransactions.length === 0 && transactions.length > 0" class="text-center py-5">
+              <div v-if="filteredshipms.length === 0 && shipms.length > 0" class="text-center py-5">
                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No shipments match your search</h4>
                 <p class="text-muted">Try adjusting your search terms or filters</p>
@@ -236,7 +236,7 @@
               </div>
 
 
-              <div v-if="transactions.length === 0 && !loading" class="text-center py-5">
+              <div v-if="shipms.length === 0 && !loading" class="text-center py-5">
                 <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No shipments found</h4>
                 <p class="text-muted">You haven't created any shipments yet.</p>
@@ -246,7 +246,7 @@
               </div>
 
 
-              <div v-if="filteredTransactions.length > itemsPerPage" class="d-flex justify-content-center mt-4">
+              <div v-if="filteredshipms.length > itemsPerPage" class="d-flex justify-content-center mt-4">
                 <nav>
                   <ul class="pagination">
                     <li class="page-item" :class="{ disabled: currentPage === 1 }">
@@ -290,7 +290,7 @@ export default {
     const searchQuery = ref("")
     const selectedStatus = ref("")
     const selectedService = ref("")
-    const transactions = ref([])
+    const shipms = ref([])
     const loading = ref(false)
     const error = ref(null)
     const currentPage = ref(1)
@@ -319,9 +319,9 @@ export default {
     }
 
 
-    const viewTransactionDetails = (transaction) => {
-      sessionStorage.setItem('selectedTransaction', JSON.stringify(transaction))
-      router.push(`/history/${transaction.mailId}`)
+    const viewshipmDetails = (shipm) => {
+      sessionStorage.setItem('selectedshipm', JSON.stringify(shipm))
+      router.push(`/history/${shipm.mailId}`)
     }
 
 
@@ -329,57 +329,57 @@ export default {
       return selectedStatus.value || selectedService.value || searchQuery.value
     })
 
-    const filteredTransactions = computed(() => {
-      if (!transactions.value.length) return []
+    const filteredshipms = computed(() => {
+      if (!shipms.value.length) return []
 
-      return transactions.value.filter(transaction => {
+      return shipms.value.filter(shipm => {
         const query = searchQuery.value.toLowerCase().trim()
 
 
         if (!query) {
-          const matchesStatus = !selectedStatus.value || transaction.status === selectedStatus.value
+          const matchesStatus = !selectedStatus.value || shipm.status === selectedStatus.value
           const matchesService = !selectedService.value ||
-            transaction.service?.name?.toLowerCase().includes(selectedService.value.toLowerCase())
+            shipm.service?.name?.toLowerCase().includes(selectedService.value.toLowerCase())
           return matchesStatus && matchesService
         }
 
         const matchesSearch =
 
-          (getTrackingId(transaction).toLowerCase().includes(query)) ||
+          (getTrackingId(shipm).toLowerCase().includes(query)) ||
 
-          (transaction.service?.name?.toLowerCase().includes(query)) ||
+          (shipm.service?.name?.toLowerCase().includes(query)) ||
 
-          (transaction.recipientAddress?.countryCode?.toLowerCase().includes(query)) ||
+          (shipm.recipientAddress?.countryCode?.toLowerCase().includes(query)) ||
 
-          (transaction.recipientAddress?.name?.toLowerCase().includes(query)) ||
+          (shipm.recipientAddress?.name?.toLowerCase().includes(query)) ||
 
-          (transaction.mailItems?.some(item =>
+          (shipm.mailItems?.some(item =>
             item.itemDescription?.toLowerCase().includes(query)
           )) ||
 
-          (formatStatus(transaction.status).toLowerCase().includes(query)) ||
+          (formatStatus(shipm.status).toLowerCase().includes(query)) ||
 
-          (transaction.senderAddress?.countryCode?.toLowerCase().includes(query))
+          (shipm.senderAddress?.countryCode?.toLowerCase().includes(query))
 
-        const matchesStatus = !selectedStatus.value || transaction.status === selectedStatus.value
+        const matchesStatus = !selectedStatus.value || shipm.status === selectedStatus.value
         const matchesService = !selectedService.value ||
-          transaction.service?.name?.toLowerCase().includes(selectedService.value.toLowerCase())
+          shipm.service?.name?.toLowerCase().includes(selectedService.value.toLowerCase())
 
         return matchesSearch && matchesStatus && matchesService
       })
     })
 
     const totalPages = computed(() => {
-      return Math.ceil(filteredTransactions.value.length / itemsPerPage.value)
+      return Math.ceil(filteredshipms.value.length / itemsPerPage.value)
     })
 
-    const paginatedTransactions = computed(() => {
+    const paginatedshipms = computed(() => {
       const start = (currentPage.value - 1) * itemsPerPage.value
       const end = start + itemsPerPage.value
-      return filteredTransactions.value.slice(start, end)
+      return filteredshipms.value.slice(start, end)
     })
 
-    const fetchTransactions = async () => {
+    const fetchshipms = async () => {
       if (!isAuthenticated.value) return
 
       loading.value = true
@@ -404,14 +404,14 @@ export default {
         const data = await response.json()
 
         if (data.success) {
-          transactions.value = data.shipments || []
+          shipms.value = data.shipments || []
         } else {
-          throw new Error(data.error || 'Failed to load transactions from server')
+          throw new Error(data.error || 'Failed to load shipms from server')
         }
       } catch (err) {
-        console.error('Error loading transactions:', err)
-        error.value = `Failed to load transactions: ${err.message}`
-        transactions.value = []
+        console.error('Error loading shipms:', err)
+        error.value = `Failed to load shipms: ${err.message}`
+        shipms.value = []
       } finally {
         loading.value = false
       }
@@ -425,10 +425,10 @@ export default {
     }
 
 
-    const getTrackingId = (transaction) => {
-      let trackingId = `TRK-${transaction.mailId.toString().padStart(6, '0')}`;
-      if (transaction.trackingNumber && transaction.trackingNumber !== 0) {
-        trackingId = `TRK-${transaction.trackingNumber}`;
+    const getTrackingId = (shipm) => {
+      let trackingId = `TRK-${shipm.mailId.toString().padStart(6, '0')}`;
+      if (shipm.trackingNumber && shipm.trackingNumber !== 0) {
+        trackingId = `TRK-${shipm.trackingNumber}`;
       }
       return trackingId;
     }
@@ -503,7 +503,7 @@ export default {
     onMounted(() => {
       checkAuthentication()
       if (isAuthenticated.value) {
-        fetchTransactions()
+        fetchshipms()
       }
     })
 
@@ -513,19 +513,19 @@ export default {
       searchQuery,
       selectedStatus,
       selectedService,
-      transactions,
+      shipms,
       loading,
       error,
       currentPage,
       itemsPerPage,
       hasActiveFilters,
-      filteredTransactions,
+      filteredshipms,
       totalPages,
-      paginatedTransactions,
-      fetchTransactions,
+      paginatedshipms,
+      fetchshipms,
       clearFilters,
       handleSearch,
-      viewTransactionDetails,
+      viewshipmDetails,
       getTrackingId,
       getStatusBadgeClass,
       formatStatus,
@@ -640,7 +640,7 @@ export default {
 }
 
 
-.transaction-card:hover {
+.shipm-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
 }
@@ -721,11 +721,11 @@ export default {
     margin-top: 15px;
   }
 
-  .transaction-card .card-body .row > div {
+  .shipm-card .card-body .row > div {
     margin-bottom: 15px;
   }
 
-  .transaction-card .card-body .row > div:last-child {
+  .shipm-card .card-body .row > div:last-child {
     margin-bottom: 0;
   }
 

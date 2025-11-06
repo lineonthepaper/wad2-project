@@ -8,7 +8,7 @@
           <i class="fas fa-lock"></i>
         </div>
         <h2>Authentication Required</h2>
-        <p>Please log in to view transaction details</p>
+        <p>Please log in to view shipm details</p>
         <div class="action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i>
@@ -21,15 +21,15 @@
 
     <div v-else-if="loading" class="text-center py-5">
       <div class="loading-spinner-large"></div>
-      <p class="mt-3 text-muted">Loading transaction details...</p>
+      <p class="mt-3 text-muted">Loading shipm details...</p>
     </div>
 
 
     <div v-else-if="error" class="text-center py-5">
       <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-      <h4 class="text-danger">Failed to load transaction details</h4>
+      <h4 class="text-danger">Failed to load shipm details</h4>
       <p class="text-muted">{{ error }}</p>
-      <button class="btn btn-primary" @click="fetchTransactionDetails">
+      <button class="btn btn-primary" @click="fetchshipmDetails">
         <i class="fas fa-redo"></i> Try Again
       </button>
       <button class="btn btn-outline-secondary ms-2" @click="goBack">
@@ -37,7 +37,7 @@
       </button>
     </div>
 
-    <div v-else-if="transaction" class="dashboard-wrapper">
+    <div v-else-if="shipm" class="dashboard-wrapper">
       <hr />
       <div class="row bg-light-pink justify-content-center airplane-header">
         <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
@@ -53,7 +53,7 @@
   </button>
 
   <div class="tracking-number">
-    {{ getTrackingId(transaction) }}
+    {{ getTrackingId(shipm) }}
   </div>
 </div>
 
@@ -74,20 +74,20 @@
                   <div class="col-md-6">
                     <h6 class="text-muted">From:</h6>
                     <div class="address-section">
-                      <strong>{{ transaction.senderAddress?.name || 'N/A' }}</strong>
-                      <p class="mb-1">{{ getCountryName(transaction.senderAddress?.countryCode) }}</p>
+                      <strong>{{ shipm.senderAddress?.name || 'N/A' }}</strong>
+                      <p class="mb-1">{{ getCountryName(shipm.senderAddress?.countryCode) }}</p>
                       <p class="mb-0 text-muted">
-                        <small>Coordinates: {{ transaction.senderAddress?.coordinates?.lat?.toFixed(4) }}, {{ transaction.senderAddress?.coordinates?.lng?.toFixed(4) }}</small>
+                        <small>Coordinates: {{ shipm.senderAddress?.coordinates?.lat?.toFixed(4) }}, {{ shipm.senderAddress?.coordinates?.lng?.toFixed(4) }}</small>
                       </p>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <h6 class="text-muted">To:</h6>
                     <div class="address-section">
-                      <strong>{{ transaction.recipientAddress?.name || 'N/A' }}</strong>
-                      <p class="mb-1">{{ getCountryName(transaction.recipientAddress?.countryCode) }}</p>
+                      <strong>{{ shipm.recipientAddress?.name || 'N/A' }}</strong>
+                      <p class="mb-1">{{ getCountryName(shipm.recipientAddress?.countryCode) }}</p>
                       <p class="mb-0 text-muted">
-                        <small>Coordinates: {{ transaction.recipientAddress?.coordinates?.lat?.toFixed(4) }}, {{ transaction.recipientAddress?.coordinates?.lng?.toFixed(4) }}</small>
+                        <small>Coordinates: {{ shipm.recipientAddress?.coordinates?.lat?.toFixed(4) }}, {{ shipm.recipientAddress?.coordinates?.lng?.toFixed(4) }}</small>
                       </p>
                     </div>
                   </div>
@@ -95,14 +95,14 @@
 
                 <div class="route-progress mt-4">
                   <div class="progress-labels d-flex justify-content-between">
-                    <span class="progress-label">{{ getCountryName(transaction.senderAddress?.countryCode) }}</span>
-                    <span class="progress-percent">{{ Math.round(getProgressWidth(transaction.status)) }}%</span>
-                    <span class="progress-label">{{ getCountryName(transaction.recipientAddress?.countryCode) }}</span>
+                    <span class="progress-label">{{ getCountryName(shipm.senderAddress?.countryCode) }}</span>
+                    <span class="progress-percent">{{ Math.round(getProgressWidth(shipm.status)) }}%</span>
+                    <span class="progress-label">{{ getCountryName(shipm.recipientAddress?.countryCode) }}</span>
                   </div>
                   <div class="progress-track">
                     <div class="progress-bar">
-                      <div class="progress-fill" :style="{ width: getProgressWidth(transaction.status) + '%' }"></div>
-                      <div class="progress-marker" :style="{ left: getProgressWidth(transaction.status) + '%' }">
+                      <div class="progress-fill" :style="{ width: getProgressWidth(shipm.status) + '%' }"></div>
+                      <div class="progress-marker" :style="{ left: getProgressWidth(shipm.status) + '%' }">
                         <i class="fas fa-shipping-fast"></i>
                       </div>
                     </div>
@@ -123,35 +123,35 @@
                   <div class="col-md-6">
                     <div class="detail-item">
                       <span class="detail-label">Service Type:</span>
-                      <span class="detail-value">{{ transaction.service?.name || 'N/A' }}</span>
+                      <span class="detail-value">{{ shipm.service?.name || 'N/A' }}</span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Service Zone:</span>
-                      <span class="detail-value">{{ transaction.service?.zone || 'N/A' }}</span>
+                      <span class="detail-value">{{ shipm.service?.zone || 'N/A' }}</span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Total Weight:</span>
-                      <span class="detail-value">{{ transaction.totalWeight }} kg</span>
+                      <span class="detail-value">{{ shipm.totalWeight }} kg</span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Created Date:</span>
-                      <span class="detail-value">{{ formatDate(transaction.createdDate) }}</span>
+                      <span class="detail-value">{{ formatDate(shipm.createdDate) }}</span>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="detail-item">
                       <span class="detail-label">Parcel Dimensions:</span>
                       <span class="detail-value">
-                        {{ transaction.parcelLength }} × {{ transaction.parcelWidth }} × {{ transaction.parcelHeight }} cm
+                        {{ shipm.parcelLength }} × {{ shipm.parcelWidth }} × {{ shipm.parcelHeight }} cm
                       </span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Total Value:</span>
-                      <span class="detail-value">${{ transaction.totalValue.toFixed(2) }}</span>
+                      <span class="detail-value">${{ shipm.totalValue.toFixed(2) }}</span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Expected Delivery:</span>
-                      <span class="detail-value">{{ formatDate(transaction.expectedDelivery) }}</span>
+                      <span class="detail-value">{{ formatDate(shipm.expectedDelivery) }}</span>
                     </div>
                   </div>
                 </div>
@@ -179,7 +179,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(item, index) in transaction.mailItems" :key="index">
+                      <tr v-for="(item, index) in shipm.mailItems" :key="index">
                         <td>{{ item.itemDescription }}</td>
                         <td>{{ item.itemQuantity }}</td>
                         <td>{{ item.itemWeight }}</td>
@@ -190,7 +190,7 @@
                     <tfoot>
                       <tr class="table-primary">
                         <td colspan="4" class="text-end fw-bold">Total:</td>
-                        <td class="fw-bold">${{ transaction.totalValue.toFixed(2) }}</td>
+                        <td class="fw-bold">${{ shipm.totalValue.toFixed(2) }}</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -215,26 +215,26 @@
                     <div class="timeline-marker"></div>
                     <div class="timeline-content">
                       <h6>Order Created</h6>
-                      <p class="text-muted mb-0">{{ formatDate(transaction.createdDate) }}</p>
+                      <p class="text-muted mb-0">{{ formatDate(shipm.createdDate) }}</p>
                     </div>
                   </div>
-                  <div class="timeline-item" :class="{ active: transaction.status === 'in_transit' || transaction.status === 'delivered' }">
+                  <div class="timeline-item" :class="{ active: shipm.status === 'in_transit' || shipm.status === 'delivered' }">
                     <div class="timeline-marker"></div>
                     <div class="timeline-content">
                       <h6>In Transit</h6>
-                      <p class="text-muted mb-0" v-if="transaction.status === 'in_transit'">Currently in transit</p>
-                      <p class="text-muted mb-0" v-else-if="transaction.status === 'delivered'">Completed on {{ formatDate(transaction.expectedDelivery) }}</p>
+                      <p class="text-muted mb-0" v-if="shipm.status === 'in_transit'">Currently in transit</p>
+                      <p class="text-muted mb-0" v-else-if="shipm.status === 'delivered'">Completed on {{ formatDate(shipm.expectedDelivery) }}</p>
                     </div>
                   </div>
-                  <div class="timeline-item" :class="{ active: transaction.status === 'delivered' }">
+                  <div class="timeline-item" :class="{ active: shipm.status === 'delivered' }">
                     <div class="timeline-marker"></div>
                     <div class="timeline-content">
                       <h6>Delivered</h6>
-                      <p class="text-muted mb-0" v-if="transaction.status === 'delivered'">
-                        Delivered on {{ formatDate(transaction.expectedDelivery) }}
+                      <p class="text-muted mb-0" v-if="shipm.status === 'delivered'">
+                        Delivered on {{ formatDate(shipm.expectedDelivery) }}
                       </p>
                       <p class="text-muted mb-0" v-else>
-                        Expected: {{ formatDate(transaction.expectedDelivery) }}
+                        Expected: {{ formatDate(shipm.expectedDelivery) }}
                       </p>
                     </div>
                   </div>
@@ -254,15 +254,15 @@
     <div class="customer-info">
       <p class="mb-2">
         <strong>Name:</strong><br>
-        {{ transaction.senderAddress?.name || 'N/A' }}
+        {{ shipm.senderAddress?.name || 'N/A' }}
       </p>
       <p class="mb-2">
         <strong>Country:</strong><br>
-        {{ getCountryName(transaction.senderAddress?.countryCode) }}
+        {{ getCountryName(shipm.senderAddress?.countryCode) }}
       </p>
       <p class="mb-0">
         <strong>Email:</strong><br>
-        {{ transaction.customerEmail }}
+        {{ shipm.customerEmail }}
       </p>
     </div>
   </div>
@@ -279,11 +279,11 @@
     <div class="customer-info">
       <p class="mb-2">
         <strong>Name:</strong><br>
-        {{ transaction.recipientAddress?.name || 'N/A' }}
+        {{ shipm.recipientAddress?.name || 'N/A' }}
       </p>
       <p class="mb-0">
         <strong>Country:</strong><br>
-        {{ getCountryName(transaction.recipientAddress?.countryCode) }}
+        {{ getCountryName(shipm.recipientAddress?.countryCode) }}
       </p>
     </div>
   </div>
@@ -308,7 +308,7 @@ export default {
 
     const isAuthenticated = ref(false)
     const user = ref({ email: '' })
-    const transaction = ref(null)
+    const shipm = ref(null)
     const loading = ref(false)
     const error = ref(null)
 
@@ -329,20 +329,20 @@ export default {
     }
 
 
-    const fetchTransactionDetails = async () => {
+    const fetchshipmDetails = async () => {
       if (!isAuthenticated.value) return
 
       loading.value = true
       error.value = null
 
       try {
-        const transactionId = parseInt(route.params.id)
+        const shipmId = parseInt(route.params.id)
 
 
-        const storedTransaction = sessionStorage.getItem('selectedTransaction')
-        if (storedTransaction) {
-          transaction.value = JSON.parse(storedTransaction)
-          // console.log(transaction.value)
+        const storedshipm = sessionStorage.getItem('selectedshipm')
+        if (storedshipm) {
+          shipm.value = JSON.parse(storedshipm)
+          // console.log(shipm.value)
         } else {
 
           // console.log(user.value.email)
@@ -367,15 +367,15 @@ export default {
 
           if (data.success && data.shipments) {
 
-            const foundTransaction = data.shipments.find(
-              shipment => shipment.mailId === transactionId
+            const foundshipm = data.shipments.find(
+              shipment => shipment.mailId === shipmId
             )
 
-            if (foundTransaction) {
-              transaction.value = foundTransaction
-              // console.log('Found:', foundTransaction)
+            if (foundshipm) {
+              shipm.value = foundshipm
+              // console.log('Found:', foundshipm)
             } else {
-              throw new Error(`Transaction with ID ${transactionId} not found in your shipments`)
+              throw new Error(`shipm with ID ${shipmId} not found in your shipments`)
             }
           } else {
             throw new Error(data.error || 'Failed to load shipments')
@@ -383,19 +383,19 @@ export default {
         }
 
       } catch (err) {
-        console.error('Error loading transaction details:', err)
-        error.value = `Failed to load transaction details: ${err.message}`
+        console.error('Error loading shipm details:', err)
+        error.value = `Failed to load shipm details: ${err.message}`
 
         // Fallback
         try {
-          const transactionsData = sessionStorage.getItem('userTransactions')
-          if (transactionsData) {
-            const transactions = JSON.parse(transactionsData)
-            const foundTransaction = transactions.find(
+          const shipmsData = sessionStorage.getItem('usershipms')
+          if (shipmsData) {
+            const shipms = JSON.parse(shipmsData)
+            const foundshipm = shipms.find(
               t => t.mailId === parseInt(route.params.id)
             )
-            if (foundTransaction) {
-              transaction.value = foundTransaction
+            if (foundshipm) {
+              shipm.value = foundshipm
               error.value = null
 
             }
@@ -409,10 +409,10 @@ export default {
     }
 
 
-    const getTrackingId = (transaction) => {
-      let trackingId = `TRK-${transaction.mailId.toString().padStart(6, '0')}`;
-      if (transaction.trackingNumber && transaction.trackingNumber !== 0) {
-        trackingId = `TRK-${transaction.trackingNumber}`;
+    const getTrackingId = (shipm) => {
+      let trackingId = `TRK-${shipm.mailId.toString().padStart(6, '0')}`;
+      if (shipm.trackingNumber && shipm.trackingNumber !== 0) {
+        trackingId = `TRK-${shipm.trackingNumber}`;
       }
       return trackingId;
     }
@@ -482,11 +482,11 @@ export default {
 
 
     const downloadLabel = () => {
-      alert('Downloading shipping label for ' + getTrackingId(transaction.value))
+      alert('Downloading shipping label for ' + getTrackingId(shipm.value))
     }
 
     const trackPackage = () => {
-      alert('Opening live tracking for ' + getTrackingId(transaction.value))
+      alert('Opening live tracking for ' + getTrackingId(shipm.value))
     }
 
     const goBack = () => {
@@ -501,17 +501,17 @@ export default {
     onMounted(() => {
       checkAuthentication()
       if (isAuthenticated.value) {
-        fetchTransactionDetails()
+        fetchshipmDetails()
       }
     })
 
     return {
       isAuthenticated,
       user,
-      transaction,
+      shipm,
       loading,
       error,
-      fetchTransactionDetails,
+      fetchshipmDetails,
       getTrackingId,
       getStatusBadgeClass,
       formatStatus,
@@ -692,4 +692,3 @@ export default {
   border-radius: 8px;
 }
 </style>
-
