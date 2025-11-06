@@ -225,15 +225,6 @@
     </div>
   </div>
 </div>
-
-                  <div v-if="parcels.length === 0" class="empty-state">
-                    <span>📦</span>
-                    <p>No shipments found</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </section>
 
         <section class="notifications-section">
