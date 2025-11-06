@@ -8,7 +8,7 @@ https://wad2-project.vercel.app/
 https://github.com/lineonthepaper/wad2-project
 
 # Video URL
-https://youtu.be/6MVw-Vrpwcs
+https://youtu.be/yYwN6AWdBkk
 
 # Login details
 
