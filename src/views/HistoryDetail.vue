@@ -363,7 +363,7 @@ export default {
           }
 
           const data = await response.json()
-          // console.log('Dashboard API Response:', data)
+          // console.log('Db:', data)
 
           if (data.success && data.shipments) {
 
@@ -373,7 +373,7 @@ export default {
 
             if (foundTransaction) {
               transaction.value = foundTransaction
-              // console.log('Found transaction:', foundTransaction)
+              // console.log('Found:', foundTransaction)
             } else {
               throw new Error(`Transaction with ID ${transactionId} not found in your shipments`)
             }

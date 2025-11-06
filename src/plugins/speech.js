@@ -35,7 +35,7 @@ const SpeechToTextPlugin = {
       return recognition;
     };
 
-    // Initialize recognition immediately
+  
     recognition = initializeRecognition();
 
     const micIcon = `

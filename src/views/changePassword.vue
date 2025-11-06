@@ -27,7 +27,7 @@ const checkAuth = () => {
 
   try {
     currentUser.value = JSON.parse(stored)
-    console.log('Current user from sessionStorage:', currentUser.value)
+    // console.log('Current user', currentUser.value)
     displayName.value = currentUser.value.displayName || currentUser.value.display_name || ''
     email.value = currentUser.value.email || ''
     return true
@@ -63,7 +63,7 @@ const changeDisplayName = async () => {
 
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
 
-  console.log('Attempting to update display name with accountId:', accountId)
+  // console.log(accountId)
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -85,7 +85,7 @@ const changeDisplayName = async () => {
     })
 
     const result = await response.json()
-    console.log('Update display name response:', result)
+    // console.log('Update', result)
 
     if (response.ok) {
 
@@ -125,7 +125,6 @@ const changeEmail = async () => {
 
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
 
-  console.log('Attempting to update email with accountId:', accountId)
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -147,7 +146,7 @@ const changeEmail = async () => {
     })
 
     const result = await response.json()
-    console.log('Update email response:', result)
+    // console.log('Update email:', result)
 
     if (response.ok) {
 
@@ -184,7 +183,6 @@ const changePassword = async () => {
 
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
 
-  console.log('Attempting to change password with accountId:', accountId)
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -207,7 +205,7 @@ const changePassword = async () => {
     })
 
     const verifyResult = await verifyResponse.json()
-    console.log('Verify password response:', verifyResult)
+
 
     if (!verifyResponse.ok || !verifyResult.valid) {
       alert('Current password is incorrect.')
@@ -228,7 +226,6 @@ const changePassword = async () => {
     })
 
     const updateResult = await updateResponse.json()
-    console.log('Update password response:', updateResult)
 
     if (updateResponse.ok) {
       alert('Password changed successfully!')
@@ -255,7 +252,6 @@ const deleteAccount = async () => {
 
   const accountId = currentUser.value.accountId || currentUser.value.account_id || currentUser.value.id
 
-  console.log('Attempting to delete account with accountId:', accountId)
 
   if (!accountId) {
     alert('Cannot find account ID. Please log in again.')
@@ -277,7 +273,7 @@ const deleteAccount = async () => {
     })
 
     const result = await response.json()
-    console.log('Delete account response:', result)
+    // console.log('Delete account:', result)
 
     if (response.ok) {
       alert('Account deleted successfully!')
