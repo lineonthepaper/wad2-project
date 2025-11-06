@@ -36,7 +36,6 @@
 
 
         <div v-else-if="error" class="text-center py-5">
-          <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
           <h4 class="text-danger">Failed to load shipments</h4>
           <button class="btn btn-primary" @click="fetchshipms" style="display: block; margin: 0 auto; text-align: center;">
            Try Again
