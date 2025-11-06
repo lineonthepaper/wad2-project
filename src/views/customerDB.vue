@@ -438,84 +438,86 @@ export default {
     },
 
     getExampleShipments(customerEmail) {
-      return [
-        {
-          'mailId': 1001,
-          'customerEmail': customerEmail,
-          'senderAddressId': 1,
-          'recipientAddressId': 2,
-          'mailItems': [
-            {
-              'itemId': 1,
-              'itemDescription': 'Electronics Package',
-              'declaredValue': 250.00,
-              'itemWeight': 1.5,
-              'itemQuantity': 1
-            }
-          ],
-          'parcelLength': 30.0,
-          'parcelWidth': 20.0,
-          'parcelHeight': 15.0,
-          'service': {
-            'name': 'Registered Package',
-            'type': 'Packets',
-            'zone': 3
-          },
-          'totalWeight': 1.5,
-          'totalValue': 250.00,
-          'hasBeenPaid': true,
-          'trackingNumber': 'TRK784231',
-          'createdDate': new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          'senderAddress': {
-            'name': 'John Doe',
-            'countryCode': 'SG'
-          },
-          'recipientAddress': {
-            'name': 'Sarah Wilson',
-            'countryCode': 'US'
-          },
-          'status': 'in_transit',
-          'expectedDelivery': new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        },
-        {
-          'mailId': 1002,
-          'customerEmail': customerEmail,
-          'senderAddressId': 1,
-          'recipientAddressId': 3,
-          'mailItems': [
-            {
-              'itemId': 2,
-              'itemDescription': 'Documents',
-              'declaredValue': 50.00,
-              'itemWeight': 0.5,
-              'itemQuantity': 1
-            }
-          ],
-          'parcelLength': 35.0,
-          'parcelWidth': 25.0,
-          'parcelHeight': 2.0,
-          'service': {
-            'name': 'Registered Mail',
-            'type': 'Documents',
-            'zone': 2
-          },
-          'totalWeight': 0.5,
-          'totalValue': 50.00,
-          'hasBeenPaid': true,
-          'trackingNumber': 'TRK784232',
-          'createdDate': new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          'senderAddress': {
-            'name': 'John Doe',
-            'countryCode': 'SG'
-          },
-          'recipientAddress': {
-            'name': 'Mike Chen',
-            'countryCode': 'MY'
-          },
-          'status': 'delivered',
-          'expectedDelivery': new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        }
-      ];
+      //fallback data
+       return
+      //[
+      //   {
+      //     'mailId': 1001,
+      //     'customerEmail': customerEmail,
+      //     'senderAddressId': 1,
+      //     'recipientAddressId': 2,
+      //     'mailItems': [
+      //       {
+      //         'itemId': 1,
+      //         'itemDescription': 'Electronics Package',
+      //         'declaredValue': 250.00,
+      //         'itemWeight': 1.5,
+      //         'itemQuantity': 1
+      //       }
+      //     ],
+      //     'parcelLength': 30.0,
+      //     'parcelWidth': 20.0,
+      //     'parcelHeight': 15.0,
+      //     'service': {
+      //       'name': 'Registered Package',
+      //       'type': 'Packets',
+      //       'zone': 3
+      //     },
+      //     'totalWeight': 1.5,
+      //     'totalValue': 250.00,
+      //     'hasBeenPaid': true,
+      //     'trackingNumber': 'TRK784231',
+      //     'createdDate': new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      //     'senderAddress': {
+      //       'name': 'John Doe',
+      //       'countryCode': 'SG'
+      //     },
+      //     'recipientAddress': {
+      //       'name': 'Sarah Wilson',
+      //       'countryCode': 'US'
+      //     },
+      //     'status': 'in_transit',
+      //     'expectedDelivery': new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      //   },
+      //   {
+      //     'mailId': 1002,
+      //     'customerEmail': customerEmail,
+      //     'senderAddressId': 1,
+      //     'recipientAddressId': 3,
+      //     'mailItems': [
+      //       {
+      //         'itemId': 2,
+      //         'itemDescription': 'Documents',
+      //         'declaredValue': 50.00,
+      //         'itemWeight': 0.5,
+      //         'itemQuantity': 1
+      //       }
+      //     ],
+      //     'parcelLength': 35.0,
+      //     'parcelWidth': 25.0,
+      //     'parcelHeight': 2.0,
+      //     'service': {
+      //       'name': 'Registered Mail',
+      //       'type': 'Documents',
+      //       'zone': 2
+      //     },
+      //     'totalWeight': 0.5,
+      //     'totalValue': 50.00,
+      //     'hasBeenPaid': true,
+      //     'trackingNumber': 'TRK784232',
+      //     'createdDate': new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      //     'senderAddress': {
+      //       'name': 'John Doe',
+      //       'countryCode': 'SG'
+      //     },
+      //     'recipientAddress': {
+      //       'name': 'Mike Chen',
+      //       'countryCode': 'MY'
+      //     },
+      //     'status': 'delivered',
+      //     'expectedDelivery': new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      //   }
+      // ];
     },
 
     transformShipmentData(shipments) {

@@ -382,42 +382,42 @@ export default {
         this.loading = false;
       }
     },
-    useFallbackData() {
-      this.usingFallbackData = true;
-      this.errorMessage = 'Connected to demo data. Real analytics will appear here once you create shipments.';
-      this.shipments = this.getSampleShipments();
-    },
-    getSampleShipments() {
-      return [
-        {
-          mailId: 1001,
-          trackingNumber: 'TRK784231',
-          service: { name: 'Registered Package' },
-          recipientAddress: { countryCode: 'US' },
-          status: 'in_transit',
-          expectedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          mailId: 1002,
-          trackingNumber: 'TRK784232',
-          service: { name: 'Registered Mail' },
-          recipientAddress: { countryCode: 'MY' },
-          status: 'delivered',
-          expectedDelivery: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          createdDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          mailId: 1003,
-          trackingNumber: 'TRK784233',
-          service: { name: 'Standard' },
-          recipientAddress: { countryCode: 'UK' },
-          status: 'pending',
-          expectedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          createdDate: new Date().toISOString()
-        }
-      ];
-    },
+    // useFallbackData() {
+    //   this.usingFallbackData = true;
+    //   this.errorMessage = 'Connected to demo data. Real analytics will appear here once you create shipments.';
+    //   this.shipments = this.getSampleShipments();
+    // },
+    // getSampleShipments() {
+    //   return [
+    //     {
+    //       mailId: 1001,
+    //       trackingNumber: 'TRK784231',
+    //       service: { name: 'Registered Package' },
+    //       recipientAddress: { countryCode: 'US' },
+    //       status: 'in_transit',
+    //       expectedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    //       createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    //     },
+    //     {
+    //       mailId: 1002,
+    //       trackingNumber: 'TRK784232',
+    //       service: { name: 'Registered Mail' },
+    //       recipientAddress: { countryCode: 'MY' },
+    //       status: 'delivered',
+    //       expectedDelivery: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    //       createdDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    //     },
+    //     {
+    //       mailId: 1003,
+    //       trackingNumber: 'TRK784233',
+    //       service: { name: 'Standard' },
+    //       recipientAddress: { countryCode: 'UK' },
+    //       status: 'pending',
+    //       expectedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    //       createdDate: new Date().toISOString()
+    //     }
+    //   ];
+    // },
     formatShipmentDates() {
       this.shipments.forEach(shipment => {
         if (shipment.createdDate && typeof shipment.createdDate === 'string') {
@@ -612,14 +612,14 @@ export default {
       }
     },
     tooltip: {
-      shared: true, // This enables showing all series in one tooltip
+      shared: true,
       intersect: false,
       custom: function({ series, seriesIndex, dataPointIndex, w }) {
         const colors = ['#ff4275', '#ff759e', '#ff9096'];
         const seriesNames = ['Delivered', 'In Transit', 'Pending'];
         const currentDate = w.globals.categoryLabels[dataPointIndex];
 
-        // Build tooltip content for all series
+
         let tooltipContent = `
           <div class="custom-tooltip">
             <div class="tooltip-header" style="background: var(--hot-pink); color: white; padding: 8px 12px; border-radius: 6px 6px 0 0; font-weight: 600;">
@@ -628,7 +628,7 @@ export default {
             <div class="tooltip-body" style="background: white; padding: 12px; border-radius: 0 0 6px 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
         `;
 
-        // Add each status with its value
+
         series.forEach((s, index) => {
           const value = s[dataPointIndex];
           tooltipContent += `
@@ -642,7 +642,7 @@ export default {
           `;
         });
 
-        // Calculate and add total
+
         const total = series.reduce((sum, s) => sum + s[dataPointIndex], 0);
         tooltipContent += `
             <div style="border-top: 1px solid var(--pink-grey); margin-top: 8px; padding-top: 8px;">
