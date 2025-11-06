@@ -1,3 +1,4 @@
+
 <template>
   <div class="history-detail-page">
 
@@ -147,12 +148,6 @@
                     <div class="detail-item">
                       <span class="detail-label">Total Value:</span>
                       <span class="detail-value">${{ transaction.totalValue.toFixed(2) }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="detail-label">Payment Status:</span>
-                      <span class="detail-value badge" :class="transaction.hasBeenPaid ? 'bg-success' : 'bg-warning text-dark'">
-                        {{ transaction.hasBeenPaid ? 'Paid' : 'Pending' }}
-                      </span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">Expected Delivery:</span>
@@ -494,10 +489,6 @@ export default {
       alert('Opening live tracking for ' + getTrackingId(transaction.value))
     }
 
-    const makePayment = () => {
-      alert('Redirecting to payment for ' + getTrackingId(transaction.value))
-    }
-
     const goBack = () => {
       router.back()
     }
@@ -529,7 +520,6 @@ export default {
       getCountryName,
       downloadLabel,
       trackPackage,
-      makePayment,
       goBack,
       redirectToLogin
     }
@@ -702,3 +692,4 @@ export default {
   border-radius: 8px;
 }
 </style>
+

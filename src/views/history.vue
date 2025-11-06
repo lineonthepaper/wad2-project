@@ -7,7 +7,7 @@
           <i class="fas fa-lock"></i>
         </div>
         <h2>Authentication Required</h2>
-        <p>Please log in to view your transaction history</p>
+        <p>Please log in to view your history of shipments</p>
         <div class="action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i>
@@ -22,7 +22,7 @@
       <hr />
       <div class="row justify-content-center airplane-header">
         <div class="col-lg-4 col-md-6 col-sm-8 py-2 text-center">
-          <h1 class="jua text-hot-pink">Transaction History</h1>
+          <h1 class="jua text-hot-pink">History of shipments</h1>
         </div>
       </div>
       <hr />
@@ -31,13 +31,13 @@
 
         <div v-if="loading" class="text-center py-5">
           <div class="loading-spinner-large"></div>
-          <p class="mt-3 text-muted">Loading your transactions...</p>
+          <p class="mt-3 text-muted">Loading your shipments...</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="error" class="text-center py-5">
           <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-          <h4 class="text-danger">Failed to load transactions</h4>
+          <h4 class="text-danger">Failed to load shipments</h4>
           <p class="text-muted">{{ error }}</p>
           <button class="btn btn-primary" @click="fetchTransactions">
             <i class="fas fa-redo"></i> Try Again
@@ -193,19 +193,13 @@
                       <div class="col-md-4">
                         <div class="shipment-details">
                           <div class="row text-center">
-                            <div class="col-4">
+                            <div class="col-6">
                               <small class="text-muted d-block">Weight</small>
                               <strong>{{ transaction.totalWeight }}kg</strong>
                             </div>
-                            <div class="col-4">
+                            <div class="col-6">
                               <small class="text-muted d-block">Value</small>
                               <strong>${{ transaction.totalValue }}</strong>
-                            </div>
-                            <div class="col-4">
-                              <small class="text-muted d-block">Payment</small>
-                              <span class="badge" :class="transaction.hasBeenPaid ? 'bg-success' : 'bg-warning text-dark'">
-                                {{ transaction.hasBeenPaid ? 'Paid' : 'Pending' }}
-                              </span>
                             </div>
                           </div>
                           <div class="mt-2 text-center">
@@ -234,7 +228,7 @@
 
               <div v-if="filteredTransactions.length === 0 && transactions.length > 0" class="text-center py-5">
                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">No transactions match your search</h4>
+                <h4 class="text-muted">No shipments match your search</h4>
                 <p class="text-muted">Try adjusting your search terms or filters</p>
                 <button class="btn btn-primary" @click="clearFilters">
                   Clear All Filters
@@ -244,7 +238,7 @@
 
               <div v-if="transactions.length === 0 && !loading" class="text-center py-5">
                 <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">No transactions found</h4>
+                <h4 class="text-muted">No shipments found</h4>
                 <p class="text-muted">You haven't created any shipments yet.</p>
                 <button class="btn btn-primary" @click="redirectToCreateShipment">
                   Create Your First Shipment
@@ -310,7 +304,6 @@ export default {
           const userObj = JSON.parse(userData)
           user.value.email = userObj.email || userObj.display_name || 'User'
           isAuthenticated.value = true
-          // console.log('user', user.value.email)
         } catch (error) {
           console.error('Error parsing user data:', error)
           isAuthenticated.value = false
@@ -327,12 +320,7 @@ export default {
 
 
     const viewTransactionDetails = (transaction) => {
-      // console.log('transaction', transaction.mailId)
-
-
       sessionStorage.setItem('selectedTransaction', JSON.stringify(transaction))
-
-
       router.push(`/history/${transaction.mailId}`)
     }
 
@@ -398,8 +386,6 @@ export default {
       error.value = null
 
       try {
-
-
         const response = await fetch('/api/dashboard.php', {
           method: 'POST',
           headers: {
@@ -417,23 +403,15 @@ export default {
 
         const data = await response.json()
 
-
         if (data.success) {
           transactions.value = data.shipments || []
-          // console.log(transactions.value.length)
-
-          if (transactions.value.length > 0) {
-            // console.log('First transaction sample:', transactions.value[0])
-          } else {
-            // console.log('No transactions')
-          }
         } else {
           throw new Error(data.error || 'Failed to load transactions from server')
         }
       } catch (err) {
         console.error('Error loading transactions:', err)
         error.value = `Failed to load transactions: ${err.message}`
-        transactions.value = [] 
+        transactions.value = []
       } finally {
         loading.value = false
       }
