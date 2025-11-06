@@ -4,9 +4,7 @@
 
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
-        <div class="message-icon">
-
-        </div>
+        
         <h2>Authentication Required</h2>
         <p>Please log in to view shipments details</p>
         <div class="action-buttons">

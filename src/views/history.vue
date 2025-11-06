@@ -3,9 +3,7 @@
 
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
-        <div class="message-icon">
 
-        </div>
         <h2>Authentication Required</h2>
         <p>Please log in to view your history of shipments</p>
         <div class="action-buttons">
@@ -45,7 +43,7 @@
 
         <div v-else>
 
-          
+
           <div class="row mb-4">
             <div class="col-md-6">
               <div class="input-group">
@@ -551,11 +549,7 @@ export default {
   width: 90%;
 }
 
-.message-icon {
-  font-size: 4rem;
-  color: var(--hot-pink);
-  margin-bottom: 1.5rem;
-}
+
 
 .login-message h2 {
   color: var(--dark-slate-blue);
