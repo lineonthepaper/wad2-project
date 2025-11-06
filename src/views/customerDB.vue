@@ -425,7 +425,7 @@ export default {
 
     useFallbackData() {
       this.usingFallbackData = true;
-      this.errorMessage = 'Connected to demo data. Real shipments will appear here once you create them.';
+      this.errorMessage = 'No data. Please create shipment to view tracking information';
 
       const exampleData = this.getExampleShipments(this.user.email);
       this.parcels = this.transformShipmentData(exampleData);
