@@ -239,7 +239,7 @@
                 <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No shipments found</h4>
                 <p class="text-muted">You haven't created any shipments yet.</p>
-                <button class="btn btn-primary" @click="redirectToCreateShipment"  style="display: block; margin: 0 auto; text-align: center;>
+                <button class="btn btn-primary" @click="redirectToCreateShipment"  style="display: block; margin: 0 auto; text-align: center;">
                   Create Your First Shipment
                 </button>
               </div>
