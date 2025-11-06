@@ -3,9 +3,7 @@
 
     <div v-if="!isAuthenticated" class="login-required">
       <div class="login-message">
-        <div class="message-icon">
-          <i class="fas fa-lock"></i>
-        </div>
+
         <h2>Authentication Required</h2>
         <p>Please log in to view your history of shipments</p>
         <div class="action-buttons">
@@ -36,11 +34,10 @@
 
 
         <div v-else-if="error" class="text-center py-5">
-          <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
           <h4 class="text-danger">Failed to load shipments</h4>
           <p class="text-muted">Unable to load your shipment history at this time.</p>
           <button class="btn btn-primary" @click="fetchShipments">
-            <i class="fas fa-redo"></i> Try Again
+      Try Again
           </button>
         </div>
 
@@ -226,7 +223,7 @@
               </div>
 
               <div v-if="filteredShipments.length === 0 && shipments.length > 0" class="text-center py-5">
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+
                 <h4 class="text-muted">No shipments match your search</h4>
                 <p class="text-muted">Try adjusting your search terms or filters</p>
                 <button class="btn btn-primary" @click="clearFilters">
@@ -236,7 +233,7 @@
 
 
               <div v-if="shipments.length === 0 && !loading" class="text-center py-5">
-                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+
                 <h4 class="text-muted">No shipments found</h4>
                 <p class="text-muted">You haven't created any shipments yet.</p>
                 <button class="btn btn-primary" @click="redirectToCreateShipment"  style="display: block; margin: 0 auto; text-align: center;">
