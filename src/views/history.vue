@@ -45,10 +45,10 @@
 
         <div v-else>
 
+          
           <div class="row mb-4">
             <div class="col-md-6">
               <div class="input-group">
-
                 <input
                   type="text"
                   class="form-control search-input"
@@ -94,6 +94,7 @@
           </div>
 
 
+
           <div class="row mb-3" v-if="hasActiveFilters">
             <div class="col-12">
               <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -127,17 +128,18 @@
           </div>
 
 
+
           <div class="row">
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Found {{ filteredshipms.length }} shipms</h5>
-                <div class="text-muted small">
+                <h5 class="mb-0">Found {{ filteredshipms.length }} shipments</h5>
+                <div class="text-muted small" v-if="shipms.length > 0">
                   Showing {{ Math.min(filteredshipms.length, itemsPerPage) }} of {{ filteredshipms.length }}
                 </div>
               </div>
 
 
-              <div class="shipm-grid">
+              <div class="shipm-grid" v-if="shipms.length > 0">
                 <div
                   class="shipm-card card mb-3 shadow-sm"
                   v-for="shipm in paginatedshipms"
@@ -224,6 +226,7 @@
                 </div>
               </div>
 
+
               <div v-if="filteredshipms.length === 0 && shipms.length > 0" class="text-center py-5">
                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No shipments match your search</h4>
@@ -234,7 +237,7 @@
               </div>
 
 
-              <div v-if="shipms.length === 0 && !loading" class="text-center py-5">
+              <div v-if="shipms.length === 0" class="text-center py-5">
                 <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No shipments found</h4>
                 <p class="text-muted">You haven't created any shipments yet.</p>
@@ -244,7 +247,7 @@
               </div>
 
 
-              <div v-if="filteredshipms.length > itemsPerPage" class="d-flex justify-content-center mt-4">
+              <div v-if="filteredshipms.length > itemsPerPage && shipms.length > 0" class="d-flex justify-content-center mt-4">
                 <nav>
                   <ul class="pagination">
                     <li class="page-item" :class="{ disabled: currentPage === 1 }">
@@ -270,7 +273,6 @@
       </div>
     </div>
   </div>
-
 </template>
 
 <script>
@@ -282,7 +284,6 @@ export default {
   setup() {
     const router = useRouter()
 
-
     const isAuthenticated = ref(false)
     const user = ref({ email: '' })
     const searchQuery = ref("")
@@ -293,7 +294,6 @@ export default {
     const error = ref(null)
     const currentPage = ref(1)
     const itemsPerPage = ref(10)
-
 
     const checkAuthentication = () => {
       const userData = sessionStorage.getItem('currentUser')
@@ -311,17 +311,14 @@ export default {
       }
     }
 
-
     const handleSearch = () => {
       currentPage.value = 1
     }
-
 
     const viewshipmDetails = (shipm) => {
       sessionStorage.setItem('selectedshipm', JSON.stringify(shipm))
       router.push(`/history/${shipm.mailId}`)
     }
-
 
     const hasActiveFilters = computed(() => {
       return selectedStatus.value || selectedService.value || searchQuery.value
@@ -333,7 +330,6 @@ export default {
       return shipms.value.filter(shipm => {
         const query = searchQuery.value.toLowerCase().trim()
 
-
         if (!query) {
           const matchesStatus = !selectedStatus.value || shipm.status === selectedStatus.value
           const matchesService = !selectedService.value ||
@@ -342,21 +338,14 @@ export default {
         }
 
         const matchesSearch =
-
           (getTrackingId(shipm).toLowerCase().includes(query)) ||
-
           (shipm.service?.name?.toLowerCase().includes(query)) ||
-
           (shipm.recipientAddress?.countryCode?.toLowerCase().includes(query)) ||
-
           (shipm.recipientAddress?.name?.toLowerCase().includes(query)) ||
-
           (shipm.mailItems?.some(item =>
             item.itemDescription?.toLowerCase().includes(query)
           )) ||
-
           (formatStatus(shipm.status).toLowerCase().includes(query)) ||
-
           (shipm.senderAddress?.countryCode?.toLowerCase().includes(query))
 
         const matchesStatus = !selectedStatus.value || shipm.status === selectedStatus.value
@@ -421,7 +410,6 @@ export default {
       searchQuery.value = ""
       currentPage.value = 1
     }
-
 
     const getTrackingId = (shipm) => {
       let trackingId = `TRK-${shipm.mailId.toString().padStart(6, '0')}`;
@@ -497,7 +485,6 @@ export default {
       router.push('/create-shipment')
     }
 
-
     onMounted(() => {
       checkAuthentication()
       if (isAuthenticated.value) {
@@ -539,12 +526,12 @@ export default {
 </script>
 
 <style scoped>
+
 .history-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--light-pink) 0%, var(--pink-grey) 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
 
 .login-required {
   display: flex;
@@ -612,7 +599,6 @@ export default {
   transform: translateY(-2px);
 }
 
-
 .text-hot-pink {
   color: var(--hot-pink) !important;
 }
@@ -620,7 +606,6 @@ export default {
 .jua {
   font-family: 'Jua', sans-serif;
 }
-
 
 .loading-spinner-large {
   width: 60px;
@@ -636,7 +621,6 @@ export default {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
 
 .shipm-card:hover {
   transform: translateY(-2px);
@@ -660,8 +644,6 @@ export default {
 .badge {
   font-size: 0.75rem;
 }
-
-
 
 .input-group-text {
   background-color: #f8f9fa;
@@ -691,7 +673,6 @@ export default {
   color: white;
 }
 
-
 .pagination .page-link {
   color: var(--hot-pink);
   border-color: var(--pink-grey);
@@ -707,7 +688,6 @@ export default {
   background-color: var(--light-pink);
   border-color: var(--pink-grey);
 }
-
 
 @media (max-width: 768px) {
   .route-info,
