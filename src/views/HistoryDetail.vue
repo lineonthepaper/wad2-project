@@ -8,7 +8,7 @@
           <i class="fas fa-lock"></i>
         </div>
         <h2>Authentication Required</h2>
-        <p>Please log in to view shipm details</p>
+        <p>Please log in to view shipments details</p>
         <div class="action-buttons">
           <button @click="redirectToLogin" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i>
@@ -21,13 +21,13 @@
 
     <div v-else-if="loading" class="text-center py-5">
       <div class="loading-spinner-large"></div>
-      <p class="mt-3 text-muted">Loading shipm details...</p>
+      <p class="mt-3 text-muted">Loading shipments details...</p>
     </div>
 
 
     <div v-else-if="error" class="text-center py-5">
       <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-      <h4 class="text-danger">Failed to load shipm details</h4>
+      <h4 class="text-danger">Failed to load shipments details</h4>
       <p class="text-muted">{{ error }}</p>
       <button class="btn btn-primary" @click="fetchshipmDetails">
         <i class="fas fa-redo"></i> Try Again
@@ -383,7 +383,7 @@ export default {
         }
 
       } catch (err) {
-        console.error('Error loading shipm details:', err)
+        // console.error('Error:', err)
         error.value = `Failed to load shipm details: ${err.message}`
 
         // Fallback
@@ -401,7 +401,7 @@ export default {
             }
           }
         } catch (fallbackError) {
-          console.error('Fallback also failed:', fallbackError)
+          console.error('failed:', fallbackError)
         }
       } finally {
         loading.value = false
