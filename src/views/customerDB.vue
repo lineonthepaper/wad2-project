@@ -165,53 +165,66 @@
           </div>
 
           <div class="section-column parcels-column">
-            <div class="section-card">
-              <div class="card-header">
-                <div class="card-actions">
-                  <h3> Recent Shipments</h3>
-                </div>
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-actions">
+        <h3>Recent Shipments</h3>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="parcels-list">
+        <div
+          v-for="parcel in parcels"
+          :key="parcel.id"
+          class="parcel-item"
+          :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
+          @click="selectParcel(parcel)"
+        >
+          <div class="parcel-icon">
+            ⭐
+          </div>
+          <div class="parcel-details">
+            <div class="parcel-header">
+              <h4 class="tracking-id">{{ parcel.trackingId }}</h4>
+              <span class="status-badge" :class="`status-${parcel.status.toLowerCase().replace(' ', '-')}`">
+                {{ parcel.status }}
+              </span>
+            </div>
+            <div class="parcel-info">
+              <div class="info-item">
+                <span>👤</span>
+                <span>{{ parcel.recipientAddress?.name || 'Recipient' }}</span>
               </div>
-              <div class="card-body">
-                <div class="parcels-list">
-                  <div
-                    v-for="parcel in parcels"
-                    :key="parcel.id"
-                    class="parcel-item"
-                    :class="{ 'active': selectedParcel && selectedParcel.id === parcel.id }"
-                    @click="selectParcel(parcel)"
-                  >
-                    <div class="parcel-icon">
-                      ⭐
-                    </div>
-                    <div class="parcel-details">
-                      <div class="parcel-header">
-                        <h4 class="tracking-id">{{ parcel.trackingId }}</h4>
-                        <span class="status-badge" :class="`status-${parcel.status.toLowerCase().replace(' ', '-')}`">
-                          {{ parcel.status }}
-                        </span>
-                      </div>
-                      <div class="parcel-info">
-                        <div class="info-item">
-                          <span>👤</span>
-                          <span>{{ parcel.customer }}</span>
-                        </div>
-                        <div class="info-item">
-                          <span>📍</span>
-                          <span>{{ getLocationName(parcel.currentLocation || parcel.location) }}</span>
-                        </div>
-                        <div class="info-item">
-                          <span>📅</span>
-                          <span>{{ formatDate(parcel.expectedDelivery) }}</span>
-                        </div>
-                      </div>
-                      <div v-if="parcel.status === 'In Progress'" class="parcel-progress">
-                        <div class="progress-mini">
-                          <div class="progress-fill-mini" :style="{ width: calculateProgress(parcel) + '%' }"></div>
-                        </div>
-                        <span class="progress-text">{{ Math.round(calculateProgress(parcel)) }}%</span>
-                      </div>
-                    </div>
-                  </div>
+              <div class="info-item">
+                <span>📍</span>
+                <span>{{ parcel.recipientAddress?.countryCode || getLocationName(parcel.destination) }}</span>
+              </div>
+              <div class="info-item">
+                <span>📦</span>
+                <span>{{ parcel.service?.name || 'Standard Service' }}</span>
+              </div>
+              <div class="info-item">
+                <span>📅</span>
+                <span>{{ formatDate(parcel.expectedDelivery) }}</span>
+              </div>
+            </div>
+            <div v-if="parcel.status === 'In Progress'" class="parcel-progress">
+              <div class="progress-mini">
+                <div class="progress-fill-mini" :style="{ width: calculateProgress(parcel) + '%' }"></div>
+              </div>
+              <span class="progress-text">{{ Math.round(calculateProgress(parcel)) }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="parcels.length === 0" class="empty-state">
+          <span>📦</span>
+          <p>No shipments found</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
                   <div v-if="parcels.length === 0" class="empty-state">
                     <span>📦</span>
