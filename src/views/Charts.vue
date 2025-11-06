@@ -8,8 +8,6 @@
         </div>
 
         <div v-if="errorMessage" class="error-banner">
-          <i class="fas fa-exclamation-circle"></i>
-          {{ errorMessage }}
           <button @click="loadShipmentData" class="btn-retry">Retry</button>
         </div>
 
